@@ -1,5 +1,8 @@
 packages:
   - "apps/*"
-  - "packages/*"
-  - "database/*"
-  - "infra/*"
+  - "database"
+  - "database/models"
+  - "database/postgres"
+  - "packages"
+  - "packages/logger"
+  - "infra/*"  # keep this for future use
