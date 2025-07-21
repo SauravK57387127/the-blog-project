@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String?
+  sessionId String   @unique
+  ipAddress String
+  device    String
+  browser   String
+  os        String
+  country   String
+  startedAt DateTime
+  endedAt   DateTime
+  duration  Int
+}
+
+model PageView {
+  id          String   @id @default(uuid())
+  sessionId   String
+  userId      String?
+  url         String
+  referrer    String?
+  title       String?
+  timestamp   DateTime
+  timeSpent   Int
+  scrollDepth Int
+}
+
+model ClickEvent {
+  id          String   @id @default(uuid())
+  sessionId   String
+  userId      String?
+  pageUrl     String
+  elementId   String?
+  elementText String?
+  timestamp   DateTime
+}
+
+model ScrollEvent {
+  id          String   @id @default(uuid())
+  sessionId   String
+  userId      String?
+  pageUrl     String
+  scrollDepth Int
+  timestamp   DateTime
+}
+
+model TrafficSource {
+  id          String   @id @default(uuid())
+  sessionId   String
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  referrer    String?
+  timestamp   DateTime
+}
+
+model ErrorLog {
+  id           String   @id @default(uuid())
+  sessionId    String
+  userId       String?
+  pageUrl      String
+  errorMessage String
+  stackTrace   String?
+  browser      String
+  timestamp    DateTime
+}

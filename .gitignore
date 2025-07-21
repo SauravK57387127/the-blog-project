@@ -1,0 +1,20 @@
+# apps/backend/*.txt
+# apps/frontend_real/*.txt
+
+
+# Ignore node_modules everywhere
+**/node_modules/
+
+# Ignore env files
+**/.env
+
+# Ignore all .txt notes anywhere
+**/*.txt
+
+# Ignore Vercel & build outputs
+.vercel/
+.next/
+dist/
+
+# Optional: ignore system files
+.DS_Store
