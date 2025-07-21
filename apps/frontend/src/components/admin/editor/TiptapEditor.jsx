@@ -4,6 +4,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import FloatingMenuBar from "./FloatingMenuBar";
 import { allExtensions } from "./allExtensions";
 import { defaultContent } from "./menubarComponents/defaultContent";
+import { Button } from "@/components/ui/button";
 
 
 export default function Editor() {
@@ -102,6 +103,9 @@ export default function Editor() {
             >
                 Save & Publish
             </button>
+            <Button>
+                Schedule
+            </Button>
         </div>
     );
 }
