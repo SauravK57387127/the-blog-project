@@ -1,6 +1,13 @@
 import Redis from 'ioredis';
 
 
-const redis = new Redis(process.env.REDIS_URL + '?family=0'); // defaults to localhost:6379 | even without URL
+let redis = null;
 
-export default redis;
+export function getRedis() {
+  if (!redis) {
+    const url = process.env.REDIS_URL || 'redis://localhost:6379';
+    redis = new Redis(url + '?family=0');
+    // console.log(`🟢 Redis initialized: ${url}`);
+  }
+  return redis;
+}
