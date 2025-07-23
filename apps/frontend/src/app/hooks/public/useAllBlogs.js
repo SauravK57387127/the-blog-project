@@ -1,8 +1,8 @@
 // useAllBlogs.js
 
-export function useAllBlogs() {
-  // implement logic here
-}
+// export function useAllBlogs() {
+//   // implement logic here
+// }
 
 
 export function useAllBlogs(config) {                               // TYPE - 2
