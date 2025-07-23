@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
 
-// import httpLogger from '../../../packages/logger/httpLogger.js';
+import httpLogger from '../../../packages/logger/httpLogger.js';
 import routes from './routes/index.js';
 
 import { notFoundHandler } from './middlewares/notFoundHandler.middleware.js';
@@ -25,9 +25,9 @@ export const createApp = () => {
     app.use(compression());
     app.use(express.json());
 
-    // app.use(httpLogger);
-
+    app.use(httpLogger);
     
+
     app.get(
         '/',
         asyncHandler(async (req, res) => {
@@ -49,10 +49,20 @@ export const createApp = () => {
                 })
             );
             
+    app.get(
+        '/debug',
+        asyncHandler( async (req, res) => {
+            sendResponse({
+                res, 
+                message: "✅ Server reached DEBUG route",
+                data: { timestamp: new Date() }
+            })
+        })
+    )
             
-    app.get('/debug', (req, res) => {
-        res.send('✅ Server reached debug route');
-    });
+    // app.get('/debug', (req, res) => {
+    //     res.send('✅ Server reached debug route');
+    // });
                     
                     
     app.use('/api', routes);

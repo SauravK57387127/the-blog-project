@@ -4,27 +4,6 @@ import { logger } from '../../../../packages/logger/index.js';
 
 
 
-// export default async function loadMongo() {
-//   try {
-//     await mongoose.connect(`${mongoUri}/${dbName}`, {
-//       maxPoolSize: 10,
-//     });
-
-//     console.log('🟢 Mongo connected')
-//     logger.info('🟢 Mongo connected');
-    
-//   } catch (err) {
-//     console.log("🔴 Error occured: ", err)
-
-//     logger.error({ err }, '🔴 Mongo connection failed');
-//     // process.exit(1); // critical → stop boot
-//   }
-// }
-
-
-
-
-// Modified approach
 
 export default async function loadMongo() {
     if (!mongoUri) {
