@@ -1,24 +1,42 @@
-import { createApp } from './app.js';
+// import { createApp } from './app.js';
 import { port, flags } from './config/index.js';
-import loadMongo from './loaders/mongo.loader.js';
-import loadPrisma from './loaders/prisma.loader.js';
-import loadRedis from './loaders/redis.loader.js';
-import { logger } from '../../../packages/logger/index.js';
+// import loadMongo from './loaders/mongo.loader.js';
+// import loadPrisma from './loaders/prisma.loader.js';
+// import loadRedis from './loaders/redis.loader.js';
+// import { logger } from '../../../packages/logger/index.js';
 
 
 
 
-if (flags.enableMongo) await loadMongo();
-if (flags.enablePrisma) await loadPrisma();
-if (flags.enableRedis) await loadRedis();
+// if (flags.enableMongo) await loadMongo();
+// if (flags.enablePrisma) await loadPrisma();
+// if (flags.enableRedis) await loadRedis();
 
 
-const app = createApp();
+// const app = createApp();
 
 
-app.listen(port, () => {
-  logger.info(`🚀 Server running on http://localhost:${port}\n`);
-});
+// app.listen(port, () => {
+//   logger.info(`🚀 Server running on http://localhost:${port}\n`);
+// });
+
+
+
+
+
+import express from 'express';
+
+const app = express();
+
+app.get('/', (req, res) => res.send('Root OK'));
+app.get('/health', (req, res) => res.send('Health OK'));
+app.get('/debug', (req, res) => res.send('Debug OK'));
+
+// const PORT = process.env.PORT || 3000;
+app.listen(port, () => console.log(`Test server running on ${port}`));
+
+
+
 
 
 

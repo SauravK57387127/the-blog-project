@@ -1,0 +1,3 @@
+{"level":30,"time":1753258459180,"pid":100326,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🟢 Mongo connected\n\n"}
+{"level":30,"time":1753258459201,"pid":100326,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🟢 Redis connected\n\n"}
+{"level":30,"time":1753258459210,"pid":100326,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🚀 Server running on http://localhost:3000\n"}
