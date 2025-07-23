@@ -1,23 +1,22 @@
-# apps/backend/*.txt
-# apps/frontend_real/*.txt
-
-
-# Ignore node_modules everywhere
+# Node modules (anywhere)
 **/node_modules/
 
-# Ignore env files
+# Environment files (anywhere)
 **/.env
 
-# Ignore all .txt notes anywhere
-**/*.txt
+# Prisma generated outputs (optional)
+**/generated/prisma
 
-# Ignore Vercel & build outputs
+# Logs
+logs/
+
+# Build outputs
 .vercel/
 .next/
 dist/
 
-# Optional: ignore system files
-.DS_Store
+# Notes
+**/*.txt
 
-# Ignore logs
-logs/
+# macOS system file
+.DS_Store
