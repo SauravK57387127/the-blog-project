@@ -59,10 +59,6 @@ export const createApp = () => {
             })
         })
     )
-            
-    // app.get('/debug', (req, res) => {
-    //     res.send('✅ Server reached debug route');
-    // });
                     
                     
     app.use('/api', routes);
