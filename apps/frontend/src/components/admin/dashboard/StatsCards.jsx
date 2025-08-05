@@ -1,13 +1,10 @@
 export default function StatsCards() {
-return( 
-  <div>
-    <p>Global stats – total blogs, views, likes</p>
-  </div>
-);
+    return (
+        <div>
+            <p>Global stats – total blogs, views, likes</p>
+        </div>
+    );
 }
-
-
-
 
 // ### ✅ 2. `StatsCards.jsx`
 

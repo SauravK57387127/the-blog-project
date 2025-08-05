@@ -1,9 +1,5 @@
 import LogoutCard from "@/components/admin/auth/LogoutCard";
 
-
-
-
-
 export default function AdminLogoutPage() {
     return (
         <div>
@@ -11,10 +7,6 @@ export default function AdminLogoutPage() {
         </div>
     );
 }
-
-
-
-
 
 // ✅ /admin/logout
 

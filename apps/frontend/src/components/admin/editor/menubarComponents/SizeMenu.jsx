@@ -1,3 +1,5 @@
+"use client";
+
 import {
     MenubarMenu,
     MenubarTrigger,
@@ -5,11 +7,6 @@ import {
     MenubarItem,
 } from "@/components/ui/menubar";
 import { withEditorCommand } from "@/utils/editorUtils";
-
-
-
-
-
 
 export default function SizeMenu({ editor }) {
     if (!editor) return null; // This is a important line.
@@ -60,16 +57,6 @@ export default function SizeMenu({ editor }) {
         </MenubarMenu>
     );
 }
-
-
-
-
-
-
-
-
-
-
 
 // export default function SizeMenu({ editor }) {
 

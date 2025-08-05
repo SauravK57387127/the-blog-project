@@ -1,14 +1,8 @@
 export default function BlogRowActions() {
     return (
-        <div>
-Purpose: Action buttons for each blog (edit, delete, view)
-        </div>
-    )
+        <div>Purpose: Action buttons for each blog (edit, delete, view)</div>
+    );
 }
-
-
-
-
 
 // ### ✅ 2. `BlogRowActions.jsx`
 

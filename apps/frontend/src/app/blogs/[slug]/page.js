@@ -1,31 +1,16 @@
 import BLogPageWrapper from "@/components/public/blog-detail/BlogPageWrapper";
 
-
-
-
 export default function BlogDetailPage({ params }) {
-  return (
-    <main className="max-w-3xl mx-auto py-8">
-      <h1>Loading blog: {params.slug}</h1>
-      <p>Blog content, meta, actions, and comments will appear here.</p>
-      <BLogPageWrapper />
-    </main>
-  );
+    return (
+        <main className="max-w-3xl mx-auto py-8">
+            <h1>Loading blog: {params.slug}</h1>
+            <p>Blog content, meta, actions, and comments will appear here.</p>
+            <BLogPageWrapper />
+        </main>
+    );
 }
 
-
-
-
-
-
 // Once you're ready, you can replace it with BlogContent, BlogMeta, BlogActions, and CommentsSection.
-
-
-
-
-
-
-
 
 // ### 📄 `/blogs/[slug]` — Blog Detail (BlogDetailPage)
 
@@ -37,13 +22,7 @@ export default function BlogDetailPage({ params }) {
 //   * `BlogActions` (like, bookmark, etc.)
 //   * `CommentsSection`
 
-
-
-
 // ===============================================================================
-
-
-
 
 // ### ✅ Blog Detail Page Structure `/blogs/[slug]`
 

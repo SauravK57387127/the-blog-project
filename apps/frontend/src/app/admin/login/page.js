@@ -1,9 +1,5 @@
 import AuthCard from "@/components/admin/auth/AuthCard";
 
-
-
-
-
 export default function AdminLoginPage() {
     return (
         <div>
@@ -11,11 +7,6 @@ export default function AdminLoginPage() {
         </div>
     );
 }
-
-
-
-
-
 
 // Inside it:
 
@@ -25,8 +16,7 @@ export default function AdminLoginPage() {
 
 //     🟠 (Optional): Password form toggle                             Only if you decide to support legacy login (can stay hidden for now)
 
-
-// 🔒 You do not need a separate /admin/register page              
+// 🔒 You do not need a separate /admin/register page
 
 //     - With Google, first-time login is registration
 

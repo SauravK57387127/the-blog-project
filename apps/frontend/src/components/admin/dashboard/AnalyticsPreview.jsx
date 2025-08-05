@@ -1,14 +1,6 @@
 export default function AnalyticsPreview() {
-  return (
-  <div>
-    Quick website analytics + link to full analytics page
-  </div>
-);
+    return <div>Quick website analytics + link to full analytics page</div>;
 }
-
-
-
-
 
 // ### ✅ 5. `AnalyticsPreview.jsx`
 

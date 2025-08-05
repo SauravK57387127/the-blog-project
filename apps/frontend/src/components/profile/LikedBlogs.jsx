@@ -1,17 +1,6 @@
 export default function LikedBlogs() {
-    return (
-        <div>
-            Liked Blogs will be returned from here.
-        </div>
-    )
+    return <div>Liked Blogs will be returned from here.</div>;
 }
-
-
-
-
-
-
-
 
 // ### ✅ 2. `LikedBlogs.jsx` *(optional)*
 

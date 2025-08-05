@@ -1,3 +1,6 @@
+"use client";
+
+
 import {
     MenubarMenu,
     MenubarTrigger,
@@ -6,12 +9,6 @@ import {
     MenubarSeparator,
 } from "@/components/ui/menubar";
 import { withEditorCommand } from "@/utils/editorUtils";
-
-
-
-
-
-
 
 export default function FormatMenu({ editor }) {
     if (!editor) return null;
@@ -85,12 +82,6 @@ export default function FormatMenu({ editor }) {
         </MenubarMenu>
     );
 }
-
-
-
-
-
-
 
 // export default function FormatMenu({ editor }) {
 //     return (

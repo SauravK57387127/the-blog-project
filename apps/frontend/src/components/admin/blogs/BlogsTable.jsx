@@ -1,15 +1,6 @@
 export default function BlogsTable() {
-    return (
-        <div>
-            Purpose: Show all blogs in table form
-        </div>
-    )
+    return <div>Purpose: Show all blogs in table form</div>;
 }
-
-
-
-
-
 
 // ### ✅ 1. `BlogsTable.jsx`
 
@@ -32,4 +23,3 @@ export default function BlogsTable() {
 // ```js
 // BlogService.getAll({ page, limit, sort })
 // ```
-

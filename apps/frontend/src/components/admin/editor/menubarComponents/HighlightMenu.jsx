@@ -1,11 +1,9 @@
+"use client";
+
+
 import { MenubarMenu } from "@/components/ui/menubar";
 import { Button } from "@/components/ui/button";
 import { withEditorCommand } from "@/utils/editorUtils";
-
-
-
-
-
 
 export default function HighlightMenu({ editor }) {
     if (!editor) return null;

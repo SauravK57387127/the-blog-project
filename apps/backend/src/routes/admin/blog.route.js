@@ -1,22 +1,56 @@
 import { Router } from 'express';
 import AdminBlogController from '../../controllers/admin/blog.controller.js';
 
-
+ 
 const router = Router();
 
 // /api/admin/blogs
-router.get('/', AdminBlogController.list);
-router.post('/', AdminBlogController.create);
 
-router.get('/drafts', AdminBlogController.listDrafts);
-router.put('/drafts/:draftId', AdminBlogController.updateDraft);
-router.delete('/drafts/:draftId', AdminBlogController.deleteDraft);
+router.post('/schedule', AdminBlogController.scheduleBlog);
+router.post('/publish', AdminBlogController.publishBlog);
 
-router.put('/:blogId', AdminBlogController.update);
-router.delete('/:blogId', AdminBlogController.remove);
+router.get('/drafts', AdminBlogController.listDrafts);              // lists all drafts
+router.post('/drafts/autosave', AdminBlogController.blogAutoSave)
+router.post('/drafts/:id', AdminBlogController.updateDraft);    // CRUD on a particular draft
+router.get('/drafts/:id', AdminBlogController.getDraftById);
 
-router.post('/:blogId/publish', AdminBlogController.publishNow);
-router.post('/:blogId/schedule', AdminBlogController.schedulePublish);
+
+// router.get('/', AdminBlogController.list);
+// router.post('/', AdminBlogController.create);
+
+// router.delete('/drafts/:draftId', AdminBlogController.deleteDraft);
+
+// router.put('/:blogId', AdminBlogController.update);
+// router.delete('/:blogId', AdminBlogController.remove);
+
+// router.post('/:blogId/publish', AdminBlogController.publishNow);
+
+
+ 
 
 export default router;
+
+
+
+
+
+
  
+
+// ---
+
+// ### ✅ 7. Drafting Strategy (Senior-Level Logic)
+
+// What an SDE-3 would do:
+
+// * **Frontend**: debounce input (e.g., 3–5 sec after stop typing)
+// * **Also**: on `visibilitychange` (tab close/switch), trigger save
+// * **Backend**: POST to `/admin/drafts/save`
+// * Store to `Draft` model via upsert (`authorId` + `draftId`)
+// * Optional: use `localStorage` as backup + sync on reconnect
+
+// ⛔ Don’t save on every keystroke
+// ✅ Combine: debounce + tab-close + interval (fallback)
+
+// ---
+

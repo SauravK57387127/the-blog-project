@@ -1,15 +1,6 @@
 export default function BookmarkedBlogs() {
-    return (
-        <div>
-            Bookmared Blogs will be returned from here.
-        </div>
-    )
+    return <div>Bookmared Blogs will be returned from here.</div>;
 }
-
-
-
-
-
 
 // ### ✅ 1. `BookmarkedBlogs.jsx`
 

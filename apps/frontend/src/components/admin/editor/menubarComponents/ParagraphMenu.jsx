@@ -1,3 +1,5 @@
+"use client";
+
 import {
     MenubarMenu,
     MenubarTrigger,
@@ -7,10 +9,6 @@ import {
     MenubarSeparator,
 } from "@/components/ui/menubar";
 import { withEditorCommand } from "@/utils/editorUtils";
-
-
-
-
 
 export default function ParagraphMenu({ editor }) {
     return (

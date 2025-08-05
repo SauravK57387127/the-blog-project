@@ -1,10 +1,8 @@
+"use client";
+
+
 import { MenubarMenu } from "@/components/ui/menubar";
 import { Button } from "@/components/ui/button";
-
-
-
-
-
 
 export default function LinkMenu({ editor }) {
     if (!editor) return null;

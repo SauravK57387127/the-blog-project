@@ -1,14 +1,10 @@
 export default function TopBlogs() {
-return( 
-  <div>
-    <p>Top blogs by views – today, week, month</p>
-  </div>
-);
+    return (
+        <div>
+            <p>Top blogs by views – today, week, month</p>
+        </div>
+    );
 }
-
-
-
-
 
 // ### ✅ 3. `TopBlogs.jsx`
 

@@ -1,16 +1,11 @@
 import {
-  BlogContent,
-  AuthorCard,
-  BlogActions,
-  CommentsSection,
-  SimilarBlogs,
-  BlogTagsBar
-} from './parts';
-
-
-
-
-
+    BlogContent,
+    AuthorCard,
+    BlogActions,
+    CommentsSection,
+    SimilarBlogs,
+    BlogTagsBar,
+} from "./parts";
 
 export default function BLogPageWrapper() {
     return (
@@ -23,6 +18,5 @@ export default function BLogPageWrapper() {
             <SimilarBlogs />
             <CommentsSection />
         </div>
-    )
+    );
 }
-

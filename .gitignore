@@ -20,3 +20,5 @@ dist/
 
 # macOS system file
 .DS_Store
+
+*.md 

@@ -11,11 +11,6 @@ import Highlight from "@tiptap/extension-highlight";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 
-
-
-
-
-
 export const allExtensions = [
     StarterKit,
     TextStyle,
@@ -33,11 +28,10 @@ export const allExtensions = [
         defaultProtocol: "https",
         protocols: ["http", "https"],
         HTMLAttributes: {
-  class: "text-blue-500 underline hover:text-blue-700 visited:text-purple-600 cursor-pointer",
-  target: "_blank",
-  rel: "noopener noreferrer",
-},
-
+            class: "text-blue-500 underline hover:text-blue-700 visited:text-purple-600 cursor-pointer",
+            target: "_blank",
+            rel: "noopener noreferrer",
+        },
     }),
     Highlight.configure({
         multicolor: true,

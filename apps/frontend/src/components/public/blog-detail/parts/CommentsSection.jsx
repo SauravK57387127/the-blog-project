@@ -1,19 +1,6 @@
 export default function CommentsSection() {
-    return (
-        <div>
-            This is comment section. 
-        </div>
-    )
+    return <div>This is comment section.</div>;
 }
-
-
-
-
-
-
-
-
-
 
 // #### 5. **Comments Section**
 
@@ -23,12 +10,6 @@ export default function CommentsSection() {
 
 //   * `GET /api/blogs/:slug/comments`
 //   * `POST /api/blogs/:slug/comment`
-
-
-
-
-
-
 
 // ### ✅ 5. `CommentsSection.jsx`
 
@@ -43,8 +24,3 @@ export default function CommentsSection() {
 //   * `POST /api/blogs/:slug/comment`
 //   * `CommentController.addComment(req, res)`
 //   * `CommentService.addComment(userId, slug, content)`
-
-
-
-
-

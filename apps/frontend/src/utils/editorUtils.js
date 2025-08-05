@@ -27,5 +27,5 @@ export function withEditorCommand(editor, commandFn, isAllowed = () => true) {
 // You return a function that defines e
 
 // React provides e at runtime when the event occurs
- 
+
 // This is how all higher-order event handlers work in React/JS

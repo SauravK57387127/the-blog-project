@@ -1,18 +1,6 @@
 export default function ProfileHeader() {
-    return (
-        <div>
-            User avatar and name will be shown here.
-        </div>
-    )
+    return <div>User avatar and name will be shown here.</div>;
 }
-
-
-
-
-
-
-
-
 
 // ### ✅ 3. `ProfileHeader.jsx`
 
@@ -33,8 +21,6 @@ export default function ProfileHeader() {
 // ```js
 // UserService.getProfileInfo(userId)
 // ```
-
-
 
 // ProfileHeader.jsx is used to show a quick summary at the top of the profile page. Typically includes:
 

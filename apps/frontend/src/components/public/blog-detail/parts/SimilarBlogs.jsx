@@ -1,13 +1,10 @@
 export default function SimilarBlogs() {
     return (
         <div>
-            This component has other similar blogs related to current one. 
+            This component has other similar blogs related to current one.
         </div>
-    )
+    );
 }
-
-
-
 
 // #### 6. **Similar Blogs**
 
@@ -19,9 +16,6 @@ export default function SimilarBlogs() {
 // * Placement:
 
 //   * Either after comments or right sidebar
-
-
-
 
 // ### ✅ 6. `SimilarBlogs.jsx`
 

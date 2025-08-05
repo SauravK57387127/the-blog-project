@@ -1,6 +1,8 @@
+"use client";
+
+
 import { FloatingMenu } from "@tiptap/react";
-// import { Menubar } from "../ui/menubar";
-import { Menubar } from "@/components/ui/menubar"
+import { Menubar } from "@/components/ui/menubar";
 import {
     ParagraphMenu,
     FontMenu,
@@ -12,10 +14,6 @@ import {
     HighlightMenu,
     FormatMenu,
 } from "./menubarComponents";
-
-
-
-
 
 
 export default function FloatingMenuBar({ editor }) {

@@ -5,7 +5,7 @@ import BlogController from '../../controllers/public/blog.controller.js';
 const router = Router();
 
 // /api/blogs        → list published blogs
-router.get('/', BlogController.list);
+router.get('/', BlogController.getAllBlogs);
 
 // /api/blogs/popular → popular (Redis cached)
 router.get('/popular', BlogController.popular);
@@ -18,3 +18,4 @@ router.get('/:slug', BlogController.getBySlug);
 
 export default router;
 
+ 

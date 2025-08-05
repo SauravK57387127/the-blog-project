@@ -1,23 +1,12 @@
 export default function AdminEditBlogPage() {
-    return(
-    <div>
-      handles — the edit/view blog page.
-    </div>
-  ); 
+    return <div>handles — the edit/view blog page.</div>;
 }
-
-
-
-
 
 // Here’s what it will do:
 
 // * Prefill the Tiptap editor with blog data
 // * Allow editing title, tags, content
 // * Show a **Save/Update** button
-
-
-
 
 // Exactly ✅ — this is a **page**, not just a component.
 
@@ -33,10 +22,6 @@ export default function AdminEditBlogPage() {
 // ```
 
 // This makes it a proper route handler for that dynamic slug.
-
-
-
-
 
 // ### ✅ What it needs
 
@@ -60,5 +45,3 @@ export default function AdminEditBlogPage() {
 // BlogService.getBySlug
 // BlogService.updateBySlug
 // ```
-
-

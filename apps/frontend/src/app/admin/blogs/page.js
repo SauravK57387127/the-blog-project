@@ -1,10 +1,6 @@
 export default function AdminBlogsPage() {
-  return <div>...</div>;
+    return <div>...</div>;
 }
-
-
-
-
 
 // You're right — for `/admin/blogs`, you **don’t need extra folders** beyond:
 
@@ -15,4 +11,3 @@ export default function AdminBlogsPage() {
 // The rest (search, delete, refresh) all happen **within** `page.js` using logic/components — no new `page.js` routes needed.
 
 // ✅ Your current structure is complete. Just add logic & components inside `page.js`.
-

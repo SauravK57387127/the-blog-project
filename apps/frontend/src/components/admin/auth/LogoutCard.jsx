@@ -1,7 +1,3 @@
 export default function LogoutCard() {
-    return (
-        <div>
-            "You have been logged out"
-        </div>
-    );
+    return <div>"You have been logged out"</div>;
 }

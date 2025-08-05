@@ -1,10 +1,12 @@
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { sendResponse } from '../../utils/sendResponse.js';
+import PublicBlogService from '../../services/public/blog.service.js'
 
 
 export default {
-  list: asyncHandler(async (_req, res) => {                             
-    sendResponse({ res, message: 'List of blogs (dummy response)' });
+  getAllBlogs: asyncHandler(async (_req, res) => {                             
+    const result = await PublicBlogService.getAllBlogs();
+  sendResponse({ res, message: 'All published blogs fetched', data: result });
   }),
 
   getBySlug: asyncHandler(async (req, res) => {

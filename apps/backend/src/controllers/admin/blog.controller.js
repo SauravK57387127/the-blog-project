@@ -1,40 +1,37 @@
 import { asyncHandler } from '../../utils/asyncHandler.js';
-// import AdminBlogService from '../../services/admin/blog.service.js';
+import { sendResponse } from '../../utils/sendResponse.js';
+import AdminBlogService from '../../services/admin/blog.service.js';
+
 
 export default {
-  list: asyncHandler(async (req, res) => {
-    res.json({ msg: 'list blogs stub' });
-  }),
-
-  create: asyncHandler(async (req, res) => {
-    res.json({ msg: 'create blog stub' });
-  }),
-
   listDrafts: asyncHandler(async (req, res) => {
-    res.json({ msg: 'list drafts stub' });
-  }),
+  const result = await AdminBlogService.listDrafts();
+  sendResponse({ res, message: "All drafts", data: result });
+}),
+
+  blogAutoSave: asyncHandler(async (req, res) => {
+  const result = await AdminBlogService.blogAutoSave(req.body);
+  sendResponse({ res, message: "Draft saved", data: result });
+}),
 
   updateDraft: asyncHandler(async (req, res) => {
-    res.json({ msg: 'update draft stub' });
+  const result = await AdminBlogService.updateDraft(req.params.id, req.body);
+  sendResponse({ res, message: "Draft updated", data: result });
+}),
+
+    getDraftById: asyncHandler(async (req, res) => {
+  const result = await AdminBlogService.getDraftById(req.params.id);
+  sendResponse({ res, message: "Draft fetched", data: result });
+}),
+    
+  publishBlog: asyncHandler(async (req, res) => {
+    const result = await AdminBlogService.publishNow(req.body);
+    sendResponse({ res, message: "Blog published", data: result });
   }),
 
-  deleteDraft: asyncHandler(async (req, res) => {
-    res.json({ msg: 'delete draft stub' });
-  }),
-
-  update: asyncHandler(async (req, res) => {
-    res.json({ msg: 'update blog stub' });
-  }),
-
-  remove: asyncHandler(async (req, res) => {
-    res.json({ msg: 'remove blog stub' });
-  }),
-
-  publishNow: asyncHandler(async (req, res) => {
-    res.json({ msg: 'publish now stub' });
-  }),
-
-  schedulePublish: asyncHandler(async (req, res) => {
-    res.json({ msg: 'schedule publish stub' });
+  scheduleBlog: asyncHandler(async (req, res) => {
+    const { blog, scheduled } = await AdminBlogService.scheduleBlog(req.body);
+    const message = scheduled ? "Blog scheduled" : "Published immediately";
+    sendResponse({ res, message, data: blog });
   }),
 };

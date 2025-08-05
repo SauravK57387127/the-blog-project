@@ -1,17 +1,6 @@
 export default function BlogContent() {
-    return (
-        <div>
-            This contains the actual blog content. 
-        </div>
-    )
+    return <div>This contains the actual blog content.</div>;
 }
-
-
-
-
-
-
-
 
 // ### ✅ 1. `BlogContent.jsx`
 
@@ -19,13 +8,7 @@ export default function BlogContent() {
 // * 🧠 `BlogController.getSingleBlog(req, res)`
 // * 🔧 `BlogService.getSingleBlogBySlug(slug)`
 
-
-
-
 // ===========================================================================================================
-
-
-
 
 // #### 1. **Blog Content**
 
@@ -84,5 +67,3 @@ export default function BlogContent() {
 //   * Either after comments or right sidebar
 
 // ---
-
-

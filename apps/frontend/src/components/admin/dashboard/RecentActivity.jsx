@@ -1,13 +1,6 @@
 export default function RecentActivity() {
-  return( 
-  <div>
-    Recent blog activity (latest published, updated)
-  </div>
-);
+    return <div>Recent blog activity (latest published, updated)</div>;
 }
-
-
-
 
 // ### ✅ 1. `RecentActivity.jsx`
 
@@ -30,7 +23,3 @@ export default function RecentActivity() {
 // ```js
 // BlogService.getRecentBlogs(limit)
 // ```
-
-
-
-

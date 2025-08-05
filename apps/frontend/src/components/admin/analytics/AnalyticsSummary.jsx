@@ -1,7 +1,3 @@
 export default function AnalyticsSummary() {
-    return (
-        <div>
-            key stats (visits, bounce, time)
-        </div>
-    )
+    return <div>key stats (visits, bounce, time)</div>;
 }

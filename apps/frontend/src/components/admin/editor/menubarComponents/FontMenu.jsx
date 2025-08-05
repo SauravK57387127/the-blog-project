@@ -1,3 +1,6 @@
+"use client";
+
+
 import {
     MenubarMenu,
     MenubarTrigger,
@@ -5,11 +8,6 @@ import {
     MenubarItem,
 } from "@/components/ui/menubar";
 import { withEditorCommand } from "@/utils/editorUtils";
-
-
-
-
-
 
 export default function FontMenu({ editor }) {
     const fonts = ["Inter", "Serif", "Mono", "Comic Sans", "Times"];

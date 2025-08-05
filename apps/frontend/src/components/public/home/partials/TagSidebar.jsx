@@ -1,14 +1,6 @@
 export default function TagSideBar() {
-    return (
-        <div>
-            shows all tags; clicking sets ?tag=slug
-        </div>
-    )
+    return <div>shows all tags; clicking sets ?tag=slug</div>;
 }
-
-
-
-
 
 // ### 1. Backend endpoints (sufficient for your scope):
 

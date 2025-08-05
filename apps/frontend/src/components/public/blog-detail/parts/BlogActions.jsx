@@ -1,19 +1,8 @@
 export default function BlogActions() {
     return (
-        <div>
-            This contains a sidebar for bookmark, like & comment icons.
-        </div>
-    )
+        <div>This contains a sidebar for bookmark, like & comment icons.</div>
+    );
 }
-
-
-
-
-
-
-
-
-
 
 // #### 3. **Blog Actions**
 
@@ -23,10 +12,6 @@ export default function BlogActions() {
 //   * 👍 Like → `POST /api/blogs/:slug/like`
 //   * 🔖 Bookmark → `POST /api/blogs/:slug/bookmark`
 //   * 💬 Comment icon → scrolls to comment section
-
-
-
-
 
 // ### ✅ 3. `BlogActions.jsx`
 

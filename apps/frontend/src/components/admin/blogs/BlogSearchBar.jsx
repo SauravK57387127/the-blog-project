@@ -1,14 +1,6 @@
 export default function BlogSearchBar() {
-    return (
-        <div>
-            Purpose: Search/filter blogs by title/tags/status
-        </div>
-    )
+    return <div>Purpose: Search/filter blogs by title/tags/status</div>;
 }
-
-
-
-
 
 // ### ✅ 3. `BlogSearchBar.jsx` *(optional)*
 

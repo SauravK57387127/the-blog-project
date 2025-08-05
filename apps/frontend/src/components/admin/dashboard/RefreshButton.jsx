@@ -1,13 +1,6 @@
 export default function RefreshButton() {
-return( 
-  <div>
-    Button to refresh dashboard data
-  </div>
-);
+    return <div>Button to refresh dashboard data</div>;
 }
-
-
-
 
 // ### ✅ 4. `RefreshButton.jsx`
 
@@ -17,4 +10,3 @@ return(
 
 // * Will trigger re-fetch logic in frontend (e.g. SWR/React Query)
 // * You can memo this plan: `onClick => revalidate all useSWR keys
-

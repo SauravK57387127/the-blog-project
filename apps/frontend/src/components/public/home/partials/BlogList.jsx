@@ -1,16 +1,20 @@
+import { useAllBlogs } from "@/hooks/public/useAllBlogs";
+
 export default function BlogList() {
+    const { data: blogs, isLoading } = useAllBlogs({ staletime: 0 });
+    if (isLoading) return <div>Loading blogs...</div>;
+
     return (
         <div>
-            displays all/found blogs
+            {blogs.map((blog) => (
+                <div key={blog._id}>
+                    <h2>{blog.title}</h2>
+                    <p>{blog.excerpt}</p>
+                </div>
+            ))}
         </div>
-    )
+    );
 }
-
-
-
-
-
-
 
 // ### 1. Backend endpoints (sufficient for your scope):
 

@@ -1,14 +1,6 @@
 export default function SearchBar() {
-    return (
-        <div>
-            handles ?q=search-term
-        </div>
-    )
+    return <div>handles ?q=search-term</div>;
 }
-
-
-
-
 
 // ### 1. Backend endpoints (sufficient for your scope):
 
@@ -17,5 +9,3 @@ export default function SearchBar() {
 // GET /api/blogs/search?q=term              // search by text
 // GET /api/blogs/tag/:slug?limit=10         // fetch blogs by tag
 // ```
-
-

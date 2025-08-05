@@ -6,4 +6,4 @@ packages:
   - "database/postgres"
   - "packages"
   - "packages/logger"
-  - "infra/*"  # keep this for future use
+  - "infra/*"  
