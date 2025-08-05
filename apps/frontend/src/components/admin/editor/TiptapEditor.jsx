@@ -31,7 +31,7 @@ function extractBlogMetaFromJSON(json) {
     return { title, coverImage, tags };
 }
 
-export default function TiptapEditor({ mode="create", draftId=null }) {
+export default function TiptapEditor({ mode, draftId=null }) {
     const [initialContent, setInitialContent] = useState(defaultContent);
     const [scheduledTime, setScheduledTime] = useState("");
     const [currentDraftId, setCurrentDraftId] = useState(draftId);
