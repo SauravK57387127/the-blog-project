@@ -11,6 +11,13 @@ export function useDraftMutation(config) {
 }
 
 export function useGetDraftById(id, config) {
-    return useSmartQuery(["draft", id], `/api/admin/drafts/${id}`, config);
+    return useSmartQuery(
+        ["draft", id], 
+        `/api/admin/drafts/${id}`, 
+        {
+            enabled: !!id && id !== null, // Prevent null/undefined calls
+            ...config
+        }
+    );
 }
  
