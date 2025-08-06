@@ -14,5 +14,8 @@
   "packageManager": "pnpm@10.13.1",
   "devDependencies": {
     "prisma": "^6.10.1"
+  },
+  "dependencies": {
+    "bullmq": "^5.56.9"
   }
 }
