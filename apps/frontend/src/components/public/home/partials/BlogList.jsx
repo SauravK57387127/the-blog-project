@@ -1,15 +1,17 @@
 import { useAllBlogs } from "@/hooks/public/useAllBlogs";
 
 export default function BlogList() {
-    const { data: blogs, isLoading } = useAllBlogs({ staletime: 0 });
-    if (isLoading) return <div>Loading blogs...</div>;
+    const { data: blogs, isLoading, error } = useAllBlogs();
+
+    if (isLoading) return <div>Loading...</div>;
+    if (error) return <div>Error loading blogs</div>;
+    if (!blogs?.length) return <div>No blogs published yet</div>;
 
     return (
         <div>
             {blogs.map((blog) => (
                 <div key={blog._id}>
                     <h2>{blog.title}</h2>
-                    <p>{blog.excerpt}</p>
                 </div>
             ))}
         </div>

@@ -3,9 +3,12 @@
 import { useSmartQuery } from "@/utils/useSmartQuery";
 
 export function useAllBlogs(config) {
-    // TYPE - 2
     return useSmartQuery(["allBlogs"], "/api/blogs", config);
 }
+
+
+
+
 
 // Example - inside component
 

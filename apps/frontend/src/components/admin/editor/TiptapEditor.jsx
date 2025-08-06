@@ -6,15 +6,16 @@ import { EditorContent, useEditor } from "@tiptap/react";
 
 import FloatingMenuBar from "./FloatingMenuBar";
 import { Button } from "@/components/ui/button";
-import { allExtensions } from "./allExtensions";
-import { defaultContent } from "./menubarComponents/defaultContent";
+import { allExtensions } from "./allExtensions.js";
+import { defaultContent } from "./menubarComponents/defaultContent.js";
 
-import { useDraftMutation, useGetDraftById } from "@/hooks/admin/useDrafts";
+import { useDraftMutation, useGetDraftById } from "@/hooks/admin/useDrafts.js";
 
-import { slugify } from "@/utils/slugify";
+import { slugify } from "@/utils/slugify.js";
 
-import { usePublishBlog } from "@/hooks/admin/usePublishBlog";
-import { useScheduleBlog } from "@/hooks/admin/useScheduleBlog";
+import { usePublishBlog } from "@/hooks/admin/usePublishBlog.js";
+import { useScheduleBlog } from "@/hooks/admin/useScheduleBlog.js";
+
 
 function extractBlogMetaFromJSON(json) {
     const nodes = json.content || [];

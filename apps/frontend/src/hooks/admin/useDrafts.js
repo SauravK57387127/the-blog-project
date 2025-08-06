@@ -9,7 +9,7 @@ export function useDraftMutation(config) {
         ...config,
     });
 }
-
+  
 export function useGetDraftById(id, config) {
     return useSmartQuery(
         ["draft", id], 

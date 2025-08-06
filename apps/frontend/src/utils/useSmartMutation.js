@@ -32,7 +32,7 @@ export function useSmartMutation(endpoint, method = "POST", options = {}) {
         },
         ...options,
     });
-}
+} 
 
 // Example ->
 

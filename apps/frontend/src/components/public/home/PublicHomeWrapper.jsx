@@ -4,7 +4,7 @@ export default function PublicHomeWrapper() {
     return (
         <div>
             <SearchBar />
-            {/* <BlogList /> */}
+            <BlogList />
             <TagSidebar />
             <NoBlogsFound />
         </div>

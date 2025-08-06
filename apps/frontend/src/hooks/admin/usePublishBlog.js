@@ -7,5 +7,3 @@ export const usePublishBlog = () =>
         invalidateKeys: [["all-drafts"]], // ADD THIS
     });
 
-// export const usePublishBlog = () =>
-//     useSmartMutation("/api/admin/blogs/publish");
