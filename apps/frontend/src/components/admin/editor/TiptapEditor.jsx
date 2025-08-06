@@ -55,16 +55,15 @@ export default function TiptapEditor({ mode, draftId=null }) {
     useEffect(() => {
         if (mode === "edit" && draftData && editor) {
             console.log("📝 Loading draft into editor:", draftData.title);
-            editor.commands.setInitialContent(
-                draftData.content || defaultContent,
-            );
+            editor.commands.setContent(draftData.content || defaultContent);
         }
-    }, [draftData, mode, editor]);
+    }, [draftData, mode]);
 
     // 🧠 Actual editor instance
     const editor = useEditor({
         extensions: allExtensions,
         content: initialContent, // ✅ Use dynamic content (either draft or default)
+        immediatelyRender: false,
         editorProps: {
             handleDOMEvents: {
                 keydown: (_, event) => {

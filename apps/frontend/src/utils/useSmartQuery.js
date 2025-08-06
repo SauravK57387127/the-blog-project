@@ -4,11 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import { fetcher } from "./fetcher";
 
 export function useSmartQuery(queryKey, endpoint, config = {}) {
-    if (endpoint.includes('/null') || endpoint.includes('/undefined')) {
+    if (!endpoint || endpoint.includes('/null') || endpoint.includes('/undefined') || endpoint.endsWith('/')) {
         return { data: null, isLoading: false, error: null };
     }
     
-    console.log(`🧠 useSmartQuery initialized → key:`, queryKey);
+    console.log(`🧠 useSmartQuery initialized → key:`, queryKey, `endpoint: ${endpoint}`);
 
     return useQuery({
         queryKey,

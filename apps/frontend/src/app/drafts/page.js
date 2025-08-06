@@ -4,8 +4,10 @@
 import { useSmartQuery } from "@/utils/useSmartQuery";
 
 export default function AllDraftsList() {
-    const { data: drafts, isLoading } = useSmartQuery(["all-drafts"], "/api/admin/blogs/drafts");
+    const { data: drafts, isLoading, error } = useSmartQuery(["all-drafts"], "/api/admin/blogs/drafts");
 
+    if (error) return <div>Error loading drafts: {error.message}</div>;
+    
     if (isLoading) return <div>Loading drafts...</div>;
     if (!drafts?.length) return <div>No drafts found</div>;
  

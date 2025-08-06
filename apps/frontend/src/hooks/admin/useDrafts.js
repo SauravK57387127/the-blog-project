@@ -9,13 +9,12 @@ export function useDraftMutation(config) {
         ...config,
     });
 }
-  
-export function useGetDraftById(id, config) {
+  export function useGetDraftById(id, config = {}) {
     return useSmartQuery(
         ["draft", id], 
         `/api/admin/drafts/${id}`, 
         {
-            enabled: !!id && id !== null, // Prevent null/undefined calls
+            enabled: Boolean(id) && id !== 'null' && id !== 'undefined',
             ...config
         }
     );
