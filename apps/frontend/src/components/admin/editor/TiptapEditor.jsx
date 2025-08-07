@@ -169,3 +169,5 @@ export default function TiptapEditor({ mode, draftId: initialDraftId = null }) {
         </div>
     );
 }
+
+
