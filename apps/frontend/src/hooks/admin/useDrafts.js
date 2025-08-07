@@ -4,19 +4,21 @@ import { useSmartMutation } from "@/utils/useSmartMutation";
 import { useSmartQuery } from "@/utils/useSmartQuery";
 
 export function useDraftMutation(config) {
-    return useSmartMutation("/api/admin/drafts/autosave", "POST", {
+    return useSmartMutation("admin/drafts/autosave", "POST", {
         invalidateKeys: [["all-drafts"]],
         ...config,
     });
 }
-  export function useGetDraftById(id, config = {}) {
+
+export function useGetDraftById(id, config = {}) {
+    const isValidId = Boolean(id);
+    
     return useSmartQuery(
         ["draft", id], 
-        `/api/admin/drafts/${id}`, 
+        isValidId ? `admin/drafts/${id}` : null, 
         {
-            enabled: Boolean(id) && id !== 'null' && id !== 'undefined',
+            enabled: isValidId,
             ...config
         }
     );
 }
- 

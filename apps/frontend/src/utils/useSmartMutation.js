@@ -5,7 +5,7 @@ import { fetcher } from "./fetcher";
 
 export function useSmartMutation(endpoint, method = "POST", options = {}) {
     const queryClient = useQueryClient();
-
+ 
     return useMutation({
         mutationFn: async (data) => {
             console.log(`🛠️ useSmartMutation: ${method} → ${endpoint}`);

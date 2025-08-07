@@ -1,113 +1,96 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-
 import { EditorContent, useEditor } from "@tiptap/react";
-
 import FloatingMenuBar from "./FloatingMenuBar";
 import { Button } from "@/components/ui/button";
 import { allExtensions } from "./allExtensions.js";
 import { defaultContent } from "./menubarComponents/defaultContent.js";
-
 import { useDraftMutation, useGetDraftById } from "@/hooks/admin/useDrafts.js";
-
 import { slugify } from "@/utils/slugify.js";
-
 import { usePublishBlog } from "@/hooks/admin/usePublishBlog.js";
 import { useScheduleBlog } from "@/hooks/admin/useScheduleBlog.js";
-
 
 function extractBlogMetaFromJSON(json) {
     const nodes = json.content || [];
     const title = nodes[0]?.content?.[0]?.text || "Untitled";
-
     const coverImage = nodes[1]?.attrs?.src || null;
-
     const tagsText = nodes[2]?.content?.[0]?.text || "";
-    const tags = tagsText
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean);
-
+    const tags = tagsText.split(",").map(tag => tag.trim()).filter(Boolean);
     return { title, coverImage, tags };
 }
 
-export default function TiptapEditor({ mode, draftId=null }) {
-    const [initialContent, setInitialContent] = useState(defaultContent);
+export default function TiptapEditor({ mode, draftId: initialDraftId = null }) {
+    const [draftId, setDraftId] = useState(initialDraftId);
     const [scheduledTime, setScheduledTime] = useState("");
-    const [currentDraftId, setCurrentDraftId] = useState(draftId);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isInitialContentSet, setIsInitialContentSet] = useState(false);
 
+    const autosaveTimer = useRef(null);
+    const editorRef = useRef(null);
 
-    const draftTimer = useRef(null);
-    const saveDraft = useDraftMutation({
+    const { data: draftData, isLoading: isDraftLoading } = useGetDraftById(draftId, {
+        enabled: !!draftId && mode === "edit",
+    });
+
+    const { mutate: saveDraft } = useDraftMutation({
         onSuccess: (data) => {
-            if (!currentDraftId && data._id) {
-                setCurrentDraftId(data._id); // Store for future updates
+            if (!draftId) {
+                setDraftId(data._id);
             }
-        }
+            setIsSaving(false);
+        },
+        onError: () => {
+            setIsSaving(false);
+        },
     });
 
-    const { data: draftData } = useGetDraftById(draftId, {
-        enabled: !!draftId,
-    });
-
-    // ⏬ Fill editor with existing draft content if in edit mode
-    useEffect(() => {
-        if (mode === "edit" && draftData && editor) {
-            console.log("📝 Loading draft into editor:", draftData.title);
-            editor.commands.setContent(draftData.content || defaultContent);
-        }
-    }, [draftData, mode]);
-
-    // 🧠 Actual editor instance
     const editor = useEditor({
         extensions: allExtensions,
-        content: initialContent, // ✅ Use dynamic content (either draft or default)
-        immediatelyRender: false,
+        content: defaultContent,
         editorProps: {
-            handleDOMEvents: {
-                keydown: (_, event) => {
-                    if (event.key === "Enter") {
-                        editor.commands.unsetAllMarks();
-                        const state = editor.state;
-                        const { $from } = state.selection;
-                        const node = $from.node();
-                        const isEmpty = node.content.size === 0;
-                        const isBlock = ["blockquote", "codeBlock"].includes(
-                            node.type.name,
-                        );
-                        if (isEmpty && isBlock) {
-                            editor.commands.clearNodes();
-                        }
-                    }
-                },
+            attributes: {
+                class: "prose dark:prose-invert prose-sm sm:prose-base lg:prose-lg xl:prose-2xl m-5 focus:outline-none",
             },
         },
         onUpdate: ({ editor }) => {
-            clearTimeout(draftTimer.current);
-
-            // 🧠 Save draft after delay (autosave on content/title change)
-            draftTimer.current = setTimeout(() => {
+            if (autosaveTimer.current) {
+                clearTimeout(autosaveTimer.current);
+            }
+            autosaveTimer.current = setTimeout(() => {
                 const json = editor.getJSON();
-                // const title = json.content?.[0]?.content?.[0]?.text || "Untitled";
-                const { title, coverImage, tags } =
-                    extractBlogMetaFromJSON(json);
-
-                saveDraft.mutate({
-                    ...(currentDraftId ? { _id: currentDraftId } : {}),
-                    title,
-                    content: json,
-                    coverImage,
-                    tags,
-                });
+                const { title, coverImage, tags } = extractBlogMetaFromJSON(json);
+                if (title.trim() !== "Untitled" && title.trim() !== "") {
+                    setIsSaving(true);
+                    saveDraft({
+                        ...(draftId ? { _id: draftId } : {}),
+                        title,
+                        content: JSON.stringify(json),
+                        coverImage,
+                        tags,
+                    });
+                }
             }, 2500);
         },
     });
 
     useEffect(() => {
+        if (editor && !editorRef.current) {
+            editorRef.current = editor;
+        }
+    }, [editor]);
+
+    useEffect(() => {
+        if (mode === "edit" && draftData && editorRef.current && !isInitialContentSet) {
+            editorRef.current.commands.setContent(JSON.parse(draftData.content) || defaultContent);
+            setIsInitialContentSet(true);
+        }
+    }, [draftData, mode, isInitialContentSet]);
+
+    useEffect(() => {
         return () => {
-            if (draftTimer.current) {
-                clearTimeout(draftTimer.current);
+            if (autosaveTimer.current) {
+                clearTimeout(autosaveTimer.current);
             }
         };
     }, []);
@@ -115,23 +98,13 @@ export default function TiptapEditor({ mode, draftId=null }) {
     const publishBlog = usePublishBlog();
     const scheduleBlog = useScheduleBlog();
 
-    useEffect(() => {
-        if (publishBlog.error) {
-            console.error("❌ Publish failed:", publishBlog.error.message);
-        }
-        if (scheduleBlog.error) {
-            console.error("❌ Schedule failed:", scheduleBlog.error.message);
-        }
-        if (saveDraft.error) {
-            console.error("❌ Draft save failed:", saveDraft.error.message);
-        }
-    }, [publishBlog.error, scheduleBlog.error, saveDraft.error]);
-
     function handleSave(isScheduled = false, scheduleAt = null) {
-        if (!editor) return;
+        if (!editorRef.current) return;
 
-        const json = editor.getJSON();
+        const json = editorRef.current.getJSON();
         const { title, coverImage, tags } = extractBlogMetaFromJSON(json);
+
+        if (title === "Untitled" || title.trim() === "") return;
 
         const payload = {
             title,
@@ -139,8 +112,8 @@ export default function TiptapEditor({ mode, draftId=null }) {
             content: json,
             coverImage,
             tags,
-            category: "General", // or let user select later
-            draftId: currentDraftId,
+            category: "General",
+            draftId,
             scheduleAt,
         };
 
@@ -151,142 +124,48 @@ export default function TiptapEditor({ mode, draftId=null }) {
         }
     }
 
-    // Add before handleSave call in schedule button:
     const handleSchedule = () => {
-        if (!scheduledTime) {
-            console.error("❌ No schedule time selected");
-            return;
-        }
-
+        if (!scheduledTime) return;
         const scheduleDate = new Date(scheduledTime);
-        if (scheduleDate <= new Date()) {
-            console.error("❌ Schedule time must be in future");
-            return;
-        }
-
+        if (scheduleDate <= new Date()) return;
         handleSave(true, scheduleDate.toISOString());
     };
 
+    if (mode === "edit" && isDraftLoading) {
+        return <div>Loading draft...</div>;
+    }
+
     return (
-        <div className="relative editor-wrapper">
-            <EditorContent editor={editor} className="editor-styled" />
+        <div className="relative editor-wrapper min-h-screen">
+            <EditorContent editor={editor} className="editor-styled pb-20" />
             <FloatingMenuBar editor={editor} />
-            <Button
-                onClick={handleSave}
-                className="absolute right-0 top-0 cursor-pointer bg-black text-white px-4 p-4 rounded-md text-sm shadow"
-            >
-                Save & Publish
-            </Button>
-            <input
-                type="datetime-local"
-                value={scheduledTime}
-                onChange={(e) => setScheduledTime(e.target.value)}
-                className="absolute right-36 top-0 bg-white border px-2 py-1 rounded"
-            />
-            <Button
-                onClick={handleSchedule}
-                className="cursor-pointer bg-black text-white px-4 p-4 rounded-md text-sm shadow"
-            >
-                Schedule
-            </Button>
+            <div className="fixed bottom-4 left-4 text-xs bg-gray-100 p-2 rounded shadow">
+                <div>Mode: {mode}</div>
+                <div>Draft ID: {draftId || 'none'}</div>
+                <div>Saving: {isSaving.toString()}</div>
+            </div>
+            <div className="fixed bottom-4 right-4 flex gap-2 bg-white p-2 rounded shadow-lg border">
+                <input
+                    type="datetime-local"
+                    value={scheduledTime}
+                    onChange={(e) => setScheduledTime(e.target.value)}
+                    className="bg-white border px-2 py-1 rounded text-sm"
+                />
+                <Button
+                    onClick={handleSchedule}
+                    disabled={!scheduledTime || isSaving}
+                    className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Schedule
+                </Button>
+                <Button
+                    onClick={() => handleSave()}
+                    disabled={isSaving}
+                    className="cursor-pointer bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-md text-sm shadow disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Save & Publish
+                </Button>
+            </div>
         </div>
     );
 }
-
-// "use client";
-
-// import { useEffect, useState, useRef } from "react";
-
-// import { EditorContent, useEditor } from "@tiptap/react";
-// import FloatingMenuBar from "./FloatingMenuBar";
-
-// import { Button } from "@/components/ui/button";
-
-// import { allExtensions } from "./allExtensions";
-// import { defaultContent } from "./menubarComponents/defaultContent";
-
-// import { useDraftMutation, useGetDraftById } from "@/hooks/admin/useDrafts";
-
-// export default function TiptapEditor({ mode, draftId }) {
-//     const [initialContent, setInitialContent] = useState(defaultContent);
-//   const draftTimer = useRef(null);
-//   const saveDraft = useDraftMutation();
-
-//     const { data: draftData } = useGetDraftById(draftId, mode === "edit");
-
-//     useEffect(() => {
-//     if (mode === "edit" && draftData) {
-//       setInitialContent(draftData?.content || defaultContent);
-//     }
-//   }, [draftData, mode]);
-
-//     function handleSave() {
-//   if (!editor) return
-
-//   const json = editor.getJSON()
-//     // const html = editor.getHTML()
-
-//   console.log("🧩 Editor JSON (structured):", json)
-//     // console.log("🌐 Editor HTML (renderable):", html)
-// }
-
-//     const editor = useEditor({
-//         extensions: allExtensions,
-//         editorProps: {
-//             handleDOMEvents: {
-//                 keydown: (_, event) => {
-//                     if (event.key === "Enter") {
-//                         // 1. Reset marks (highlight, etc.)
-//                         editor.commands.unsetAllMarks();
-
-//                         // 2. Check if in blockquote or codeBlock AND current block is empty
-//                         const state = editor.state;
-//                         const { $from } = state.selection;
-//                         const node = $from.node();
-
-//                         const isEmpty = node.content.size === 0;
-//                         const isBlock = ["blockquote", "codeBlock"].includes(
-//                             node.type.name,
-//                         );
-
-//                         if (isEmpty && isBlock) {
-//                             editor.commands.clearNodes(); // clears block and returns to paragraph
-//                         }
-//                     }
-//                 },
-//             },
-//         },
-//         content: defaultContent,
-//         onUpdate: ({ editor }) => {
-//             if (mode !== "new" && !draftId) return;
-
-//             clearTimeout(draftTimer.current);
-//             draftTimer.current = setTimeout(() => {
-//                 const json = editor.getJSON();
-//                 const title = json.content?.[0]?.content?.[0]?.text || "Untitled";
-
-//                 saveDraft.mutate({
-//                 ...(draftId ? { _id: draftId } : {}),
-//                     title,
-//                     content: json,
-//                 });
-//             }, 2500);
-//             },
-//         });
-
-//     return (
-//         <div className="relative">
-//             <EditorContent editor={editor} className="editor-styled" />
-//             <FloatingMenuBar editor={editor} />
-//             <button
-//                 onClick={handleSave}
-//                 className="absolute right-0 top-0 cursor-pointer bg-black text-white px-4 p-4 rounded-md text-sm shadow"
-//             >
-//                 Save & Publish
-//             </button>
-//             <Button>
-//                 Schedule
-//             </Button>
-//         </div>
-//     );
-// }
