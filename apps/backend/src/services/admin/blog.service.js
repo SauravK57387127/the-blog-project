@@ -16,7 +16,7 @@ export default {
     return await Draft.findByIdAndUpdate(_id, {
       title,
     //   slug, // Add this
-      content,
+      content, 
       coverImage,
       tags, // Add this
       updatedAt: new Date(),

@@ -35,3 +35,7 @@
 {"level":30,"time":1754467376438,"pid":38406,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🟢 Prisma connected\n\n"}
 {"level":30,"time":1754467376438,"pid":38406,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🟢 Redis connected\n\n"}
 {"level":30,"time":1754467376444,"pid":38406,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🚀 Server running on http://localhost:3000\n"}
+{"level":30,"time":1754469096018,"pid":39915,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🟢 Mongo connected\n\n"}
+{"level":30,"time":1754469096145,"pid":39915,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🟢 Prisma connected\n\n"}
+{"level":30,"time":1754469096145,"pid":39915,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🟢 Redis connected\n\n"}
+{"level":30,"time":1754469096152,"pid":39915,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🚀 Server running on http://localhost:3000\n"}
