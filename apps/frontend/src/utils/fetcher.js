@@ -6,7 +6,7 @@ export async function fetcher(url, options = {}) {
     console.log(`📡 Fetching: ${fullUrl}`);
 
 
-    const res = await fetch(url, {
+    const res = await fetch(fullUrl, {
         // credentials: "include", // optional: auto-sends cookies if present
         headers: {
             "Content-Type": "application/json",
