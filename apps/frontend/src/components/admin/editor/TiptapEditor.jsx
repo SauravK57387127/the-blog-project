@@ -171,3 +171,4 @@ export default function TiptapEditor({ mode, draftId: initialDraftId = null }) {
 }
 
 
+// Remmember: Yet to implement the logic if I UPDATED the content on editor's page and hasn't changed the title. 
