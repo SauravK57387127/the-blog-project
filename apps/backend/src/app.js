@@ -8,7 +8,7 @@ import httpLogger from '../../../packages/logger/httpLogger.js';
 import routes from './routes/index.js';
 
 import { notFoundHandler } from './middlewares/notFoundHandler.middleware.js';
-import { errorHander } from './middlewares/errorHandler.middleware.js';
+import { errorHandler } from './middlewares/errorHandler.middleware.js';
 
 import { sendResponse } from './utils/sendResponse.js';
 import { asyncHandler } from './utils/asyncHandler.js';
@@ -64,7 +64,7 @@ export const createApp = () => {
     app.use('/api', routes);
 
     app.use(notFoundHandler);
-    app.use(errorHander);
+    app.use(errorHandler);
 
     return app
 }

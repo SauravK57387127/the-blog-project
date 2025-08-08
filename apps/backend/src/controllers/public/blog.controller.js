@@ -5,10 +5,35 @@ import PublicBlogService from '../../services/public/blog.service.js'
 
 export default {
   getAllBlogs: asyncHandler(async (req, res) => { 
-    console.log("all_blogs controller reached !")                            
-    const result = await PublicBlogService.getAllBlogs();
-    console.log("all_blogs fetched !!")
-  sendResponse({ res, message: 'All published blogs fetched', data: result });
+    console.log('all_blogs controller reached!');
+
+    const blogs = await PublicBlogService.getAllBlogs();
+
+    // Add this safety check
+  if (!blogs || !Array.isArray(blogs)) {
+    return sendResponse({
+      res,
+      statusCode: 500,
+      success: false,
+      message: 'Service error - invalid response',
+      data: []
+    });
+  }
+
+    if (blogs.length === 0) {
+      return sendResponse({
+        res,
+        message: 'No blogs found',
+        data: []
+      });
+    }
+
+    console.log('all_blogs fetched !!');
+    return sendResponse({
+      res,
+      message: 'All published blogs fetched',
+      data: blogs
+    });
   }),
 
   getBySlug: asyncHandler(async (req, res) => {

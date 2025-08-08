@@ -21,8 +21,14 @@ export default {
 
     getDraftById: asyncHandler(async (req, res) => {
   const result = await AdminBlogService.getDraftById(req.params.id);
-  sendResponse({ res, message: "Draft fetched", data: result });
+
+  sendResponse({
+    res,
+    message: result.message,
+    data: result.found ? result.draft : null
+  });
 }),
+
     
   publishBlog: asyncHandler(async (req, res) => {
     const result = await AdminBlogService.publishNow(req.body);
