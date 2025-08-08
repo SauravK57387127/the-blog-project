@@ -3,10 +3,10 @@ import { BlogList, SearchBar, TagSidebar, NoBlogsFound } from "./partials";
 export default function PublicHomeWrapper() {
     return (
         <div>
-            <SearchBar />
+            {/* <SearchBar /> */}
             <BlogList />
-            <TagSidebar />
-            <NoBlogsFound />
+            {/* <TagSidebar />
+            <NoBlogsFound /> */}
         </div>
     );
 }
