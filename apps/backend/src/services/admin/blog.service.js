@@ -41,31 +41,6 @@ export default {
   }
 },
 
-
-//   blogAutoSave: async ({ _id, title, content, coverImage, tags }) => {
-//     if (!Draft) throw new Error('Draft model not available');
-
-//     if (_id) {
-//       return await Draft.findByIdAndUpdate(_id, {
-//         title,
-//         content, 
-//         coverImage,
-//         tags, // Add this
-//         updatedAt: new Date(),
-//         autosaveAt: new Date()
-//       }, { new: true });
-//     } else {
-//       return await Draft.create({ 
-//         title, 
-//         //   slug: slug || slugify(title), // Add this
-//         content, 
-//         coverImage,
-//         tags: tags || [] // Add this
-//       });
-//     }
-//   },
-
-
     updateDraft: async (draftId, updates) => {
         if (!Draft) throw new Error('Draft model not available');
     return await Draft.findByIdAndUpdate(draftId, updates, { new: true });

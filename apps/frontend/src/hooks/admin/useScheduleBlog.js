@@ -10,7 +10,7 @@ export const useScheduleBlog = () => {
     return useSmartMutation("/admin/blogs/schedule", "POST", {
         onSuccess: () => {
             toast.success("Blog scheduled successfully!");
-            router.push("/admin/drafts");
+            router.push("/admin/blogs/drafts");
         },
         onError: (error) => {
             toast.error(error.message || "Failed to schedule blog.");
