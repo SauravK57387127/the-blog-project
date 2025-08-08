@@ -2,7 +2,7 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:500
 
 
 export async function fetcher(url, options = {}) {
-    const fullUrl = url.startsWith('http') ? url : `${BACKEND_URL}/api/${url}`;
+    const fullUrl = url.startsWith('http') ? url : `${BACKEND_URL}/api${url}`;
     console.log(`📡 Fetching: ${fullUrl}`);
 
 

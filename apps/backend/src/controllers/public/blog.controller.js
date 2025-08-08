@@ -4,8 +4,10 @@ import PublicBlogService from '../../services/public/blog.service.js'
 
 
 export default {
-  getAllBlogs: asyncHandler(async (_req, res) => {                             
+  getAllBlogs: asyncHandler(async (req, res) => { 
+    console.log("all_blogs controller reached !")                            
     const result = await PublicBlogService.getAllBlogs();
+    console.log("all_blogs fetched !!")
   sendResponse({ res, message: 'All published blogs fetched', data: result });
   }),
 

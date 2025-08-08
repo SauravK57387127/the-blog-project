@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 export const useScheduleBlog = () => {
     const router = useRouter();
 
-    return useSmartMutation("admin/blogs/schedule", "POST", {
+    return useSmartMutation("/admin/blogs/schedule", "POST", {
         onSuccess: () => {
             toast.success("Blog scheduled successfully!");
             router.push("/admin/drafts");

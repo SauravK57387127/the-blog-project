@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 export const usePublishBlog = () => {
     const router = useRouter();
 
-    return useSmartMutation("admin/blogs/publish", "POST", {
+    return useSmartMutation("/admin/blogs/publish", "POST", {
         onSuccess: (data) => {
             toast.success("Blog published successfully!");
             router.push(`/blogs/${data.slug}`);
