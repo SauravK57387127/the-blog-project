@@ -1,6 +1,7 @@
 import { useAllBlogs } from "@/hooks/public/useAllBlogs";
 
 export default function BlogList() {
+    // This query runs twice because: check react_notes
     const { data: blogs, isLoading, error } = useAllBlogs();
 
     if (isLoading) return <div>Loading...</div>;

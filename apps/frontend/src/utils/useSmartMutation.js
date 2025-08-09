@@ -34,9 +34,3 @@ export function useSmartMutation(endpoint, method = "POST", options = {}) {
     });
 } 
 
-// Example ->
-
-// const createComment = useSmartMutation('/api/comments', 'POST', {
-//   invalidateKeys: [['comments', blogId]],
-//   onSuccess: () => console.log('Comment created'),
-// });

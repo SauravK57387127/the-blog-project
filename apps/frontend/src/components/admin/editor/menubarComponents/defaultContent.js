@@ -2,12 +2,11 @@ export const defaultContent = `
 <h1>Building a Clean Editor in Tiptap</h1>
 
 <p>Let’s walk through how to structure and style a rich text editor using Tiptap with full control.</p>
+<p>Start by creating an editor wrapper, layout containers, and using <code>EditorContent</code> to mount it.</p>
 
 <img src="https://cdn.bhdw.net/im/naruto-shippuden-itachi-uchiha-wallpaper-42402_w635.webp" alt="A placeholder of Itachi" />
 
 <h2>1. Setup & Structure</h2>
-
-<p>Start by creating an editor wrapper, layout containers, and using <code>EditorContent</code> to mount it.</p>
 
 <h3>UseEditor Example</h3>
 
