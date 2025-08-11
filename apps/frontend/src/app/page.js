@@ -1,6 +1,6 @@
 "use client";
 
-import TiptapEditor from "@/components/admin/editor/TiptapEditor";
+import TiptapEditor from "@/components/admin/editor/Editor";
 import PublicHomeWrapper from "@/components/public/home/PublicHomeWrapper";
 import { Button } from "@/components/ui/button";
 

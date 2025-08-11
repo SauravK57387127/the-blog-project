@@ -1,7 +1,7 @@
 // app/(admin)/drafts/[id]/page.jsx
 "use client";
 
-import TiptapEditor from "@/components/admin/editor/TiptapEditor";
+import TiptapEditor from "@/components/admin/editor/Editor";
 
 export default function DraftEditorPage({ params }) {
     const { id } = params;
