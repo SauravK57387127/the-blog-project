@@ -53,17 +53,21 @@ export default function Editor({ mode, draftId: initialDraftId = null }) {
 
     // Mutation to save/update drafts
     const { mutate: saveDraft } = useDraftMutation({
-        onSuccess: (data) => {
-            if (!draftId) setDraftId(data._id);
-            hasCreatedDraftRef.current = true;
-            console.log("[Draft] Created/Updated draft ID:", data._id);
-            setIsSaving(false);
-        },
-        onError: () => {
-            console.error("[Draft] Error saving draft");
-            setIsSaving(false);
-        },
-    });
+    onSuccess: (res) => {
+        // The backend wraps actual draft inside res.data
+        const savedDraft = res?.data;
+        if (!draftId && savedDraft?._id) {
+            setDraftId(savedDraft._id);
+        }
+        hasCreatedDraftRef.current = true; // once saved, future saves are updates
+        console.log("[Draft] Created/Updated draft ID:", savedDraft?._id);
+        setIsSaving(false);
+    },
+    onError: () => {
+        console.error("[Draft] Error saving draft");
+        setIsSaving(false);
+    },
+});
 
     // Publish & schedule
     const publishBlog = usePublishBlog();
