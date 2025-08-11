@@ -14,26 +14,38 @@ export default {
   },
 
   blogAutoSave: async ({ _id, title, content, coverImage, tags }) => {
-  if (!Draft) throw new Error('Draft model not available');
-  if (!title?.trim()) throw new Error('Title is required');
-  
+//   if (!Draft) throw new Error("Draft model not available");
+//   if (!title?.trim()) throw new Error("Title is required");
+//   if (!content) throw new Error("Content is required");
+
+
+    if (!Draft) return { found: false, message: "Draft model not available" };
+    if (!title?.trim()) return { found: false, message: "Title is empty, draft not created" };
+    if (!content) return { found: false, message: "Content is empty, draft not created" };
+
+
   try {
     if (_id) {
-      return await Draft.findByIdAndUpdate(_id, {
-        title: title.trim(),
-        //   slug, // Add this
-        content, 
-        coverImage,
-        tags,
-        updatedAt: new Date(),
-        autosaveAt: new Date()
-      }, { new: true });
+      // Update existing draft
+      return await Draft.findByIdAndUpdate(
+        _id,
+        {
+          title: title.trim(),
+          content,
+          coverImage: coverImage || null,
+          tags: Array.isArray(tags) ? tags : [],
+          updatedAt: new Date(),
+          autosaveAt: new Date()
+        },
+        { new: true }
+      );
     } else {
-      return await Draft.create({ 
-        title: title.trim(), 
-        content, 
-        coverImage,
-        tags: tags || []
+      // Create new draft
+      return await Draft.create({
+        title: title.trim(),
+        content,
+        coverImage: coverImage || null,
+        tags: Array.isArray(tags) ? tags : []
       });
     }
   } catch (error) {
@@ -42,18 +54,34 @@ export default {
 },
 
     updateDraft: async (draftId, updates) => {
-        if (!Draft) throw new Error('Draft model not available');
-    return await Draft.findByIdAndUpdate(draftId, updates, { new: true });
-  },
+    // if (!Draft) throw new Error("Draft model not available");
+    // if (!mongoose.Types.ObjectId.isValid(draftId)) throw new Error("Invalid draft ID format");
+
+    if (!Draft) return { found: false, message: "Draft model not available" };
+    if (!mongoose.Types.ObjectId.isValid(draftId)) return { found: false, message: "Invalid draft ID" };
+
+
+  return await Draft.findByIdAndUpdate(
+    draftId,
+    {
+      ...updates,
+      updatedAt: new Date()
+    },
+    { new: true }
+  );
+},
 
   getDraftById: async (draftId) => {
-  if (!Draft || typeof Draft.findById !== 'function') {
-    return { found: false, message: "Draft model not created yet", draft: null };
-  }
+    // if (!Draft || typeof Draft.findById !== 'function') throw new Error("Draft model not created yet");
+    // if (!mongoose.Types.ObjectId.isValid(draftId)) throw new Error("Invalid draft ID format");
 
-  if (!mongoose.Types.ObjectId.isValid(draftId)) {
+    if (!Draft || typeof Draft.findById !== 'function') {
+    return { found: false, message: "Draft model not created yet", draft: null };
+    }
+    if (!mongoose.Types.ObjectId.isValid(draftId)) {
     return { found: false, message: "Invalid draft ID format", draft: null };
-  }
+    }
+
 
   const draft = await Draft.findById(draftId).lean();
 
@@ -66,8 +94,12 @@ export default {
 
   // Publish now (status → published)
   publishNow: async ({ title, slug, content, tags, category, draftId, scheduleAt }) => {
-    if (!Blog) throw new Error('Blog model not available');
-  if (draftId && !Draft) throw new Error('Draft model not available')
+    // if (!Blog) throw new Error('Blog model not available');
+    // if (draftId && !Draft) throw new Error('Draft model not available');
+
+    if (!Blog) return { found: false, message: "Blog model not available" };
+    if (draftId && !Draft) return { found: false, message: "Draft model not available" };
+
 
     const blog = new Blog({
       title, slug, content, tags, category, scheduleAt,
@@ -88,8 +120,12 @@ export default {
 
   // Schedule publish via BullMQ
   scheduleBlog: async ({ title, slug, content, tags, category, draftId, scheduleAt }) => {
-     if (!Blog) throw new Error('Blog model not available');
-  if (draftId && !Draft) throw new Error('Draft model not available');
+     // if (!Blog) throw new Error('Blog model not available');
+    // if (draftId && !Draft) throw new Error('Draft model not available');
+
+    if (!Blog) return { found: false, message: "Blog model not available" };
+    if (draftId && !Draft) return { found: false, message: "Draft model not available" };
+
   
     const blog = new Blog({ title, slug, content, tags, category, scheduleAt, status: "scheduled" });
 

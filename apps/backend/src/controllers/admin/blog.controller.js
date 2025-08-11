@@ -14,10 +14,11 @@ export default {
   sendResponse({ res, message: "Draft saved", data: result });
 }),
 
-  updateDraft: asyncHandler(async (req, res) => {
+updateDraft: asyncHandler(async (req, res) => {
   const result = await AdminBlogService.updateDraft(req.params.id, req.body);
   sendResponse({ res, message: "Draft updated", data: result });
 }),
+
 
     getDraftById: asyncHandler(async (req, res) => {
   const result = await AdminBlogService.getDraftById(req.params.id);

@@ -1,7 +1,4 @@
-"use client";
-
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useRef } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import FloatingMenuBar from "./FloatingMenuBar";
 import { Button } from "@/components/ui/button";
@@ -12,233 +9,179 @@ import { slugify } from "@/utils/slugify.js";
 import { usePublishBlog } from "@/hooks/admin/usePublishBlog.js";
 import { useScheduleBlog } from "@/hooks/admin/useScheduleBlog.js";
 
-/**
- * Extracts title, coverImage, and tags directly from TipTap's doc structure
- * Ambition #3, #4, #9: works for both title-first and content-first workflows
- */
-function extractBlogMeta(editor) {
-    const titleNode = editor?.state?.doc?.firstChild;
-    const title = titleNode?.textContent || "Untitled";
+export default function Editor({ mode = "create", draftId: initialDraftId }) {
+  const [title, setTitle] = useState("");
+  const [coverImage, setCoverImage] = useState("");
+  const [tags, setTags] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [draftId, setDraftId] = useState(initialDraftId);
 
-    const coverImageNode = editor?.state?.doc?.child(1);
-    const coverImage = coverImageNode?.attrs?.src || null;
+  const autosaveTimer = useRef(null);
+  const hasCreatedDraftRef = useRef(false);
+  const lastContentRef = useRef("");
 
-    const tagsNode = editor?.state?.doc?.child(2);
-    const tagsText = tagsNode?.textContent || "";
-    const tags = tagsText.split(",").map(tag => tag.trim()).filter(Boolean);
+  // Fetch draft if editing
+  const { data: draftData, isLoading: isDraftLoading } = useGetDraftById(draftId, {
+    enabled: !!draftId && mode === "edit",
+    retry: (failureCount, error) => {
+      if (error?.message?.includes("404")) return false;
+      return failureCount < 2; // retry only once
+    },
+  });
 
-    return { title, coverImage, tags };
-}
-
-export default function Editor({ mode, draftId: initialDraftId = null }) {
-    const router = useRouter();
-
-    // Ambition #1 & #11: Works for both `/admin/blogs/new` and `/drafts/:id`
-    const [draftId, setDraftId] = useState(initialDraftId);
-    const [scheduledTime, setScheduledTime] = useState("");
-    const [isSaving, setIsSaving] = useState(false);
-    const [isInitialContentSet, setIsInitialContentSet] = useState(false);
-
-    // Refs to track session-based logic
-    const autosaveTimer = useRef(null);
-    const editorRef = useRef(null);
-    const hasCreatedDraftRef = useRef(false); // Ambition #3, #8, #9: only create draft once per mount
-    const prevTitleRef = useRef(null);
-    const prevContentRef = useRef(""); // Ambition #9: detect content changes
-
-    // Ambition #4, #5: Load existing draft if editing
-    const { data: draftData, isLoading: isDraftLoading } = useGetDraftById(draftId, {
-        enabled: !!draftId && mode === "edit",
-    });
-
-    // Mutation to save/update drafts
-    const { mutate: saveDraft } = useDraftMutation({
+  const { mutate: saveDraft } = useDraftMutation({
     onSuccess: (res) => {
-        // The backend wraps actual draft inside res.data
-        const savedDraft = res?.data;
-        if (!draftId && savedDraft?._id) {
-            setDraftId(savedDraft._id);
-        }
-        hasCreatedDraftRef.current = true; // once saved, future saves are updates
-        console.log("[Draft] Created/Updated draft ID:", savedDraft?._id);
+      if (res?.found === false) {
+        console.warn("[Draft] Save skipped:", res.message);
         setIsSaving(false);
+        return;
+      }
+      const savedDraft = res?.data;
+      if (!draftId && savedDraft?._id) {
+        setDraftId(savedDraft._id);
+      }
+      hasCreatedDraftRef.current = true;
+      console.log("[Draft] Created/Updated draft ID:", savedDraft?._id);
+      setIsSaving(false);
     },
-    onError: () => {
-        console.error("[Draft] Error saving draft");
-        setIsSaving(false);
-    },
-});
+  });
 
-    // Publish & schedule
-    const publishBlog = usePublishBlog();
-    const scheduleBlog = useScheduleBlog();
+  const { mutate: publishBlog } = usePublishBlog();
+  const { mutate: scheduleBlog } = useScheduleBlog();
 
-    // Ambition #2: Always start with defaultContent for new mode
-    const editor = useEditor({
-        extensions: allExtensions,
-        content: defaultContent,
-        editorProps: {
-            attributes: {
-                class: "prose dark:prose-invert prose-sm sm:prose-base lg:prose-lg xl:prose-2xl m-5 focus:outline-none",
-            },
-        },
-        onUpdate: ({ editor }) => {
-            if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+  // Initialize editor
+  const editor = useEditor({
+    extensions: allExtensions,
+    content: defaultContent,
+    onUpdate: ({ editor }) => {
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
 
-            autosaveTimer.current = setTimeout(() => {
-                const { title, coverImage, tags } = extractBlogMeta(editor);
-                const contentJSON = editor.getJSON();
-                const contentString = JSON.stringify(contentJSON);
+      autosaveTimer.current = setTimeout(() => {
+        const contentJSON = editor.getJSON();
+        const contentStr = JSON.stringify(contentJSON);
 
-                const titleChanged = title !== prevTitleRef.current;
-                const contentChanged = contentString !== prevContentRef.current;
-
-                // Track previous state
-                prevTitleRef.current = title;
-                prevContentRef.current = contentString;
-
-                // Ambition #3 & #9: Create draft once if title/content changes
-                if (!hasCreatedDraftRef.current && (titleChanged || contentChanged)) {
-                    console.log("[Draft] Creating new draft (first change detected)");
-                    setIsSaving(true);
-                    saveDraft({
-                        title,
-                        content: contentString,
-                        coverImage,
-                        tags,
-                    });
-                    return;
-                }
-
-                // Ambition #4: Update same draft for future changes
-                if (draftId && (titleChanged || contentChanged)) {
-                    console.log("[Draft] Updating existing draft:", draftId);
-                    setIsSaving(true);
-                    saveDraft({
-                        _id: draftId,
-                        title,
-                        content: contentString,
-                        coverImage,
-                        tags,
-                    });
-                }
-            }, 2000);
-        },
-    });
-
-    // Keep a reference to editor instance
-    useEffect(() => {
-        if (editor && !editorRef.current) {
-            editorRef.current = editor;
+        // Skip if content unchanged
+        if (contentStr === lastContentRef.current) {
+          console.log("[Draft] No content change detected, skipping save");
+          return;
         }
-    }, [editor]);
+        lastContentRef.current = contentStr;
 
-    // Ambition #11: Load draft content in edit mode
-    useEffect(() => {
-        if (mode === "edit" && draftData && editorRef.current && !isInitialContentSet) {
-            editorRef.current.commands.setContent(JSON.parse(draftData.content) || defaultContent);
-            setIsInitialContentSet(true);
-            prevTitleRef.current = extractBlogMeta(editorRef.current).title;
-            prevContentRef.current = draftData.content;
-            console.log("[Draft] Loaded existing draft:", draftId);
-        }
-    }, [draftData, mode, isInitialContentSet]);
-
-    // Ambition #7 & #8: Reset state for new mode on mount
-    useEffect(() => {
-        if (mode === "new" && editor && !isInitialContentSet) {
-            editor.commands.setContent(defaultContent);
-            setIsInitialContentSet(true);
-            prevTitleRef.current = extractBlogMeta(editor).title;
-            prevContentRef.current = JSON.stringify(editor.getJSON());
-            setDraftId(null);
-            hasCreatedDraftRef.current = false;
-            console.log("[Editor] Reset to default content for new session");
-        }
-    }, [mode, editor, isInitialContentSet]);
-
-    // Ambition #5: Cleanup autosave timer
-    useEffect(() => {
-        return () => {
-            if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
-        };
-    }, []);
-
-    // Ambition #6 & #10: Publish or schedule draft
-    const handleSave = useCallback((isScheduled = false, scheduleAt = null) => {
-        if (!editorRef.current) return;
-        const { title, coverImage, tags } = extractBlogMeta(editorRef.current);
-        if (!title.trim() || title === "Untitled") return;
-
-        const payload = {
+        setIsSaving(true);
+        if (!hasCreatedDraftRef.current) {
+          console.log("[Draft] Creating new draft...");
+          saveDraft({
             title,
-            slug: slugify(title),
-            content: editorRef.current.getJSON(),
             coverImage,
-            tags,
-            category: "General",
-            draftId,
-            scheduleAt,
-        };
-
-        console.log(isScheduled ? "[Publish] Scheduling blog" : "[Publish] Publishing blog", payload);
-
-        if (isScheduled) {
-            scheduleBlog.mutate(payload);
+            tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+            content: contentJSON,
+          });
         } else {
-            publishBlog.mutate(payload);
+          console.log("[Draft] Updating draft...");
+          saveDraft({
+            _id: draftId,
+            title,
+            coverImage,
+            tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+            content: contentJSON,
+          });
         }
-    }, [draftId, publishBlog, scheduleBlog]);
+      }, 2500);
+    },
+  });
 
-    const handleSchedule = useCallback(() => {
-        if (!scheduledTime) return;
-        const scheduleDate = new Date(scheduledTime);
-        if (scheduleDate <= new Date()) return;
-        handleSave(true, scheduleDate.toISOString());
-    }, [scheduledTime, handleSave]);
-
-    if (mode === "edit" && isDraftLoading) {
-        return <div>Loading draft...</div>;
+  // Load draft data into editor
+  useEffect(() => {
+    if (draftData?.data) {
+      setTitle(draftData.data.title || "");
+      setCoverImage(draftData.data.coverImage || "");
+      setTags(draftData.data.tags?.join(", ") || "");
+      editor?.commands.setContent(draftData.data.content || defaultContent);
     }
+  }, [draftData]);
 
-    return (
-        <div className="relative editor-wrapper min-h-screen">
-            <EditorContent editor={editor} className="editor-styled pb-20" />
-            <FloatingMenuBar editor={editor} />
+  // Cleanup autosave timer
+  useEffect(() => {
+    return () => {
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    };
+  }, []);
 
-            {/* Debug Info */}
-            <div className="fixed bottom-4 left-4 text-xs bg-gray-100 p-2 rounded shadow">
-                <div>Mode: {mode}</div>
-                <div>Draft ID: {draftId || "none"}</div>
-                <div>Saving: {isSaving.toString()}</div>
-            </div>
+  // Publish blog
+  const handlePublish = () => {
+    if (!title.trim()) {
+      console.warn("[Publish] Title is required");
+      return;
+    }
+    publishBlog({
+      _id: draftId,
+      title,
+      slug: slugify(title),
+      coverImage,
+      tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+      content: editor.getJSON(),
+    });
+  };
 
-            {/* Actions */}
-            <div className="fixed bottom-4 right-4 flex gap-2 bg-white p-2 rounded shadow-lg border">
-                <input
-                    type="datetime-local"
-                    value={scheduledTime}
-                    onChange={(e) => setScheduledTime(e.target.value)}
-                    className="bg-white border px-2 py-1 rounded text-sm"
-                />
-                <Button
-                    onClick={handleSchedule}
-                    disabled={!scheduledTime || isSaving}
-                    className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm shadow disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    Schedule
-                </Button>
-                <Button
-                    onClick={() => handleSave()}
-                    disabled={isSaving}
-                    className="cursor-pointer bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-md text-sm shadow disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    Save & Publish
-                </Button>
-            </div>
-        </div>
-    );
+  // Schedule blog
+  const handleSchedule = (scheduleDate) => {
+    if (!title.trim()) {
+      console.warn("[Schedule] Title is required");
+      return;
+    }
+    scheduleBlog({
+      _id: draftId,
+      title,
+      slug: slugify(title),
+      coverImage,
+      tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+      content: editor.getJSON(),
+      scheduleDate,
+    });
+  };
+
+  return (
+    <div className="editor-container">
+      {/* Blog Meta Inputs */}
+      <input
+        type="text"
+        placeholder="Blog Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        className="editor-title-input"
+      />
+      <input
+        type="text"
+        placeholder="Cover Image URL"
+        value={coverImage}
+        onChange={(e) => setCoverImage(e.target.value)}
+        className="editor-cover-input"
+      />
+      <input
+        type="text"
+        placeholder="Tags (comma separated)"
+        value={tags}
+        onChange={(e) => setTags(e.target.value)}
+        className="editor-tags-input"
+      />
+
+      {/* Editor */}
+      <EditorContent editor={editor} />
+      <FloatingMenuBar editor={editor} />
+
+      {/* Actions */}
+      <div className="editor-actions">
+        <Button onClick={handlePublish}>Publish</Button>
+        <Button onClick={() => handleSchedule(new Date())}>Schedule</Button>
+      </div>
+
+      {isSaving && <p className="saving-indicator">Saving...</p>}
+    </div>
+  );
 }
+
+
+
 
 
 
