@@ -15,15 +15,14 @@ export function useSmartMutation(endpoint, method = "POST", options = {}) {
             });
         },
         onSuccess: (data, variables, context) => {
-            console.log(`✅ Mutation success`);
-            if (options.invalidateKeys) {
-                options.invalidateKeys.forEach((key) => {
-                    queryClient.invalidateQueries(key);
-                    console.log(
-                        `♻️ Invalidated ${options.invalidateKeys.length} query keys`,
-                    );
-                });
-            }
+            if (!options.invalidateKeys) return;
+
+            const keys = Array.isArray(options.invalidateKeys) ? options.invalidateKeys : [options.invalidateKeys];
+            keys.forEach((key) => {
+  queryClient.invalidateQueries(key);
+  console.log(`♻️ Invalidated query key: ${key}`);
+});
+
             options.onSuccess?.(data, variables, context);
         },
         onError: (error, variables, context) => {

@@ -9,10 +9,11 @@ const router = Router();
 router.post('/schedule', AdminBlogController.scheduleBlog);
 router.post('/publish', AdminBlogController.publishBlog);
 
-router.get('/drafts', AdminBlogController.listDrafts);              // lists all drafts
-router.post('/drafts/autosave', AdminBlogController.blogAutoSave)
-router.post('/drafts/:id', AdminBlogController.updateDraft);    // CRUD on a particular draft
+router.post('/drafts/create-draft', AdminBlogController.createDraft)
+router.get('/drafts/list-drafts', AdminBlogController.listDrafts);              // lists all drafts
 router.get('/drafts/:id', AdminBlogController.getDraftById);
+router.post('/drafts/autosave', AdminBlogController.blogAutoSave)
+// router.post('/drafts/:id', AdminBlogController.updateDraft);    // CRUD on a particular draft
 
 
 // router.get('/', AdminBlogController.list);

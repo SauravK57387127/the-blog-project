@@ -14,6 +14,8 @@ export default function BlockquoteMenu({ editor }) {
     return (
         <MenubarMenu>
             <Button
+            variant={editor.isActive("blockquote") ? "default" : "outline"}
+  className="italic border-l-4 border-gray-400"
                 onMouseDown={withEditorCommand(
                     editor,
                     (editor) => editor.chain().focus().toggleBlockquote(),

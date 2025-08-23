@@ -2,22 +2,41 @@ import { asyncHandler } from '../../utils/asyncHandler.js';
 import { sendResponse } from '../../utils/sendResponse.js';
 import AdminBlogService from '../../services/admin/blog.service.js';
 
+// ❌ 
 
 export default {
+    createDraft: asyncHandler( async (req, res) => {
+        console.log("✅ create draft controller is reached!")
+        console.log(`frontend data [req.body]: ${req.body}`)
+        const result = await AdminBlogService.createDraft(req.body)
+        if (!result.success) {
+                      console.error("CONTROLLER: Draft creation failed 🟥");
+
+    return sendResponse({res, statusCode: 400, success: false, message: "Draft creation failed", data: null,});
+    }
+
+  return sendResponse({ res, statusCode: 201, success: true, message: result.message, data: result.draft });
+}),
+
   listDrafts: asyncHandler(async (req, res) => {
+    console.log("✅ list drafts controller reached!")
   const result = await AdminBlogService.listDrafts();
   sendResponse({ res, message: "All drafts", data: result });
 }),
 
   blogAutoSave: asyncHandler(async (req, res) => {
-  const result = await AdminBlogService.blogAutoSave(req.body);
-  sendResponse({ res, message: "Draft saved", data: result });
+  const {success, message, data} = await AdminBlogService.blogAutoSave(req.body);
+  if(!result.success) {
+    return sendResponse({ res, statusCode: 400, success: false, message: message, data: data })
+  }
+
+  sendResponse({ res, statusCode: 201, message: message, data: data });
 }),
 
-updateDraft: asyncHandler(async (req, res) => {
-  const result = await AdminBlogService.updateDraft(req.params.id, req.body);
-  sendResponse({ res, message: "Draft updated", data: result });
-}),
+// updateDraft: asyncHandler(async (req, res) => {
+//   const result = await AdminBlogService.updateDraft(req.params.id, req.body);
+//   sendResponse({ res, message: "Draft updated", data: result });
+// }),
 
 
     getDraftById: asyncHandler(async (req, res) => {
@@ -25,20 +44,20 @@ updateDraft: asyncHandler(async (req, res) => {
 
   sendResponse({
     res,
+    statusCode: 201,
     message: result.message,
-    data: result.found ? result.draft : null
+    data: result.sucess ? result.draft : null
   });
 }),
 
     
   publishBlog: asyncHandler(async (req, res) => {
-    const result = await AdminBlogService.publishNow(req.body);
-    sendResponse({ res, message: "Blog published", data: result });
+    const { success, message, data } = await AdminBlogService.publishNow(req.body);
+  sendResponse({ res, statusCode: 201, success, message, data });
   }),
 
   scheduleBlog: asyncHandler(async (req, res) => {
-    const { blog, scheduled } = await AdminBlogService.scheduleBlog(req.body);
-    const message = scheduled ? "Blog scheduled" : "Published immediately";
-    sendResponse({ res, message, data: blog });
-  }),
+  const { success, message, data } = await AdminBlogService.scheduleBlog(req.body);
+  sendResponse({ res, statusCode: 201, success, message, data });
+}),
 };

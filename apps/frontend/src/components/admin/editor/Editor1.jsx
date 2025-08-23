@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { allExtensions } from "./allExtensions.js";
 import { defaultContent } from "./menubarComponents/defaultContent.js";
 import { useDraftMutation, useGetDraftById } from "@/hooks/admin/useDrafts.js";
-import { slugify } from "@/utils/slugify.js";
+// import { slugify } from "@/utils/slugify.js";
 import { usePublishBlog } from "@/hooks/admin/usePublishBlog.js";
 import { useScheduleBlog } from "@/hooks/admin/useScheduleBlog.js";
 

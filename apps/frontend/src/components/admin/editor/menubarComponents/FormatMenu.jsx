@@ -78,24 +78,26 @@ export default function FormatMenu({ editor }) {
                 >
                     align C
                 </MenubarItem>
+
+                <MenubarItem
+                    onMouseDown={withEditorCommand(
+                        editor,
+                        (editor) =>
+                            editor.chain().focus().setTextAlign("right"),
+                        (editor) =>
+                            !editor.isActive("codeBlock") &&
+                            editor
+                                .can()
+                                .chain()
+                                .focus()
+                                .setTextAlign("right")
+                                .run(),
+                    )}
+                >
+                    align R
+                </MenubarItem>
             </MenubarContent>
         </MenubarMenu>
     );
 }
 
-// export default function FormatMenu({ editor }) {
-//     return (
-//         <MenubarMenu>
-//             <MenubarTrigger> ≡ </MenubarTrigger>
-//             <MenubarContent>
-//                 <MenubarItem> sub </MenubarItem>
-//                 <MenubarItem> sup </MenubarItem>
-
-//                 <MenubarSeparator />
-
-//                 <MenubarItem> align L</MenubarItem>
-//                 <MenubarItem> align R</MenubarItem>
-//             </MenubarContent>
-//         </MenubarMenu>
-//     );
-// }

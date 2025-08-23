@@ -17,8 +17,8 @@ import {
 
 
 export default function FloatingMenuBar({ editor }) {
-    if (!editor) return null;
-
+    if (!editor) return null
+    
     return (
         <FloatingMenu
             editor={editor}

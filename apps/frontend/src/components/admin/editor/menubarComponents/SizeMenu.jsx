@@ -38,7 +38,7 @@ export default function SizeMenu({ editor }) {
                                 editor,
                                 (editor) => {
                                     // This is a function
-                                    const node = e.isActive("heading")
+                                    const node = editor.isActive("heading")
                                         ? "heading"
                                         : "paragraph"; // Have to review this once more - LATER
                                     return editor
@@ -58,27 +58,3 @@ export default function SizeMenu({ editor }) {
     );
 }
 
-// export default function SizeMenu({ editor }) {
-
-//     const currentSize = editor.getAttributes("paragraph")?.class || defaultSize
-//     const currentLabel = sizes.find((s) => s.class === currentSize)?.label || "Medium"
-
-//     return (
-//         <MenubarMenu>
-//             <MenubarTrigger> {currentLabel} </MenubarTrigger>
-//             <MenubarContent>
-//                 {sizes
-//                     .filter((s) => s.class !== currentSize)
-//                     .map((s) => (
-//                         <MenubarItem
-//                             key={s.label}
-//                             onMouseDown={withEditorCommand(editor, (e) => {
-//                                 const nodeType = e.isActive("heading") ? "heading" : "paragraph"
-//                                 return e.updateAttributes("paragraph", {class: s.class})} )}>
-//                                 {s.label}
-//                         </MenubarItem>
-//                     ))}
-//             </MenubarContent>
-//         </MenubarMenu>
-//     );
-// }

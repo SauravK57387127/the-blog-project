@@ -1,7 +1,7 @@
 // app/drafts/[id]/page.jsx
 "use client";
 
-import Editor from "@/components/admin/editor/Editor";
+import Editor from "@/components/admin/editor/Editor1";
 
 export default function DraftEditorPage({ params }) {
   const { id } = params;
