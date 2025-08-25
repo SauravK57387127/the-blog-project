@@ -4,10 +4,8 @@ import { EditorContent } from "@tiptap/react";
 
 export function Editor() {
     const editor = useTiptap()
-if (!editor) {
-        console.log("[Editor] : didn't recieved editor")
-        return null
-    }  
+  if (!editor) return <p>Loading editor...</p>
+
     return (
     <EditorContent editor={editor}/>
   )

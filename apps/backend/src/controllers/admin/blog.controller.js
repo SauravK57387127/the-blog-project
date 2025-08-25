@@ -11,7 +11,6 @@ export default {
         const result = await AdminBlogService.createDraft(req.body)
         if (!result.success) {
                       console.error("CONTROLLER: Draft creation failed 🟥");
-
     return sendResponse({res, statusCode: 400, success: false, message: "Draft creation failed", data: null,});
     }
 
@@ -19,9 +18,16 @@ export default {
 }),
 
   listDrafts: asyncHandler(async (req, res) => {
-    console.log("✅ list drafts controller reached!")
+  console.log("✅ list drafts controller reached!");
   const result = await AdminBlogService.listDrafts();
-  sendResponse({ res, message: "All drafts", data: result });
+
+  return sendResponse({
+    res,
+    statusCode: result.success ? 200 : 400,
+    success: result.success,
+    message: result.message,
+    data: result.data,
+  });
 }),
 
   blogAutoSave: asyncHandler(async (req, res) => {

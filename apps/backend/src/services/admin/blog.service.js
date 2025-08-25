@@ -115,7 +115,7 @@ export default {
 },
 
   // Publish now (status → published)
-  publishNow: async ({ title, content, tags, category, draftId, scheduleAt }) => {
+  publishNow: async ({ title, content, tags, category, draftId }) => {
     // if (!Blog) throw new Error('Blog model not available');
     // if (draftId && !Draft) throw new Error('Draft model not available');
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useSmartMutation } from "@/utils/useSmartMutation";
+import { useSmartMutation, useSmartQuery } from "@/utils/apiClient";
 
 
 export function useCreateDraft(config = {}) {
@@ -11,7 +11,7 @@ export function useCreateDraft(config = {}) {
 }
 
 
-export function uesAllDrafts(config = {}) {
+export function useAllDrafts(config = {}) {
     return useSmartMutation("/admin/blogs/drafts/list-drafts", "POST", {
         invalidateKeys: [["all-drafts"]],
         config,
@@ -20,11 +20,6 @@ export function uesAllDrafts(config = {}) {
 
 
 export function useGetDraftById(id, config = {}) {
-    if (id === null || id === undefined) {
-        console.warn("❌ Invalid draft ID");
-        return { data: null, isError: true, error: "❌ Invalid draft ID" };
-    }
-
     return useSmartQuery(
         [["draft", id]],
         `/admin/blogs/drafts/${id}`,
@@ -37,8 +32,8 @@ export function useGetDraftById(id, config = {}) {
 
 
 // data will be sent via .mutate() and utilized via req.body 
-export function useDraftAutoSave(config = {}) {
-    return useSmartMutation("/admin/blogs/drafts/autosave", "POST", config)
+export function useDraftAutoSave(id, config = {}) {
+    return useSmartMutation(`/admin/blogs/drafts/${id}/autosave`, "POST", config)
 }
 
 

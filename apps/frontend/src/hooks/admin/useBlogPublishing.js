@@ -9,7 +9,7 @@ import { toast } from "sonner";
 export const usePublishBlog = () => {
     const router = useRouter();
 
-    return useSmartMutation("/admin/blogs/publish", "POST", {
+    return useSmartMutation("/admin/blogs/publish-draft", "POST", {
         onSuccess: (data) => {
             toast.success("Blog published successfully!");
             router.push(`/blogs/${data.slug}`);
@@ -25,7 +25,7 @@ export const usePublishBlog = () => {
 export const useScheduleBlog = () => {
     const router = useRouter();
 
-    return useSmartMutation("/admin/blogs/schedule", "POST", {
+    return useSmartMutation("/admin/blogs/schedule-draft", "POST", {
         onSuccess: () => {
             toast.success("Blog scheduled successfully!");
             router.push("/admin/blogs/drafts");
