@@ -1,6 +1,7 @@
 "use client";
 
 import { TitleInput } from "@/components/admin/editor/blogEditorChildren";
+import { Button } from "@/components/ui/button";
 // import { DateTimePicker } from "@/components/admin/editor/blogEditorChildren/DateTimePicker";
 // import Editor from "@/components/admin/editor/Editor1";
 // import { defaultContent } from "@/components/admin/editor/menubarComponents/defaultContent";
@@ -37,7 +38,7 @@ export default function NewBlogPage() {
         // </EditorProvider>
         <>
         <TitleInput title={title} setTitle={setTitle} />
-        <Button 
+        <Button
   onClick={() => {
       if (title.trim()) createDraft.mutate({ title });
     }}
