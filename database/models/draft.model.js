@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 
 const DraftSchema = new mongoose.Schema({
     title: { type: String, required: true },
-content: { type: String, required: true, default: "" },
+content: { type: String, default: "" },
     coverImage: { type: String },
     tags: { type: [String], default: [] },
     updatedAt: { type: Date, default: Date.now },
