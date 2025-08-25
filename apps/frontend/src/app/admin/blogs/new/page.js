@@ -35,6 +35,16 @@ export default function NewBlogPage() {
         // <EditorProvider>
         //     <EditorWrapper />
         // </EditorProvider>
+        <>
         <TitleInput title={title} setTitle={setTitle} />
+        <Button 
+  onClick={() => {
+      if (title.trim()) createDraft.mutate({ title });
+    }}
+>
+  Create Draft
+</Button>
+    </>
+
     );
 }
