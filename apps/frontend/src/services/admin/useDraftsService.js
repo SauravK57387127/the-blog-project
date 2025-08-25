@@ -4,7 +4,7 @@ import { useSmartMutation, useSmartQuery } from "@/utils/apiClient";
 
 
 export function useCreateDraft(config = {}) {
-    return useSmartMutation("admin/blogs/drafts/create-draft", "POST", {
+    return useSmartMutation("/admin/blogs/drafts/create-draft", "POST", {
         invalidateKeys: [["create-draft"]],
         config
     })
