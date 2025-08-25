@@ -21,6 +21,7 @@ export default function NewBlogPage() {
     const router = useRouter()
   const createDraft = useCreateDraft({
    onSuccess: (res) => {
+    console.log(`redirection id GOT!!: ${res?.data?._id} ✅✅`)
     if (res?.data?._id) {
       router.push(`/admin/blogs/drafts/${res.data._id}`);
     }

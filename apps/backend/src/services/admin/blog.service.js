@@ -15,7 +15,10 @@ export default {
     if (!draft) {
           console.error("SERVICE: Draft creation failed 🟥");
         return { success: false, message: "Draft creation failed 🟥", data: null };
-    } 
+    } else {
+        console.log('Draft created ✅')
+        console.log(`Draft: ${draft}`)
+    }
     // if (!draft) throw new Error("Failed to create draft");
 
     return { success: true, message: "Draft created ✅", data: draft };
