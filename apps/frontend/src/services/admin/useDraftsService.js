@@ -3,37 +3,38 @@
 import { useSmartMutation, useSmartQuery } from "@/utils/apiClient";
 
 
-export function useCreateDraft(config = {}) {
+export function useCreateDraft(options = {}) {
     return useSmartMutation("/admin/blogs/drafts/create-draft", "POST", {
         invalidateKeys: [["create-draft"]],
-        config
-    })
+        ...options
+    }
+)
 }
 
 
-export function useAllDrafts(config = {}) {
+export function useAllDrafts(options = {}) {
     return useSmartMutation("/admin/blogs/drafts/list-drafts", "POST", {
         invalidateKeys: [["all-drafts"]],
-        config,
+        ...options,
     });
 }
 
 
-export function useGetDraftById(id, config = {}) {
+export function useGetDraftById(id, options = {}) {
     return useSmartQuery(
         [["draft", id]],
         `/admin/blogs/drafts/${id}`,
         {
             enabled: Boolean(id),   // maybe undefined could become true here ?? !!!
-            config,
+            ...options,
         }
     );
 }
 
 
 // data will be sent via .mutate() and utilized via req.body 
-export function useDraftAutoSave(id, config = {}) {
-    return useSmartMutation(`/admin/blogs/drafts/${id}/autosave`, "POST", config)
+export function useDraftAutoSave(id, options = {}) {
+    return useSmartMutation(`/admin/blogs/drafts/${id}/autosave`, "POST", ...options)
 }
 
 

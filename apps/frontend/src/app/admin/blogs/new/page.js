@@ -20,13 +20,15 @@ export default function NewBlogPage() {
     // console.log("date & time : ", dt)
     const router = useRouter()
   const createDraft = useCreateDraft({
-   onSuccess: (res) => {
-    console.log(`redirection id GOT!!: ${res?.data?._id} ✅✅`)
-    if (res?.data?._id) {
-      router.push(`/admin/blogs/drafts/${res.data._id}`);
-    }
-  }
-  })
+  onSuccess: (res) => {
+    // if your fetcher returns { data, ... }:
+    console.log(`data recieved from backend ✅✅✅: ${res}`)
+    const id = res?.data?._id ?? res?._id;
+    if (id) router.push(`/admin/blogs/drafts/${id}`);
+  },
+  onError: (err) => console.error("Create draft failed:", err),
+});
+
   
   const [title, setTitle] = useState("")
 
