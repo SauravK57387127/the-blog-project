@@ -9,7 +9,7 @@ import { slugify } from "../../utils/slugify.js";
 export default {
   // Draft helpers
   createDraft: async (draftData) => {
-    console.log('✅ create draft SERVICE reached!!')
+    console.log('create draft SERVICE reached!! ✅')
     const draft = await Draft.create(draftData);
 
     if (!draft) {
@@ -22,7 +22,7 @@ export default {
   },
 
   listDrafts: async () => {
-    console.log('✅ list draft SERVICE reached!!')
+    console.log('list draft SERVICE reached!! ✅')
 
     const drafts = await Draft.find().sort({ updatedAt: -1 });
     if (drafts.length === 0) {

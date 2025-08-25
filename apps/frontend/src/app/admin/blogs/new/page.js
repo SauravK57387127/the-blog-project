@@ -20,9 +20,11 @@ export default function NewBlogPage() {
     // console.log("date & time : ", dt)
     const router = useRouter()
   const createDraft = useCreateDraft({
-    onSuccess: (data) => {
-      router.push(`/admin/blogs/drafts/${data._id}`)
+   onSuccess: (res) => {
+    if (res?.data?._id) {
+      router.push(`/admin/blogs/drafts/${res.data._id}`);
     }
+  }
   })
   
   const [title, setTitle] = useState("")
