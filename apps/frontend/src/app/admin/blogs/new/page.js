@@ -24,7 +24,7 @@ export default function NewBlogPage() {
     // if your fetcher returns { data, ... }:
     console.log(`data recieved from backend ✅✅✅: ${res}`)
     const id = res?.data?._id ?? res?._id;
-    if (id) router.push(`/admin/blogs/drafts/${id}`);
+    if (id) router.push(`/admin/drafts/${id}`);
   },
   onError: (err) => console.error("Create draft failed:", err),
 });
