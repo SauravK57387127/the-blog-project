@@ -2,7 +2,7 @@ import { useState } from "react";
 
 
 export function TagsInput({ tags, setTags }) {
-  const [input, setInput] = useState(tags.join(", "));
+const [input, setInput] = useState((tags || []).join(", "));
 
   const handleChange = (e) => {
     const value = e.target.value;
