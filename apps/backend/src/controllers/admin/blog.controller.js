@@ -14,7 +14,7 @@ export default {
     return sendResponse({res, statusCode: 400, success: false, message: "Draft creation failed", data: null,});
     }
 
-  return sendResponse({ res, statusCode: 201, success: true, message: result.message, data: result.draft });
+  return sendResponse({ res, statusCode: 201, success: true, message: result.message, data: result.data });
 }),
 
   listDrafts: asyncHandler(async (req, res) => {
