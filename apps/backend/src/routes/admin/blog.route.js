@@ -14,8 +14,8 @@ router.post('/drafts/:id/autosave', AdminBlogController.blogAutoSave)
 
 // router.post('/drafts/:id', AdminBlogController.updateDraft);    // CRUD on a particular draft
 
-router.post('/drafts/:id//publish-draft', AdminBlogController.publishBlog);
-router.post('/drafts/:id//schedule-draft', AdminBlogController.scheduleBlog);
+router.post('/drafts/:id/publish-draft', AdminBlogController.publishBlog);
+router.post('/drafts/:id/schedule-draft', AdminBlogController.scheduleBlog);
 
 
 // router.get('/', AdminBlogController.list);
