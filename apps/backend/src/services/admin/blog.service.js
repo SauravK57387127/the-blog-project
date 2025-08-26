@@ -140,7 +140,7 @@ export default {
     console.log(`Blog created => ${savedBlog} ✅✅`);
 
     if(_id){
-      await Draft.findByIdAndDelete(draftId);
+      await Draft.findByIdAndDelete(_id);
       console.log('🗑️ Draft deleted after publish:', _id, '✅✅✅');
     }
 
