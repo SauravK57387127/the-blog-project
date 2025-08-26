@@ -45,20 +45,22 @@ export function useSmartMutation(endpoint, method = "POST", options = {}) {
             });
         },
         onSuccess: (data, variables, context) => {
-            if (!options.invalidateKeys) return;
+                  options.onSuccess?.(data, variables, context);
 
-            const keys = Array.isArray(options.invalidateKeys) ? options.invalidateKeys : [options.invalidateKeys];
-            keys.forEach((key) => {
-  queryClient.invalidateQueries(key);
-  console.log(`♻️ Invalidated query key: ${key}`);
-});
+            if (options.invalidateKeys) {
+                const keys = Array.isArray(options.invalidateKeys) ? options.invalidateKeys : [options.invalidateKeys];
+                keys.forEach((key) => {
+      queryClient.invalidateQueries(key);
+      console.log(`♻️ Invalidated query key: ${key}`);
+    });
+            }
 
-            options.onSuccess?.(data, variables, context);
         },
         onError: (error, variables, context) => {
             console.error(`🚨 Mutation failed: ${error.message}`);
             options.onError?.(error, variables, context);
         },
+        
         ...options,
     });
 } 

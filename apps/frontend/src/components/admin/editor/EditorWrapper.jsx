@@ -8,15 +8,12 @@ export default function EditorWrapper({ draftId }) {
     coverImage, setCoverImage,
     dt, setDt,
     publishDraft, scheduleDraft,
-    isSaving
+    // isSaving
   } = useDraftEditor({ draftId })
 
 
   return (
-    //     <div className="space-y-4 p-4">
-    // </div>
-
-    <>
+        <div className="space-y-4 p-4">
     <TitleInput title={title} setTitle={setTitle} />
     <TagsInput tags={tags} setTags={setTags} />
     <CoverImage coverImage={coverImage} setCoverImage={setCoverImage} /> 
@@ -25,11 +22,11 @@ export default function EditorWrapper({ draftId }) {
     <PublishButton publishDraft={publishDraft} />
     <DateTimePicker value={dt} onChange={setDt}/>
     <ScheduleButton scheduleDraft={scheduleDraft} />
-            <span className="text-sm opacity-70">{isSaving ? 'Saving…' : 'Saved'}</span>
+            {/* <span className="text-sm opacity-70">{isSaving ? 'Saving…' : 'Saved'}</span> */}
 </div>                  
 
     <Editor />
     <EditorMenuBar />
-    </>
+    </div>
   )
 }

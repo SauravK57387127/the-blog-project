@@ -50,9 +50,10 @@ export default {
 
   sendResponse({
     res,
-    statusCode: 201,
+statusCode: result.success ? 201 : 404,
+    success: result.success, 
     message: result.message,
-    data: result.sucess ? result.draft : null
+    data: result.success ? result.draft : null
   });
 }),
 

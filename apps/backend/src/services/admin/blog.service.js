@@ -40,9 +40,9 @@ export default {
 //   if (!title?.trim()) throw new Error("Title is required");
 //   if (!content) throw new Error("Content is required");
     
-    if (!Draft) return { success: false, message: "Draft model not available 🟥" };
-    if (!title?.trim()) return { success: false, message: "Title is empty, draft not created 🟥" };
-    if (!content) return { success: false, message: "Content is empty, draft not created 🟥" };
+    // if (!Draft) return { success: false, message: "Draft model not available 🟥", data: null };
+    // if (!title?.trim()) return { success: false, message: "Title is empty, draft not created 🟥" };
+    // if (!content) return { success: false, message: "Content is empty, draft not created 🟥" };
 
 
   try {
@@ -100,22 +100,25 @@ export default {
     // if (!Draft || typeof Draft.findById !== 'function') throw new Error("Draft model not created yet");
     // if (!mongoose.Types.ObjectId.isValid(draftId)) throw new Error("Invalid draft ID format");
 
-    if (!Draft || typeof Draft.findById !== 'function') {
-    return { found: false, message: "Draft model not created yet", draft: null };
-    }
-    if (!mongoose.Types.ObjectId.isValid(draftId)) {
-    return { found: false, message: "Invalid draft ID format", draft: null };
-    }
+    // OLD generation code
+
+    // if (!Draft || typeof Draft.findById !== 'function') {
+    // return { found: false, message: "Draft model not created yet", draft: null };
+    // }                                                                                                            
+    // if (!mongoose.Types.ObjectId.isValid(draftId)) {
+    // return { found: false, message: "Invalid draft ID format", draft: null };
+    // }
 
 
   const draft = await Draft.findById(draftId).lean();
 
   if (!draft) {
-    return { found: false, message: "Draft not found", draft: null };
+    return { success: false, message: "Draft not found 🟥", draft: null };
   }
 
-  return { found: true, message: "Draft fetched", draft };
+  return { success: true, message: "Draft fetched! ✅", draft };
 },
+
 
   // Publish now (status → published)
   publishNow: async ({ title, content, tags, category, draftId }) => {
@@ -143,6 +146,7 @@ export default {
 
     return { success: true, message: "Blog published ✅", data: savedBlog};
   },
+
 
   // if (!Blog) throw new Error('Blog model not available');
  // if (draftId && !Draft) throw new Error('Draft model not available');

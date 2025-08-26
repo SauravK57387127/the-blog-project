@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { useTiptap } from "./useEditor.js"
-import { useDraftAutoSave } from "@/services/admin/useDraftsService"
+import { useDraftAutoSave } from "@/services/admin/useDraftsService.js"
 import { usePublishBlog, useScheduleBlog } from "./useBlogPublishing.js"
-import { useSmartQuery } from "@/utils/apiClient.js"
+// import { useSmartQuery } from "@/utils/apiClient.js"
+import { useGetDraftById } from "./useDrafts.js"
 
 
 export default function useDraftEditor({draftId}) {
@@ -17,7 +18,8 @@ export default function useDraftEditor({draftId}) {
 
 
     // load draft
-  const { data } = useSmartQuery(['draft', draftId], `/admin/blogs/drafts/${draftId}`)
+//   const { data } = useSmartQuery(['draft', draftId], `/admin/blogs/drafts/${draftId}`)
+  const { data } = useGetDraftById(draftId)
 
 
   // hydrate once data/editor ready
@@ -39,7 +41,7 @@ export default function useDraftEditor({draftId}) {
 
   const interval = setInterval(() => {
     autosave.mutate({
-      draftId,
+      _id: draftId,
       title,
       coverImage,
       tags,
@@ -62,7 +64,7 @@ export default function useDraftEditor({draftId}) {
 
   const scheduleDraft = () => {
     if (!draftId) return;
-  scheduleMutation.mutate({ _id: draftId, title, coverImage, tags, content, scheduleAt: dt });
+  scheduleMutation.mutate({ _id: draftId, title, coverImage, tags, content: editor.getHTML(), scheduleAt: dt });
   }
 
 
@@ -73,6 +75,6 @@ export default function useDraftEditor({draftId}) {
     coverImage, setCoverImage,
     dt, setDt,
     publishDraft, scheduleDraft,
-    isSaving,
+    // isSaving,
   }
 }

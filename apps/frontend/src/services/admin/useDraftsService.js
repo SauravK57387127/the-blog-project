@@ -13,9 +13,9 @@ export function useCreateDraft(options = {}) {
 
 
 export function useAllDrafts(options = {}) {
-    return useSmartMutation("/admin/blogs/drafts/list-drafts", "POST", {
-        invalidateKeys: [["all-drafts"]],
-        ...options,
+    return useSmartQuery("/admin/blogs/drafts/list-drafts", {
+        enabled: true,
+    ...options,
     });
 }
 
@@ -34,7 +34,7 @@ export function useGetDraftById(id, options = {}) {
 
 // data will be sent via .mutate() and utilized via req.body 
 export function useDraftAutoSave(id, options = {}) {
-    return useSmartMutation(`/admin/blogs/drafts/${id}/autosave`, "POST", ...options)
+    return useSmartMutation(`/admin/blogs/drafts/${id}/autosave`, "POST", options)
 }
 
 
