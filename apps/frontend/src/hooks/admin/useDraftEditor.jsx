@@ -54,8 +54,8 @@ export default function useDraftEditor({draftId}) {
 
 
   // actions
-  const publishMutation = usePublishBlog()
-  const scheduleMutation = useScheduleBlog()
+  const publishMutation = usePublishBlog(draftId)
+  const scheduleMutation = useScheduleBlog(draftId)
 
   const publishDraft = () => {
     if (!draftId) return;

@@ -6,10 +6,10 @@ import { toast } from "sonner";
 
 
 
-export const usePublishBlog = () => {
+export const usePublishBlog = (id) => {
     const router = useRouter();
 
-    return useSmartMutation("/admin/blogs/publish-draft", "POST", {
+    return useSmartMutation(`/admin/blogs/drafts/${id}/publish-draft`, "POST", {
         onSuccess: () => {
             toast.success("Blog published successfully! ✅✅");
             router.push(`/admin/blogs/new`);
@@ -22,10 +22,10 @@ export const usePublishBlog = () => {
 };
 
 
-export const useScheduleBlog = () => {
+export const useScheduleBlog = (id) => {
     const router = useRouter();
 
-    return useSmartMutation("/admin/blogs/schedule-draft", "POST", {
+    return useSmartMutation(`/admin/blogs/drafts/${id}/schedule-draft`, "POST", {
         onSuccess: () => {
             toast.success("Blog scheduled successfully! ✅✅");
             router.push("/admin/drafts");
