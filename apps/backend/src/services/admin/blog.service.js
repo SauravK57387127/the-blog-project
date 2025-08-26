@@ -121,27 +121,27 @@ export default {
 
 
   // Publish now (status → published)
-  publishNow: async ({ title, content, tags, category, draftId }) => {
+  publishNow: async ({ title, content, tags, category, _id }) => {
     // if (!Blog) throw new Error('Blog model not available');
     // if (draftId && !Draft) throw new Error('Draft model not available');
 
-    if (!Blog) return { success: false, message: "Blog model not available", data: null };
-    if (draftId && !Draft) return { success: false, message: "Draft model not available", data: null };
+    // if (!Blog) return { success: false, message: "Blog model not available", data: null };
+    // if (draftId && !Draft) return { success: false, message: "Draft model not available", data: null };
 
     const slug = slugify(title)
 
     const blog = new Blog({
-      title, slug, content, tags, category, scheduleAt,
+      title, slug, content, tags, category,
       status: "published",
       publishedAt: new Date(),
     });
 
     const savedBlog = await blog.save()
-    console.log(`Blog created => ${savedBlog}`);
+    console.log(`Blog created => ${savedBlog} ✅✅`);
 
-    if(draftId){
+    if(_id){
       await Draft.findByIdAndDelete(draftId);
-      console.log('🗑️ Draft deleted after publish:', draftId);
+      console.log('🗑️ Draft deleted after publish:', _id, '✅✅✅');
     }
 
     return { success: true, message: "Blog published ✅", data: savedBlog};

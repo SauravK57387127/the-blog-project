@@ -10,9 +10,9 @@ export const usePublishBlog = () => {
     const router = useRouter();
 
     return useSmartMutation("/admin/blogs/publish-draft", "POST", {
-        onSuccess: (data) => {
-            toast.success("Blog published successfully!");
-            router.push(`/blogs/${data.slug}`);
+        onSuccess: () => {
+            toast.success("Blog published successfully! ✅✅");
+            router.push(`/admin/blogs/new`);
         },
         onError: (error) => {
             toast.error(error.message || "Failed to publish blog.");
@@ -27,8 +27,8 @@ export const useScheduleBlog = () => {
 
     return useSmartMutation("/admin/blogs/schedule-draft", "POST", {
         onSuccess: () => {
-            toast.success("Blog scheduled successfully!");
-            router.push("/admin/blogs/drafts");
+            toast.success("Blog scheduled successfully! ✅✅");
+            router.push("/admin/drafts");
         },
         onError: (error) => {
             toast.error(error.message || "Failed to schedule blog.");

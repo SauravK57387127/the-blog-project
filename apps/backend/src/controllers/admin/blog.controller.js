@@ -31,12 +31,8 @@ export default {
 }),
 
   blogAutoSave: asyncHandler(async (req, res) => {
-  const {success, message, data} = await AdminBlogService.blogAutoSave(req.body);
-  if(!result.success) {
-    return sendResponse({ res, statusCode: 400, success: false, message: message, data: data })
-  }
-
-  sendResponse({ res, statusCode: 201, message: message, data: data });
+  const result = await AdminBlogService.blogAutoSave(req.body);
+    return sendResponse({ res, statusCode: result.success ? 201 : 400, success: result.success, message: result.message, data: result.data })
 }),
 
 // updateDraft: asyncHandler(async (req, res) => {
@@ -59,8 +55,8 @@ statusCode: result.success ? 201 : 404,
 
     
   publishBlog: asyncHandler(async (req, res) => {
-    const { success, message, data } = await AdminBlogService.publishNow(req.body);
-  sendResponse({ res, statusCode: 201, success, message, data });
+    const result = await AdminBlogService.publishNow(req.body);
+  sendResponse({ res, statusCode: result.success ? 201 : 400, success: result.success, message: result.message, data: result.data });
   }),
 
   scheduleBlog: asyncHandler(async (req, res) => {

@@ -6,14 +6,16 @@ const router = Router();
 
 // /api/admin/blogs
 
-router.post('/publish-draft', AdminBlogController.publishBlog);
-router.post('/schedule-draft', AdminBlogController.scheduleBlog);
 
 router.post('/drafts/create-draft', AdminBlogController.createDraft)
 router.get('/drafts/list-drafts', AdminBlogController.listDrafts);              // lists all drafts
 router.get('/drafts/:id', AdminBlogController.getDraftById);
 router.post('/drafts/:id/autosave', AdminBlogController.blogAutoSave)
+
 // router.post('/drafts/:id', AdminBlogController.updateDraft);    // CRUD on a particular draft
+
+router.post('/drafts/:id//publish-draft', AdminBlogController.publishBlog);
+router.post('/drafts/:id//schedule-draft', AdminBlogController.scheduleBlog);
 
 
 // router.get('/', AdminBlogController.list);

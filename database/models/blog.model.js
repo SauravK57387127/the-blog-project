@@ -4,9 +4,9 @@ import mongoose from 'mongoose';
 
 
 const blogSchema = new mongoose.Schema({
-    slug:         { type: String, required: true, unique: true },
+    slug:         { type: String, unique: true },
   title:        { type: String, required: true },
-  content:      { type: String, required: true },
+  content:      { type: String },
   coverImage:   { type: String },
   tags:         [String],
   scheduleAt:   { type: Date },
