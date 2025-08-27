@@ -13,10 +13,10 @@ export function useCreateDraft(options = {}) {
 
 
 export function useAllDrafts(options = {}) {
-    return useSmartQuery("/admin/blogs/drafts/list-drafts", {
-        enabled: true,
+  return useSmartQuery([["all-drafts"]], "/admin/blogs/drafts/list-drafts", {
+    enabled: true,
     ...options,
-    });
+  });
 }
 
 

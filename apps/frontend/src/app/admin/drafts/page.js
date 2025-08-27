@@ -1,7 +1,6 @@
 "use client";
 
 import { useAllDrafts } from "@/services/admin/useDraftsService";
-import { useSmartQuery } from "@/utils/apiClient";
 import Link from "next/link";
 
 

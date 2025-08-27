@@ -1,8 +1,8 @@
 "use client";
 
-import TiptapEditor from "@/components/admin/editor/Editor1";
+// import TiptapEditor from "@/components/admin/editor/Editor1";
 import PublicHomeWrapper from "@/components/public/home/PublicHomeWrapper";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
     return (

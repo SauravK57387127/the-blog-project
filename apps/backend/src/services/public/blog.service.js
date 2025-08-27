@@ -1,22 +1,29 @@
-import { asyncHandler } from "../../utils/asyncHandler.js";
 import Blog from "../../../../../database/models/blog.model.js";
 
 
 export default {
     getAllBlogs: async () => {  // Remove asyncHandler here
-  if (!Blog || typeof Blog.find !== 'function') {
-    return [];
-  }
+    console.log('all_blogs services reached! ✅');
+//   if (!Blog || typeof Blog.find !== 'function') {
+//     return [];
+//   }
 
-  try {
-    const blogs = await Blog.find({ status: 'published' })
-      .sort({ publishedAt: -1 })
-      .lean();
+//   try {
+    // const blogs = await Blog.find({ status: 'published' })
+    //   .sort({ publishedAt: -1 })
+    //   .lean();
     
-    return blogs;
-  } catch (error) {
-    throw new Error(`Failed to fetch blogs: ${error.message}`);
-  }
+//     return blogs;
+//   } catch (error) {
+//     throw new Error(`Failed to fetch blogs: ${error.message}`);
+//   }
+
+const blogs = await Blog.find({ status: "published" }).sort({ publishedAt: -1 });
+return {
+  success: blogs.length > 0,
+  message: blogs.length > 0 ? 'Fetched blogs! ✅' : 'No blogs found ❌',
+  data: blogs,
+};
 },
 
   popular: async () => { /* TODO */ },

@@ -3,7 +3,7 @@
 import { useSmartQuery } from "@/utils/useSmartQuery";
 
 export function useAllBlogs(config) {
-    return useSmartQuery(["allBlogs"], "/public/blogs", config);
+    return useSmartQuery([["all-Blogs"]], "/public/blogs", config);
 }
 
 
