@@ -1,16 +1,18 @@
 "use client";
 
+import { useAllDrafts } from "@/services/admin/useDraftsService";
 import { useSmartQuery } from "@/utils/apiClient";
 import Link from "next/link";
 
 
 export default function AllDraftsList() {
-    const { data: drafts, isLoading, error } = useSmartQuery(['all-drafts'], '/admin/blogs/list-drafts')
+const { data: res, isLoading, error } = useAllDrafts();
+const drafts = res?.data;
 
     if (error) return <div>Error loading drafts: {error.message}</div>;
     
     if (isLoading) return <div>Loading drafts...</div>;
-    if (!drafts?.length) return <div>No drafts found</div>;
+    // if (!drafts?.length) return <div>No drafts found</div>;
 
     return (
         <div className="p-4">

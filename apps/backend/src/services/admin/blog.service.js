@@ -32,7 +32,7 @@ export default {
   console.warn("SERVICE: no drafts found");
   return { success: true, message: "No drafts found!!", data: [] };
 }
-    return { success: true, message: "No drafts found!!", data: drafts };
+    return { success: true, message: "All Drafts fetched!!", data: drafts };
   },
 
   blogAutoSave: async ({ _id, title, content, coverImage, tags }) => {
@@ -151,10 +151,10 @@ export default {
   // if (!Blog) throw new Error('Blog model not available');
  // if (draftId && !Draft) throw new Error('Draft model not available');
   // Schedule publish via BullMQ
-scheduleBlog: async ({ title, content, tags, category, draftId, scheduleAt }) => {
-    if(!draftId) return { success: false, message: 'draft Id not present ❌❌', data: null}
-  if (!Blog) return { success: false, message: "Blog model not available", data: null };
-  if (draftId && !Draft) return { success: false, message: "Draft model not available", data: null };
+scheduleBlog: async ({ title, content, tags, category, _id, scheduleAt }) => {
+    if(!_id) return { success: false, message: 'draft Id not present ❌❌', data: null}
+//   if (!Blog) return { success: false, message: "Blog model not available", data: null };
+//   if (_id && !Draft) return { success: false, message: "Draft model not available", data: null };
 
     const slug = slugify(title)
   const blog = new Blog({ title, slug, content, tags, category, scheduleAt, status: "scheduled" });
@@ -168,9 +168,9 @@ scheduleBlog: async ({ title, content, tags, category, draftId, scheduleAt }) =>
     await blog.save();
     console.log("⏱ Schedule time already passed → published immediately.");
 
-    if (draftId) {
-      await Draft.findByIdAndDelete(draftId);
-      console.log('🗑️ Draft deleted after publish:', draftId);
+    if (_id) {
+      await Draft.findByIdAndDelete(_id);
+      console.log('🗑️ Draft deleted after publish:', _id);
     }
 
     return { success: false, message: "Draft created ✅ | Published IMMEDIATELY ❌", data: blog };
@@ -188,9 +188,9 @@ scheduleBlog: async ({ title, content, tags, category, draftId, scheduleAt }) =>
     await blog.save();
     console.log("Scheduling failed so PUBLISHED immediately.");
 
-    if (draftId) {
-      await Draft.findByIdAndDelete(draftId);
-      console.log('🗑️ Draft deleted after schedule:', draftId);
+    if (_id) {
+      await Draft.findByIdAndDelete(_id);
+      console.log('🗑️ Draft deleted after schedule:', _id);
     }
 
     return { success: false, message: "Draft created ✅ | Published IMMEDIATELY ❌", data: blog };
