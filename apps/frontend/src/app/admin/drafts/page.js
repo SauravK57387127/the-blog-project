@@ -19,7 +19,7 @@ const drafts = res?.data;
             <ul className="space-y-3">
                 {drafts?.map((draft) => (
                     <li key={draft._id} className="border p-3 rounded m-4">
-                        <Link href={`/admin/blogs/drafts/${draft._id}`} className="text-blue-600 underline">
+                        <Link href={`/admin/drafts/${draft._id}`} className="text-blue-600 underline">
   {draft.title || "Untitled Draft"}
 </Link>
                     </li>
