@@ -1,4 +1,7 @@
-import { useAllBlogs } from "@/hooks/public/useAllBlogs";
+// import { useAllBlogs } from "@/hooks/public/useAllBlogs";
+
+import { useAllBlogs } from "@/services/public/useBlogsService";
+
 
 export default function BlogList() {
     // This query runs twice because: check react_notes
@@ -12,13 +15,31 @@ export default function BlogList() {
     return (
         <div>
             {blogs.map((blog) => (
-                <div key={blog._id}>
-                    <h2>{blog.title}</h2>
-                </div>
+                // <div key={blog._id}>
+                //     <h2>{blog.title}</h2>
+                // </div>
+                <div
+  key={blog._id}
+  onClick={() => router.push(`/blogs/${blog.slug}`)}
+  className="border p-4 rounded cursor-pointer hover:shadow"
+>
+  <h2 className="text-lg font-semibold">{blog.title}</h2>
+</div>
             ))}
         </div>
+//         <div
+//   key={blog._id}
+//   onClick={() => router.push(`/blogs/${blog.slug}`)}
+//   className="border p-4 rounded cursor-pointer hover:shadow"
+// >
+//   <h2 className="text-lg font-semibold">{blog.title}</h2>
+// </div>
+
     );
 }
+
+
+
 
 // ### 1. Backend endpoints (sufficient for your scope):
 

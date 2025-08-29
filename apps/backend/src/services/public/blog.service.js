@@ -26,7 +26,14 @@ return {
 };
 },
 
+getBlogBySlug: async (slug) => {
+  const blog = await Blog.findOne({ slug, status: "published" });
+  if (!blog) {
+    return { success: false, message: "Blog not found", data: null };
+  }
+  return { success: true, message: "Blog fetched", data: blog };
+},
+
   popular: async () => { /* TODO */ },
   recent: async () => { /* TODO */ },
-  getBySlug: async (slug) => { /* TODO */ },
 };

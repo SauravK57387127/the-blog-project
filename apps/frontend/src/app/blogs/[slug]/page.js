@@ -5,10 +5,13 @@ export default function BlogDetailPage({ params }) {
         <main className="max-w-3xl mx-auto py-8">
             <h1>Loading blog: {params.slug}</h1>
             <p>Blog content, meta, actions, and comments will appear here.</p>
-            <BLogPageWrapper />
+            {/* <BLogPageWrapper /> */}
         </main>
     );
 }
+
+
+
 
 // Once you're ready, you can replace it with BlogContent, BlogMeta, BlogActions, and CommentsSection.
 

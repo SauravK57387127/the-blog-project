@@ -38,10 +38,19 @@ export default {
     });
   }),
 
-  getBySlug: asyncHandler(async (req, res) => {
-    const { slug } = req.params;
-    sendResponse({res, message: `show blog by slug (${slug}) stub` });
-  }),
+  getBlogBySlug: asyncHandler(async (req, res) => {
+  const { slug } = req.params;
+  const result = await PublicBlogService.getBlogBySlug(slug);
+
+  sendResponse({
+    res,
+    statusCode: result.success ? 200 : 404,
+    success: result.success,
+    message: result.message,
+    data: result.data,
+  });
+}),
+
 
   popular: asyncHandler(async (req, res) => {
     sendResponse({res, message: `show blog by popularity stub` });
