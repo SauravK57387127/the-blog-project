@@ -24,6 +24,17 @@ export default function BlogList() {
   className="border p-4 rounded cursor-pointer hover:shadow"
 >
   <h2 className="text-lg font-semibold">{blog.title}</h2>
+  <div className="prose max-w-none mt-2">{blog.content}</div>
+
+<div className="mt-2 text-sm text-gray-700">
+  <strong>Tags:</strong> {blog.tags?.join(", ")}
+</div>
+
+<div className="mt-1 text-xs text-gray-500">
+  <p>Published: {blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString() : "—"}</p>
+  <p>Scheduled: {blog.scheduleAt ? new Date(blog.scheduleAt).toLocaleDateString() : "—"}</p>
+</div>
+
 </div>
             ))}
         </div>
