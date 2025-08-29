@@ -17,4 +17,4 @@ router.get('/recent', PublicBlogController.recent);
 
 export default router;
 
- 
+
