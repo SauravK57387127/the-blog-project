@@ -32,4 +32,3 @@ export function useSmartQuery(queryKey, endpoint, config = {}) {
 }
 
 
-
