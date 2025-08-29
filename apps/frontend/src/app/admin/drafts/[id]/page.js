@@ -3,6 +3,7 @@
 
 import EditorWrapper from "@/components/admin/editor/EditorWrapper";
 import { EditorProvider } from "@/context/EditorProvider";
+import { useGetDraftById } from "@/services/admin/useDraftsService";
 
 
 export default function DraftEditorPage({ params }) {
