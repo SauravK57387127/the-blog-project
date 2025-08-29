@@ -7,7 +7,9 @@ import { EditorProvider } from "@/context/EditorProvider";
 
 export default function DraftEditorPage({ params }) {
   const { id } = params; 
-  
+    const { data: res, isLoading, error } = useGetDraftById(id);
+  if (error || !res?.data) return <div>Draft not found ❌</div>;
+
   return (
     <EditorProvider key={id}>
       <EditorWrapper draftId={id} />

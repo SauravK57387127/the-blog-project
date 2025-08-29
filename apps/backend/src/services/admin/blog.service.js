@@ -113,10 +113,10 @@ export default {
   const draft = await Draft.findById(draftId).lean();
 
   if (!draft) {
-    return { success: false, message: "Draft not found 🟥", draft: null };
+    return { success: false, message: "Draft not found 🟥", data: null };
   }
 
-  return { success: true, message: "Draft fetched! ✅", draft };
+  return { success: true, message: "Draft fetched! ✅", data: draft };
 },
 
 

@@ -49,7 +49,7 @@ export default {
 statusCode: result.success ? 201 : 404,
     success: result.success, 
     message: result.message,
-    data: result.success ? result.draft : null
+    data: result.data
   });
 }),
 
