@@ -134,6 +134,7 @@ export default {
       title, slug, content, tags, category,
       status: "published",
       publishedAt: new Date(),
+      scheduledAt: new Date()
     });
 
     const savedBlog = await blog.save()
@@ -151,15 +152,15 @@ export default {
   // if (!Blog) throw new Error('Blog model not available');
  // if (draftId && !Draft) throw new Error('Draft model not available');
   // Schedule publish via BullMQ
-scheduleBlog: async ({ title, content, tags, category, _id, scheduleAt }) => {
+scheduleBlog: async ({ title, content, tags, category, _id, scheduledAt }) => {
     if(!_id) return { success: false, message: 'draft Id not present ❌❌', data: null}
 //   if (!Blog) return { success: false, message: "Blog model not available", data: null };
 //   if (_id && !Draft) return { success: false, message: "Draft model not available", data: null };
 
     const slug = slugify(title)
-  const blog = new Blog({ title, slug, content, tags, category, scheduleAt, status: "scheduled" });
+  const blog = new Blog({ title, slug, content, tags, category, scheduledAt, status: "scheduled" });
 
-  const delay = new Date(scheduleAt) - Date.now();
+  const delay = new Date(scheduledAt) - Date.now();
 
   // ⏱ If scheduleAt is now/past => publish immediately
   if (delay <= 0) {
@@ -179,12 +180,13 @@ scheduleBlog: async ({ title, content, tags, category, _id, scheduleAt }) => {
   try {
     await blogQueue.add("publish-blog", { blogId: blog._id }, { delay });
     await blog.save();
-    console.log(`🎯 Blog scheduled!! at: ${scheduleAt}`);
+    console.log(`🎯 Blog scheduled!! at: ${scheduledAt}`);
     return { success: true, message: "Draft created ✅", data: blog };
   } catch (err) {
     console.log(`This error occurred while scheduling: ${err}`);
     blog.status = "published";
     blog.publishedAt = new Date();
+    blog.scheduledAt = new Date()
     await blog.save();
     console.log("Scheduling failed so PUBLISHED immediately.");
 

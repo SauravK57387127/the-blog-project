@@ -9,7 +9,7 @@ const blogSchema = new mongoose.Schema({
   content:      { type: String },
   coverImage:   { type: String },
   tags:         [String],
-  scheduleAt:   { type: Date },
+  scheduledAt:   { type: Date },
   publishedAt:  { type: Date },
   status:       { type: String, enum: ['draft', 'published', 'scheduled'], default: 'draft' },
   category:     { type: String },

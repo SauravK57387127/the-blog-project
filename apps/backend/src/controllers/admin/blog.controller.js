@@ -60,7 +60,7 @@ statusCode: result.success ? 201 : 404,
   }),
 
   scheduleBlog: asyncHandler(async (req, res) => {
-  const result = await AdminBlogService.publishNow(req.body);
+  const result = await AdminBlogService.scheduleBlog(req.body);
   sendResponse({ res, statusCode: result.success ? 201 : 400, success: result.success, message: result.message, data: result.data });
 }),
 };

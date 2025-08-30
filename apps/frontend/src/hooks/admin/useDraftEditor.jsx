@@ -64,7 +64,7 @@ export default function useDraftEditor({draftId}) {
 
   const scheduleDraft = () => {
     if (!draftId) return;
-  scheduleMutation.mutate({ _id: draftId, title, coverImage, tags, content: editor.getHTML(), scheduleAt: dt });
+  scheduleMutation.mutate({ _id: draftId, title, coverImage, tags, content: editor.getHTML(), scheduledAt: dt });
   }
 
 
