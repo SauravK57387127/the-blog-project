@@ -2,6 +2,7 @@
 
 import BLogPageWrapper from "@/components/public/blog-detail/BlogPageWrapper";
 import { useGetBlogBySlug } from "@/services/public/useBlogsService";
+import DOMPurify from 'dompurify'
 
 
 export default function BlogDetailPage({ params }) {
@@ -36,7 +37,7 @@ export default function BlogDetailPage({ params }) {
 )}
 
 {blog?.content ? (
-  <div dangerouslySetInnerHTML={{ __html: blog.content }} />
+  <div className="prose" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(blog.content) }} />
 ) : (
   <p className="text-gray-400 italic">No content available</p>
 )}
