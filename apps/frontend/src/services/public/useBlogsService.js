@@ -11,7 +11,7 @@ export function useAllBlogs(options = {}) {
 }
 
 
-export function useBlogBySlug(slug, options = {}) {
+export function useGetBlogBySlug(slug, options = {}) {
   return useSmartQuery([ "blog", slug ], `/public/blogs/${slug}`, {
     enabled: Boolean(slug),
     ...options,
