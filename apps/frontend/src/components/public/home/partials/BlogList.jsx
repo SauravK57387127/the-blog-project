@@ -1,10 +1,13 @@
 // import { useAllBlogs } from "@/hooks/public/useAllBlogs";
 
 import { useAllBlogs } from "@/services/public/useBlogsService";
+import { useRouter } from "next/navigation";
 
 
 export default function BlogList() {
     // This query runs twice because: check react_notes
+    const router = useRouter()
+    
     const { data: res, isLoading, error } = useAllBlogs();
     const blogs = res?.data
 
