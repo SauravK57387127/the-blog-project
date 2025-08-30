@@ -4,9 +4,10 @@ import loadMongo from './loaders/mongo.loader.js';
 import loadPrisma from './loaders/prisma.loader.js';
 import loadRedis from './loaders/redis.loader.js';
 import { logger } from '../../../packages/logger/index.js';
-import { runBlogReconciliation } from '../../../infra/bullmq/reconciliation/blogReconciliation.js';
+// import { runBlogReconciliation } from '../../../infra/bullmq/reconciliation/blogReconciliation.js';
 import { QueueEvents } from 'bullmq';
 import { getRedis } from '../../../database/redis/redisClient.js';
+import '../../../infra/bullmq/workers/blogWorker.js';
 
 
 
