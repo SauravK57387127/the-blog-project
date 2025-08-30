@@ -670,3 +670,10 @@
 {"level":30,"time":1756568093520,"pid":154818,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🟢 Prisma connected\n\n"}
 {"level":30,"time":1756568093521,"pid":154818,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🟢 Redis connected\n\n"}
 {"level":30,"time":1756568093534,"pid":154818,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🚀 Server running on http://localhost:3000\n"}
+{"level":30,"time":1756570034457,"pid":155970,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🟢 Mongo connected\n\n"}
+{"level":30,"time":1756570034613,"pid":155970,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🟢 Prisma connected\n\n"}
+{"level":30,"time":1756570034613,"pid":155970,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🟢 Redis connected\n\n"}
+{"level":30,"time":1756570034625,"pid":155970,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🚀 Server running on http://localhost:3000\n"}
+{"level":30,"time":1756570883606,"pid":156330,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🟢 Mongo connected\n\n"}
+{"level":30,"time":1756570883781,"pid":156330,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🟢 Prisma connected\n\n"}
+{"level":30,"time":1756570883782,"pid":156330,"hostname":"sauravkumaryadav-Aspire-A315-23","msg":"🟢 Redis connected\n\n"}
