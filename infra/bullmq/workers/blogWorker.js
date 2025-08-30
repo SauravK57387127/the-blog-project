@@ -1,7 +1,7 @@
 import { Worker } from 'bullmq';
 import { getRedis } from '../../../database/redis/redisClient';
 import Blog from '../../../database/models/blog.model.js';
-import { runBlogReconciliation } from '../reconciliation/blogReconciliation.js';
+
 
 new Worker('blogQueue', async (job) => {
     try {
@@ -25,10 +25,3 @@ new Worker('blogQueue', async (job) => {
 });
 
 
-// 🟢 Run reconciliation once on startup
-runBlogReconciliation();
-
-// 🟡 Optional: run reconciliation every 5 minutes
-setInterval(runBlogReconciliation, 5 * 60 * 1000);
-
-console.log("🚀 Blog Worker is running...");
