@@ -178,8 +178,8 @@ scheduleBlog: async ({ title, content, tags, category, _id, scheduledAt }) => {
   }
 
   try {
+      await blog.save();
     await blogQueue.add("publish-blog", { blogId: blog._id }, { delay });
-    await blog.save();
     console.log(`🎯 Blog scheduled!! at: ${scheduledAt}`);
     return { success: true, message: "Draft created ✅", data: blog };
   } catch (err) {
