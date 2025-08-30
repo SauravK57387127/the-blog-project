@@ -153,6 +153,8 @@ export default {
  // if (draftId && !Draft) throw new Error('Draft model not available');
   // Schedule publish via BullMQ
 scheduleBlog: async ({ title, content, tags, category, _id, scheduledAt }) => {
+    console.log('\nschedule blog reached! ✅')
+    console.log(`scheduled at: ${scheduledAt}\n`)
     if(!_id) return { success: false, message: 'draft Id not present ❌❌', data: null}
 //   if (!Blog) return { success: false, message: "Blog model not available", data: null };
 //   if (_id && !Draft) return { success: false, message: "Draft model not available", data: null };
@@ -174,7 +176,7 @@ scheduleBlog: async ({ title, content, tags, category, _id, scheduledAt }) => {
       console.log('🗑️ Draft deleted after publish:', _id);
     }
 
-    return { success: false, message: "Draft created ✅ | Published IMMEDIATELY ❌", data: blog };
+    return { success: false, message: " time expired! ✅ | Published IMMEDIATELY ❌", data: blog };
   }
 
   try {
@@ -195,7 +197,7 @@ scheduleBlog: async ({ title, content, tags, category, _id, scheduledAt }) => {
       console.log('🗑️ Draft deleted after schedule:', _id);
     }
 
-    return { success: false, message: "Draft created ✅ | Published IMMEDIATELY ❌", data: blog };
+    return { success: false, message: "| Published IMMEDIATELY ❌", data: blog };
   }
 }
 

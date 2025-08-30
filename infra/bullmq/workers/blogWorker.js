@@ -1,5 +1,5 @@
 import { Worker } from 'bullmq';
-import { getRedis } from '../../../database/redis/redisClient';
+import { getRedis } from '../../../database/redis/redisClient.js';
 import Blog from '../../../database/models/blog.model.js';
 
 
