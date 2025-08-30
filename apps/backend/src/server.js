@@ -9,6 +9,7 @@ import { QueueEvents } from 'bullmq';
 import { getRedis } from '../../../database/redis/redisClient.js';
 import '../../../infra/bullmq/workers/blogWorker.js';
 
+// import { blogQueue } from '../../../infra/bullmq/queues/blogQueue.js';
 
 
 
@@ -21,6 +22,9 @@ if (flags.enableRedis) await loadRedis();
 // // 🟡 Optional: run reconciliation every 5 minutes
 // setInterval(runBlogReconciliation, 5 * 60 * 1000);
 // console.log("🚀 Blog Worker is running...");
+
+
+// await blogQueue.obliterate({ force: true });                                 // command to eliminate left-over processes
 
 const queueEvents = new QueueEvents('blogQueue', { connection: getRedis() });
 

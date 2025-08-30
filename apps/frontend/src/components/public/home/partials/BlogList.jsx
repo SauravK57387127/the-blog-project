@@ -35,7 +35,7 @@ export default function BlogList() {
 
 <div className="mt-1 text-xs text-gray-500">
   <p>Published: {blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString() : "—"}</p>
-  <p>Scheduled: {blog.scheduleAt ? new Date(blog.scheduleAt).toLocaleDateString() : "—"}</p>
+  <p>Scheduled: {blog.scheduledAt ? new Date(blog.scheduledAt).toLocaleDateString() : "—"}</p>
 </div>
 
 </div>
