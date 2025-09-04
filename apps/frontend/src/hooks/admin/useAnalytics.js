@@ -12,7 +12,7 @@ export function useAnalytics() {
   useEffect(() => {
     // --- Init PostHog ---
     if (!window.__POSTHOG_INIT__) {
-  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, { api_host: "https://app.posthog.com", capture_pageview: true })
+  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_API_KEY, { api_host: "https://app.posthog.com", capture_pageview: true })
   window.__POSTHOG_INIT__ = true
 }
 
