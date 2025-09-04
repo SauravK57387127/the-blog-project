@@ -11,12 +11,17 @@ export function useAnalytics() {
 
   useEffect(() => {
     // --- Init PostHog ---
-    posthog.init("YOUR_PROJECT_KEY", {
-      api_host: "https://app.posthog.com",
-      capture_pageview: true,
-    });
+    if (!window.__POSTHOG_INIT__) {
+  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, { api_host: "https://app.posthog.com", capture_pageview: true })
+  window.__POSTHOG_INIT__ = true
+}
 
-    // --- Forward captured events to backend ---
+    // posthog.init("YOUR_PROJECT_KEY", {
+    //   api_host: "https://app.posthog.com",
+    //   capture_pageview: true,
+    // });
+
+    // --- Forward captured events to backend ---P
     const forwardEvent = (event) => {
       saveEvent.mutate(event);
     };

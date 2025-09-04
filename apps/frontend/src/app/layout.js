@@ -4,6 +4,7 @@ import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { Toaster } from "sonner";
 import { useAnalytics } from "@/hooks/admin/useAnalytics.js";
+import AnalyticsProvider from "@/components/providers/AnalyticsProvider";
 
 
 // if (typeof window !== 'undefined') {
@@ -33,8 +34,10 @@ export default function RootLayout({ children }) {
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
                 <QueryProvider>
-                    <Toaster richColors />
-                    {children}
+                    <AnalyticsProvider>
+                        <Toaster richColors />
+                        {children}
+                    </AnalyticsProvider>
                 </QueryProvider>
             </body>
         </html>
