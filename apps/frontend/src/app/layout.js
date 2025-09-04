@@ -26,7 +26,6 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-    useAnalytics()
     return (
         <html lang="en">
             <body
