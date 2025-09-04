@@ -21,7 +21,7 @@ export async function fetcher(url, options = {}) {
             console.error(
                 `❌ Fetch error: ${res.status} - ${errorData.message || "Unknown error"}`,
             );
-            throw new Error(errorData.message || "Fetch failed");
+            throw new Error(errorData.message || "Fetch failed");           
         }
     
         return res.json();

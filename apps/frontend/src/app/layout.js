@@ -2,12 +2,12 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { Toaster } from "sonner";
-import posthog from "posthog-js";
+import { useAnalytics } from "@/hooks/admin/useAnalytics.js";
 
 
-if (typeof window !== 'undefined') {
-  posthog.init('YOUR_PROJECT_KEY', { api_host: 'https://app.posthog.com' });
-}
+// if (typeof window !== 'undefined') {
+//   posthog.init(process.env.POSTHOG_API_KEY, { api_host: 'https://app.posthog.com' });
+// }
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -25,6 +25,7 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+    useAnalytics()
     return (
         <html lang="en">
             <body
