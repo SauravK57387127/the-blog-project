@@ -1,299 +1,445 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+/* ================================================
+   FONT IMPORTS
+   ================================================ */
 
-@custom-variant dark (&:is(.dark *));
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,600;1,600&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Sanskrit:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&display=swap');
 
-@theme inline {
-    --color-background: var(--background);
-    --color-foreground: var(--foreground);
-    --font-sans: var(--font-geist-sans);
-    --font-mono: var(--font-geist-mono);
-    --color-sidebar-ring: var(--sidebar-ring);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar: var(--sidebar);
-    --color-chart-5: var(--chart-5);
-    --color-chart-4: var(--chart-4);
-    --color-chart-3: var(--chart-3);
-    --color-chart-2: var(--chart-2);
-    --color-chart-1: var(--chart-1);
-    --color-ring: var(--ring);
-    --color-input: var(--input);
-    --color-border: var(--border);
-    --color-destructive: var(--destructive);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-accent: var(--accent);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-muted: var(--muted);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-secondary: var(--secondary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-primary: var(--primary);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-popover: var(--popover);
-    --color-card-foreground: var(--card-foreground);
-    --color-card: var(--card);
-    --radius-sm: calc(var(--radius) - 4px);
-    --radius-md: calc(var(--radius) - 2px);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) + 4px);
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* ================================================
+   FONT UTILITY CLASSES
+   ================================================ */
+
+.eb-garamond-quote {
+  font-family: "EB Garamond", serif;
+  font-optical-sizing: auto;
+  font-weight: 600;
+  font-style: normal;
 }
 
-:root {
-    --radius: 0.625rem;
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.141 0.005 285.823);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.141 0.005 285.823);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.141 0.005 285.823);
-    --primary: oklch(0.21 0.006 285.885);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.967 0.001 286.375);
-    --secondary-foreground: oklch(0.21 0.006 285.885);
-    --muted: oklch(0.967 0.001 286.375);
-    --muted-foreground: oklch(0.552 0.016 285.938);
-    --accent: oklch(0.967 0.001 286.375);
-    --accent-foreground: oklch(0.21 0.006 285.885);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.92 0.004 286.32);
-    --input: oklch(0.92 0.004 286.32);
-    --ring: oklch(0.705 0.015 286.067);
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.141 0.005 285.823);
-    --sidebar-primary: oklch(0.21 0.006 285.885);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.967 0.001 286.375);
-    --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-    --sidebar-border: oklch(0.92 0.004 286.32);
-    --sidebar-ring: oklch(0.705 0.015 286.067);
+.deva-title {
+  font-family: "Tiro Devanagari Sanskrit", serif;
+  font-weight: 700;
+  letter-spacing: 1px;
+  font-feature-settings: "liga" 1;
 }
 
-.dark {
-    --background: oklch(0.141 0.005 285.823);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.21 0.006 285.885);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.21 0.006 285.885);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.92 0.004 286.32);
-    --primary-foreground: oklch(0.21 0.006 285.885);
-    --secondary: oklch(0.274 0.006 286.033);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.274 0.006 286.033);
-    --muted-foreground: oklch(0.705 0.015 286.067);
-    --accent: oklch(0.274 0.006 286.033);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.552 0.016 285.938);
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: oklch(0.21 0.006 285.885);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.274 0.006 286.033);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.552 0.016 285.938);
+.poppins-bold {
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-style: normal;
 }
+
+
+/* ================================================
+   DESIGN SYSTEM — CSS VARIABLES
+   All colors must be HSL. No hardcoded hex.
+   ================================================ */
 
 @layer base {
-    * {
-        @apply border-border outline-ring/50;
-    }
-    body {
-        @apply bg-background text-foreground;
-    }
+  :root {
+    /* Surfaces */
+    --background: 40 30% 98%;
+    --foreground: 0 0% 9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
+
+    --muted: 40 20% 95%;
+    --muted-foreground: 0 0% 45%;
+
+    --secondary: 40 20% 95%;
+    --secondary-foreground: 0 0% 20%;
+
+    /* Primary = foreground (brutalist — black on white) */
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+
+    /* Accent = green */
+    --accent: 142 76% 36%;
+    --accent-foreground: 0 0% 98%;
+
+    /* Semantic */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 9%;
+
+    --radius: 0.5rem;
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 0 0% 9%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 0 0% 94%;
+    --sidebar-accent-foreground: 0 0% 9%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 0 0% 9%;
+  }
+
+  .dark {
+    /* Surfaces */
+    --background: 220 15% 9%;
+    --foreground: 0 0% 98%;
+
+    --card: 220 12% 13%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 98%;
+
+    --muted: 220 10% 15%;
+    --muted-foreground: 0 0% 60%;
+
+    --secondary: 220 10% 15%;
+    --secondary-foreground: 0 0% 85%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+
+    --accent: 142 76% 36%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 0 0% 98%;
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 12%;
+    --sidebar-foreground: 0 0% 85%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 0 0% 9%;
+    --sidebar-accent: 0 0% 18%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 20%;
+    --sidebar-ring: 0 0% 98%;
+  }
 }
 
-/* ========== CONTAINER WIDTH ========== */
-.editor-wrapper {
-    max-width: 54rem; /* 864px */
-    margin-left: auto;
-    margin-right: auto;
-    /* padding-left: 1rem;
-    padding-right: 1rem; */
-    padding: 64px 32px;
+
+/* ================================================
+   BASE STYLES
+   ================================================ */
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+    letter-spacing: -0.011em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-sans;
+    font-feature-settings: 'kern' 1;
+    letter-spacing: -0.022em;
+  }
+
+  /* Blog article paragraphs use Inter for optimal reading */
+  article p,
+  .blog-content p {
+    @apply font-reading leading-relaxed;
+    font-size: 1.125rem;
+    line-height: 1.8;
+  }
 }
 
-.editor-styled {
-    overflow-x: hidden;
+
+/* ================================================
+   SCROLLBARS
+   ================================================ */
+
+/* Universal thin scrollbar */
+*::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
 }
 
-/* ========== HEADINGS ========== */
-.editor-styled h1 {
-    font-size: 30px;
-    font-weight: 700;
-    line-height: 1.3;
-    margin-top: 0;
-    margin-bottom: 0;
+*::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.editor-styled h1 + h1 {
-    margin-top: 48px;
+*::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.15);
+  border-radius: 2px;
 }
 
-.editor-styled h2 {
-    font-size: 24px;
-    font-weight: 600;
-    line-height: 1.4;
-    margin-top: 48px;
-    margin-bottom: 0;
+*::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.25);
 }
 
-.editor-styled h3 {
-    font-size: 20px;
-    font-weight: 500;
-    line-height: 1.5;
-    margin-top: 48px;
-    margin-bottom: 0;
+html, body {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
 }
 
-/* ========== PARAGRAPHS ========== */
-.editor-styled > p {
-    font-size: 16px;
-    line-height: 1.75;
-    margin: 24px 0;
+/* Custom scroll — used on comment windows, editor, preview pane */
+.custom-scroll::-webkit-scrollbar {
+  width: 1px;
+  height: 2px;
 }
 
-/* Remove spacing for p inside other blocks (ul, blockquote, task list) */
-.editor-styled ul p,
-.editor-styled ol p,
-.editor-styled blockquote p,
-.editor-styled li p {
-    margin: 0 !important;
+.custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-/* ========== IMAGE ========== */
-/* .editor-styled img {
-  display: block;
-  max-width: 100%;
-  width: 100%;
-  height: auto;
-  margin: 2rem 0;
-  object-fit: cover;
-} */
-
-.editor-styled img {
-    display: block;
-    margin: 2.5rem auto;
-    object-fit: contain;
-    max-height: 427.52px;
-
-    /* Controlled width overflow */
-    width: auto;
-    max-width: 125%; /* Allow 25% overflow if screen allows it */
-    overflow-x: clip;
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.1);
+  border-radius: 2px;
 }
 
-/* ========== CODE BLOCKS ========== */
-.editor-styled pre {
-    background-color: #171717;
-    color: #f5f5f5;
-    padding: 16px;
-    margin-top: 48px;
-    margin-bottom: 0;
-    border-radius: 8px;
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.15);
+}
+
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+}
+
+/* Scrollbar hide utility */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
+/* ================================================
+   EDITOR TOOLBAR — MENUBAR RESPONSIVE
+   ================================================ */
+
+/* Mobile: wrap toolbar to multiple rows */
+@media (max-width: 768px) {
+  .menubar {
+    flex-wrap: wrap !important;
+    gap: 0.25rem;
+  }
+}
+
+/* Tablet: horizontal scroll on toolbar */
+@media (min-width: 769px) and (max-width: 1023px) {
+  .menubar {
     overflow-x: auto;
+    overflow-y: visible;
+    flex-wrap: nowrap;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+  }
+
+  .menubar::-webkit-scrollbar { height: 4px; }
+  .menubar::-webkit-scrollbar-track { background: transparent; }
+  .menubar::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.2);
+    border-radius: 2px;
+  }
 }
 
-.editor-styled pre code {
-    background: none;
-    color: #facc15; /* yellow-400 */
-    font-family: ui-monospace, monospace;
-    font-size: 16px;
+
+/* ================================================
+   BLOG CONTENT — .blog-content
+   Applied to both BlogDetail (public) and
+   BlogPreview (editor) — same class, one source of truth.
+   ================================================ */
+
+@layer components {
+
+  /* ── Typography ── */
+
+  .blog-content h1 {
+    @apply text-4xl font-serif font-bold mt-10 mb-6 text-foreground leading-tight;
+  }
+
+  .blog-content h2 {
+    @apply text-3xl font-serif font-bold mt-10 mb-4 text-foreground leading-tight;
+  }
+
+  .blog-content h3 {
+    @apply text-2xl font-serif font-semibold mt-8 mb-3 text-foreground leading-snug;
+  }
+
+  .blog-content p {
+    @apply font-reading mb-6 text-foreground/85 leading-relaxed;
+    font-size: 1.125rem;
+    line-height: 1.85;
+  }
+
+  .blog-content strong {
+    @apply font-bold text-foreground;
+  }
+
+  .blog-content em {
+    @apply italic;
+  }
+
+  /* ── Blockquote — matches site's border-l-4 border-foreground pattern ── */
+
+  .blog-content blockquote {
+    @apply border-l-4 border-foreground pl-6 py-1 my-8;
+    background: transparent;
+  }
+
+  .blog-content blockquote p {
+    @apply font-serif italic text-xl text-foreground/80 mb-2;
+    font-size: 1.2rem;
+    line-height: 1.7;
+  }
+
+  .blog-content blockquote cite,
+  .blog-content blockquote footer {
+    @apply block text-sm font-mono text-muted-foreground mt-3 not-italic;
+  }
+
+  /* ── Links ── */
+
+  .blog-content a {
+    @apply text-accent underline underline-offset-4 hover:text-accent/80 transition-colors duration-150;
+  }
+
+  /* ── Lists ── */
+
+  .blog-content ul:not([data-type="taskList"]) {
+    @apply list-disc list-outside ml-6 mb-6 space-y-2;
+  }
+
+  .blog-content ol {
+    @apply list-decimal list-outside ml-6 mb-6 space-y-2;
+  }
+
+  .blog-content li {
+    @apply font-reading leading-relaxed text-foreground/85;
+    font-size: 1.0625rem;
+  }
+
+  /* Task lists */
+  .blog-content ul[data-type="taskList"] {
+    @apply list-none ml-0 mb-6 space-y-2;
+  }
+
+  .blog-content ul[data-type="taskList"] li {
+    @apply flex items-start gap-2;
+  }
+
+  .blog-content ul[data-type="taskList"] li input[type="checkbox"] {
+    @apply w-4 h-4 border-border cursor-pointer mt-1;
+  }
+
+  .blog-content ul[data-type="taskList"] li input[type="checkbox"]:checked {
+    @apply bg-foreground border-foreground;
+  }
+
+  /* ── Images ── */
+
+  .blog-content img {
+    @apply my-8 mx-auto block;
+    max-width: 100%;
+    max-height: 500px;
+    width: auto;
+    object-fit: contain;
+  }
+
+  /* ── Highlight / Mark ── */
+
+  .blog-content mark {
+    @apply bg-accent/20 px-1;
+  }
+
+  /* ── Horizontal rule ── */
+
+  .blog-content hr {
+    @apply my-10 border-border;
+  }
+
+  /* ── Tables ── */
+
+  .blog-content table {
+    @apply w-full border-collapse mb-6;
+  }
+
+  .blog-content th {
+    @apply bg-muted font-mono font-semibold text-sm p-3 text-left border border-border uppercase tracking-wide;
+  }
+
+  .blog-content td {
+    @apply font-reading p-3 border border-border text-sm;
+  }
+
+  /* ── Text alignment (Tiptap inline styles) ── */
+
+  .blog-content [style*="text-align: center"] { @apply text-center; }
+  .blog-content [style*="text-align: right"]  { @apply text-right;  }
+  .blog-content [style*="text-align: left"]   { @apply text-left;   }
+
 }
 
-/* ========== INLINE CODE ========== */
-.editor-styled code {
-    background-color: #171717;
-    color: #facc15;
-    font-family: ui-monospace, monospace;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 16px;
+
+/* ================================================
+   CODE BLOCKS
+   Prism.js handles syntax colors.
+   We handle layout, copy button, inline code.
+   ================================================ */
+
+/* Block code — wraps Prism output */
+.blog-content pre {
+  position: relative;
+  border-radius: 0;
+  margin: 1.75rem 0;
+  overflow-x: auto;
+  background: hsl(var(--muted));
+  box-shadow: none;
 }
 
-/* ========== BLOCKQUOTE ========== */
-.editor-styled blockquote {
-    border-left: 4px solid #d1d5db;
-    padding-left: 1rem;
-    margin-top: 2.5rem;
-    margin-bottom: 2.5rem;
+/* Inline code — not inside pre */
+.blog-content :not(pre) > code {
+  font-family: 'IBM Plex Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.875em;
+  background: hsl(var(--muted));
+  color: hsl(var(--accent));
+  padding: 0.15em 0.4em;
+  border: 1px solid hsl(var(--border));
 }
 
-.editor-styled blockquote p:first-child {
-    font-size: 16px;
-    line-height: 1.75;
-    color: #111827; /* Tailwind gray-900 for light mode */
-    margin: 0;
+.dark .blog-content :not(pre) > code {
+  background: hsl(var(--muted));
+  color: hsl(var(--accent));
 }
 
-.editor-styled blockquote p:last-child {
-    font-size: 14px;
-    color: #6b7280; /* Tailwind gray-500 */
-    margin-top: 1rem;
-    text-align: right;
+/* Copy button — injected by Prism.js useEffect */
+.copy-button {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0.4rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: #d4d4d4;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, background 0.2s;
 }
 
-/* ========== LISTS ========== */
-.editor-styled ul,
-.editor-styled ol {
-    margin: 32px 0;
-    padding-left: 32px;
+.blog-content pre:hover .copy-button {
+  opacity: 1;
 }
 
-.editor-styled li {
-    font-size: 16px;
-    line-height: 1.75;
-    margin-bottom: 0.5rem;
-}
-
-/* ========== TASK LIST ========== */
-.editor-styled ul[data-type="taskList"] {
-    list-style: none;
-    margin: 32px 0;
-    padding-left: 0;
-}
-
-.editor-styled li[data-checked] {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    margin: 4px 0;
-}
-
-.editor-styled li[data-checked] input[type="checkbox"] {
-    margin: 4px 8px 0 0;
-    width: 16px;
-    height: 16px;
-}
-
-/* ========== LINKS ========== */
-.editor-styled a {
-    color: #2563eb; /* Tailwind blue-600 */
-    text-decoration: underline;
-}
-
-.editor-styled a:hover {
-    color: #1d4ed8; /* Tailwind blue-700 */
-}
-
-.editor-styled a:visited {
-    color: #7c3aed; /* Tailwind purple-600 */
+.copy-button:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
 }

@@ -9,5 +9,3 @@ const router = Router();
 router.get('/:slug', TagController.blogsByTag);
 
 export default router;
-
-

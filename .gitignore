@@ -1,27 +1,64 @@
-# Node modules (anywhere)
+# Node
 **/node_modules/
 
-# Environment files (anywhere)
+# Env
 **/.env
-
-# Prisma generated outputs (optional)
-**/generated/prisma
+.env.*
+.env.local
+.env.docker
+.env.development
+.env.test
+.env.test
+.env.staging
+.env.production
+.env.e2e
+.env*
 
 # Logs
 logs/
+**/*.log
 
-# Build outputs
-.vercel/
+# Builds
 .next/
 dist/
+.vercel/
 
-# Notes
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Generated
+**/generated/prisma
+
+# Context / notes
 **/*.txt
 
-# macOS system file
-.DS_Store
+# Project internals
+*.old
+scripts/
+typescript-src/
+app-old-version/
+new-unused-files/
+e2e-old/
+tests-old/
+project_analysis.md
 
-*.md 
+# Backup files
+*.backup
 
-managed_context/
-test_suite_analysis/
+# Left-outs
+server.e2e.js
+index.e2e.js
+
+# Docker
+docker-compose.override.yml

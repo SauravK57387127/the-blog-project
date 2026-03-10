@@ -1,31 +1,94 @@
 import { asyncHandler } from '../../utils/asyncHandler.js';
-// import LikeService from '../../services/user/like.service.js';
+import { sendResponse } from '../../utils/sendResponse.js';
+import LikeService from '../../services/user/like.service.js';
+import { getAuth } from '@clerk/express';
 
 export default {
-  // ── Blog likes count/list ──
-  listBlog: asyncHandler(async (req, res) => {
+  /**
+   * POST /api/user/likes/:blogId
+   */
+  toggleLike: asyncHandler(async (req, res) => {
+    const { userId } = getAuth(req);
     const { blogId } = req.params;
-    // const likes = await LikeService.listBlog(blogId);
-    res.json({ msg: `likes for blog ${blogId} stub` });
+
+    if (!userId) {
+      return sendResponse({
+        res,
+        statusCode: 401,
+        success: false,
+        message: 'Unauthorized',
+        data: null,
+      });
+    }
+
+    const result = await LikeService.toggleLike({ userId, blogId });
+
+    sendResponse({
+      res,
+      statusCode: result.success ? 200 : 400,
+      success: result.success,
+      message: result.message,
+      data: result.data,
+    });
   }),
 
-  // ── Comment likes count/list ──
-  listComment: asyncHandler(async (req, res) => {
-    const { commentId } = req.params;
-    // const likes = await LikeService.listComment(commentId);
-    res.json({ msg: `likes for comment ${commentId} stub` });
+  /**
+   * DELETE /api/user/likes/:blogId
+   */
+  unlikeBlog: asyncHandler(async (req, res) => {
+    const { userId } = getAuth(req);
+    const { blogId } = req.params;
+
+    if (!userId) {
+      return sendResponse({
+        res,
+        statusCode: 401,
+        success: false,
+        message: 'Unauthorized',
+        data: null,
+      });
+    }
+
+    const result = await LikeService.unlikeBlog({ userId, blogId });
+
+    sendResponse({
+      res,
+      statusCode: result.success ? 200 : 404,
+      success: result.success,
+      message: result.message,
+      data: result.data,
+    });
   }),
 
-  // ── Add like ──
-  add: asyncHandler(async (req, res) => {
-    res.json({ msg: 'add like stub' });
-  }),
+  /**
+   * GET /api/user/likes
+   */
+  getMyLikes: asyncHandler(async (req, res) => {
+    const { userId } = getAuth(req);
+    const { page = 1, limit = 20 } = req.query;
 
-  // ── Remove like ──
-  remove: asyncHandler(async (req, res) => {
-    res.json({ msg: 'remove like stub' });
+    if (!userId) {
+      return sendResponse({
+        res,
+        statusCode: 401,
+        success: false,
+        message: 'Unauthorized',
+        data: null,
+      });
+    }
+
+    const result = await LikeService.getMyLikes({
+      userId,
+      page: parseInt(page),
+      limit: parseInt(limit),
+    });
+
+    sendResponse({
+      res,
+      statusCode: result.success ? 200 : 400,
+      success: result.success,
+      message: result.message,
+      data: result.data,
+    });
   }),
 };
-
-
-

@@ -3,16 +3,22 @@ import LikeController from '../../controllers/user/like.controller.js';
 
 const router = Router();
 
-// blog like / unlike
-router.get('/blog/:blogId',    LikeController.listBlog);    // list likes of blog
-router.post('/blog/:blogId',    LikeController.add);    // like
-router.delete('/blog/:blogId',  LikeController.remove); // unlike
+/**
+ * POST /api/user/likes/:blogId
+ * Like a blog (toggle: if already liked, unlike)
+ */
+router.post('/:blogId', LikeController.toggleLike);
 
-// comment like / unlike
-router.get('/comment/:commentId', LikeController.listComment);    // liked on a comment
-router.post('/comment/:commentId',   LikeController.add);
-router.delete('/comment/:commentId', LikeController.remove);
+/**
+ * DELETE /api/user/likes/:blogId
+ * Unlike a blog
+ */
+router.delete('/:blogId', LikeController.unlikeBlog);
+
+/**
+ * GET /api/user/likes
+ * Get all my liked blogs
+ */
+router.get('/', LikeController.getMyLikes);
 
 export default router;
-
-

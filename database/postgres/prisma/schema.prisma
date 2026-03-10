@@ -1,75 +1,228 @@
+// COMMMAND : pnpm exec prisma migrate dev --schema=database/postgres/prisma/schema.prisma --name add_admin_authentication
+
 generator client {
   provider = "prisma-client-js"
-  output   = "../../../node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("POSTGRES_DATABASE_URL")
 }
 
-model Session {
-  id        String   @id @default(uuid())
-  userId    String?
-  sessionId String   @unique
-  ipAddress String
-  device    String
-  browser   String
-  os        String
-  country   String
-  startedAt DateTime
-  endedAt   DateTime
-  duration  Int
+
+// model Session {
+//   id        String   @id @default(uuid())
+//   userId    String?
+//   sessionId String   @unique
+//   ipAddress String
+//   device    String
+//   browser   String
+//   os        String
+//   country   String
+//   startedAt DateTime
+//   endedAt   DateTime
+//   duration  Int
+// }
+
+// model PageView {
+//   id          String   @id @default(uuid())
+//   sessionId   String
+//   userId      String?
+//   url         String
+//   referrer    String?
+//   title       String?
+//   timestamp   DateTime
+//   timeSpent   Int
+//   scrollDepth Int
+// }
+
+// model ClickEvent {
+//   id          String   @id @default(uuid())
+//   sessionId   String
+//   userId      String?
+//   pageUrl     String
+//   elementId   String?
+//   elementText String?
+//   timestamp   DateTime
+// }
+
+// model ScrollEvent {
+//   id          String   @id @default(uuid())
+//   sessionId   String
+//   userId      String?
+//   pageUrl     String
+//   scrollDepth Int
+//   timestamp   DateTime
+// }
+
+// model TrafficSource {
+//   id          String   @id @default(uuid())
+//   sessionId   String
+//   utmSource   String?
+//   utmMedium   String?
+//   utmCampaign String?
+//   referrer    String?
+//   timestamp   DateTime
+// }
+
+// model ErrorLog {
+//   id           String   @id @default(uuid())
+//   sessionId    String
+//   userId       String?
+//   pageUrl      String
+//   errorMessage String
+//   stackTrace   String?
+//   browser      String
+//   timestamp    DateTime
+// }
+
+
+model Event {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  userId    String?   // null = anonymous
+  sessionId String?
+  properties Json
+  createdAt DateTime @default(now())
 }
 
-model PageView {
-  id          String   @id @default(uuid())
-  sessionId   String
-  userId      String?
-  url         String
-  referrer    String?
-  title       String?
-  timestamp   DateTime
-  timeSpent   Int
-  scrollDepth Int
+
+
+// ==================== ADMIN AUTHENTICATION ====================
+
+model Admin {
+  id              Int       @id @default(autoincrement())
+  
+  // Login credentials
+  username        String    @unique
+  // Why username not email? Harder for attackers to guess (emails are often public)
+  
+  passwordHash    String
+  // NEVER store plain password! This is bcrypt hash with 12 rounds
+  
+  // Security metadata
+  lastLoginAt     DateTime?
+  lastLoginIP     String?
+  // Track when/where admin last logged in (detect suspicious activity)
+  
+  failedAttempts  Int       @default(0)
+  // Count failed login attempts (for account lockout)
+  
+  lockedUntil     DateTime?
+  // If account is locked (after 5 failed attempts), unlock after this time
+  
+  // Permissions (we'll keep it simple for now)
+  role            String    @default("admin")  // "super_admin" or "admin"
+  // super_admin = full access, admin = limited access
+  
+  // Relationships
+  refreshTokens   AdminRefreshToken[]  // One admin has many refresh tokens (multiple devices)
+  auditLogs       AuditLog[]           // Track all actions this admin performed
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Indexes for faster queries
+  @@index([username])
 }
 
-model ClickEvent {
-  id          String   @id @default(uuid())
-  sessionId   String
-  userId      String?
-  pageUrl     String
-  elementId   String?
-  elementText String?
-  timestamp   DateTime
+// ==================== REFRESH TOKENS ====================
+
+// model AdminRefreshToken {
+//   id            Int       @id @default(autoincrement())
+  
+//   adminId       Int
+//   admin         Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+//   // Link to admin (if admin deleted, delete all their tokens)
+  
+//   tokenHash     String    @unique
+//   // Store HASHED refresh token, never plain text!
+//   // Why? If database is compromised, attacker can't use tokens
+  
+//   deviceInfo    String?
+//   // Browser/OS info (e.g., "Chrome 120, Windows 10")
+//   // Helps identify: "Was this me logging in from Linux? Suspicious!"
+  
+//   ipAddress     String?
+//   // IP address where token was created
+//   // Detect: "Why is my token being used from China?"
+  
+//   expiresAt     DateTime
+//   // Refresh token expires after 7 days
+  
+//   revokedAt     DateTime?
+//   // If admin logs out, we set this timestamp (marks token as invalid)
+//   // Why not delete? Keep record for audit trail
+  
+//   createdAt     DateTime  @default(now())
+  
+//   // Indexes for fast lookups
+//   @@index([adminId])
+//   @@index([tokenHash])
+//   @@index([expiresAt])  // Clean up expired tokens periodically
+// }
+
+model AdminRefreshToken {
+  id            Int       @id @default(autoincrement())
+  adminId       Int
+  admin         Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  
+  tokenHash     String    @unique
+  deviceId      String    // ← Add this
+  deviceInfo    String?
+  ipAddress     String?
+  
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt  // ← Add this for tracking token rotation
+  
+  @@index([adminId])
+  @@index([tokenHash])
+  @@index([deviceId])  // ← Add this
+  @@index([adminId, deviceId])  // ← Composite index for faster lookup
 }
 
-model ScrollEvent {
-  id          String   @id @default(uuid())
-  sessionId   String
-  userId      String?
-  pageUrl     String
-  scrollDepth Int
-  timestamp   DateTime
-}
 
-model TrafficSource {
-  id          String   @id @default(uuid())
-  sessionId   String
-  utmSource   String?
-  utmMedium   String?
-  utmCampaign String?
-  referrer    String?
-  timestamp   DateTime
-}
+// ==================== AUDIT LOGGING ====================
 
-model ErrorLog {
-  id           String   @id @default(uuid())
-  sessionId    String
-  userId       String?
-  pageUrl      String
-  errorMessage String
-  stackTrace   String?
-  browser      String
-  timestamp    DateTime
+model AuditLog {
+  id            Int       @id @default(autoincrement())
+  
+  adminId       Int?
+  admin         Admin?    @relation(fields: [adminId], references: [id])
+  // Nullable because failed login attempts won't have valid adminId
+  
+  action        String
+  // Examples: "LOGIN", "LOGOUT", "CREATE_BLOG", "DELETE_USER", "UPDATE_SUBSCRIBER"
+  
+  resource      String?
+  // What was acted upon? "blog", "user", "subscriber"
+  
+  resourceId    String?
+  // Which specific item? MongoDB ObjectId or Prisma ID
+  
+  // HTTP Request details
+  method        String?   // "GET", "POST", "DELETE"
+  endpoint      String?   // "/api/admin/blogs/123"
+  
+  // Security context
+  ipAddress     String?
+  userAgent     String?   // Browser/device info
+  
+  // Result
+  statusCode    Int?      // 200 = success, 401 = unauthorized, etc.
+  errorMessage  String?   // If request failed, what was the error?
+  
+  metadata      Json?
+  // Flexible field for additional context
+  // Example: { "oldTitle": "Hello", "newTitle": "World", "fieldsChanged": ["title"] }
+  
+  createdAt     DateTime  @default(now())
+  
+  // Indexes for admin dashboard queries
+  @@index([adminId, createdAt])  // "Show me all actions by admin #5 today"
+  @@index([action])              // "Show me all DELETE_BLOG actions"
+  @@index([createdAt])           // "Show me recent activity"
+  @@index([ipAddress])           // "Show me all actions from this IP"
 }

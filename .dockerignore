@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment
+.env*
+!.env.example
+
+# Git & IDE
+.git/
+.gitignore
+.github/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Build outputs
+dist/
+build/
+.next/
+.turbo/
+coverage/
+
+# Logs
+logs/
+*/logs/
+*.log
+
+# Test files
+**/*.test.js
+**/*.spec.js
+**/tests/
+coverage/
+
+# Docker files
+Dockerfile
+Dockerfile.*
+docker-compose*.yml
+
+# Backup & old files
+**/*.backup
+**/*.old
+**/*.bak
+
+# Junk specific to your project
+txt_collection_*/
+typescript-src/
+e2e-old/
+reports/
+ai-notes.md
+project_analysis.md
+BEST_PRACTICES.md
+*_context.txt
+modified_files.txt

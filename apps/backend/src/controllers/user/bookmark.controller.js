@@ -1,16 +1,85 @@
 import { asyncHandler } from '../../utils/asyncHandler.js';
-// import BookmarkService from '../../services/user/bookmark.service.js';
+import { sendResponse } from '../../utils/sendResponse.js';
+import BookmarkService from '../../services/user/bookmark.service.js';
+import { getAuth } from '@clerk/express';
 
 export default {
-  list: asyncHandler(async (req, res) => {
-    res.json({ msg: 'list bookmarks stub' });
+  toggleBookmark: asyncHandler(async (req, res) => {
+    const { userId } = getAuth(req);
+    const { blogId } = req.params;
+
+    if (!userId) {
+      return sendResponse({
+        res,
+        statusCode: 401,
+        success: false,
+        message: 'Unauthorized',
+        data: null,
+      });
+    }
+
+    const result = await BookmarkService.toggleBookmark({ userId, blogId });
+
+    sendResponse({
+      res,
+      statusCode: result.success ? 200 : 400,
+      success: result.success,
+      message: result.message,
+      data: result.data,
+    });
   }),
 
-  add: asyncHandler(async (req, res) => {
-    res.json({ msg: 'add bookmark stub' });
+  removeBookmark: asyncHandler(async (req, res) => {
+    const { userId } = getAuth(req);
+    const { blogId } = req.params;
+
+    if (!userId) {
+      return sendResponse({
+        res,
+        statusCode: 401,
+        success: false,
+        message: 'Unauthorized',
+        data: null,
+      });
+    }
+
+    const result = await BookmarkService.removeBookmark({ userId, blogId });
+
+    sendResponse({
+      res,
+      statusCode: result.success ? 200 : 404,
+      success: result.success,
+      message: result.message,
+      data: result.data,
+    });
   }),
 
-  remove: asyncHandler(async (req, res) => {
-    res.json({ msg: 'remove bookmark stub' });
+  getMyBookmarks: asyncHandler(async (req, res) => {
+    const { userId } = getAuth(req);
+    const { page = 1, limit = 20 } = req.query;
+
+    if (!userId) {
+      return sendResponse({
+        res,
+        statusCode: 401,
+        success: false,
+        message: 'Unauthorized',
+        data: null,
+      });
+    }
+
+    const result = await BookmarkService.getMyBookmarks({
+      userId,
+      page: parseInt(page),
+      limit: parseInt(limit),
+    });
+
+    sendResponse({
+      res,
+      statusCode: result.success ? 200 : 400,
+      success: result.success,
+      message: result.message,
+      data: result.data,
+    });
   }),
 };

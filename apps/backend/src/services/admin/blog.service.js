@@ -1,205 +1,710 @@
-import Blog from "../../../../../database/models/blog.model.js";
-import Draft from "../../../../../database/models/draft.model.js"
-import { blogQueue } from "../../../../../infra/bullmq/queues/blogQueue.js"
+import { models } from '../../../../../database/index.js';
+import { logger } from '../../../../../packages/logger/index.js';
+import { nanoid } from 'nanoid';
 
-import mongoose from "mongoose";
-import { slugify } from "../../utils/slugify.js";
+const { Blog } = models;
 
+/**
+ * Generate slug from title
+ */
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
 
 export default {
-  // Draft helpers
-  createDraft: async (draftData) => {
-    console.log('create draft SERVICE reached!! ✅')
-    const draft = await Draft.create(draftData);
-
-    if (!draft) {
-          console.error("SERVICE: Draft creation failed 🟥");
-        return { success: false, message: "Draft creation failed 🟥", data: null };
-    } else {
-        console.log('Draft created ✅')
-        console.log(`Draft: ${draft}`)
-    }
-    // if (!draft) throw new Error("Failed to create draft");
-
-    return { success: true, message: "Draft created ✅", data: draft };
-  },
-
-  listDrafts: async () => {
-    console.log('list draft SERVICE reached!! ✅')
-
-    const drafts = await Draft.find().sort({ updatedAt: -1 });
-    if (drafts.length === 0) {
-  console.warn("SERVICE: no drafts found");
-  return { success: true, message: "No drafts found!!", data: [] };
-}
-    return { success: true, message: "All Drafts fetched!!", data: drafts };
-  },
-
-  blogAutoSave: async ({ _id, title, content, coverImage, tags }) => {
-//   if (!Draft) throw new Error("Draft model not available");
-//   if (!title?.trim()) throw new Error("Title is required");
-//   if (!content) throw new Error("Content is required");
-    
-    // if (!Draft) return { success: false, message: "Draft model not available 🟥", data: null };
-    // if (!title?.trim()) return { success: false, message: "Title is empty, draft not created 🟥" };
-    // if (!content) return { success: false, message: "Content is empty, draft not created 🟥" };
-
-
+  /**
+ * Get all published/scheduled blogs with pagination & filters
+ */
+// Used by: Admin Blogs page UI
+getPublishedBlogs: async ({ status, category, page, limit }) => {
   try {
-    if (_id) {
-      // Update existing draft
-      const updated_draft = await Draft.findByIdAndUpdate(
-        _id,
+    const query = {};
+
+    // Filter by status (published or scheduled)
+    if (status === 'published' || status === 'scheduled') {
+      query.status = status;
+    } else {
+      query.status = { $in: ['published', 'scheduled'] };
+    }
+
+    // Filter by category
+    if (category) {
+      query.category = category;
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [blogs, totalCount] = await Promise.all([
+      Blog.find(query)
+        .sort({ publishedAt: -1, scheduledAt: -1 })  // Most recent first
+        .skip(skip)
+        .limit(limit)
+        .select('title slug coverImage status category publishedAt scheduledAt')
+        .lean(),
+      Blog.countDocuments(query),
+    ]);
+
+    // Format with time labels
+    const formatted = blogs.map(blog => ({
+      _id: blog._id,
+      title: blog.title,
+      slug: blog.slug,
+      coverImage: blog.coverImage,
+      status: blog.status,
+      category: blog.category,
+      timeLabel: blog.status === 'published'
+        ? formatTimeAgo(blog.publishedAt)
+        : formatFutureDate(blog.scheduledAt),
+      publishedAt: blog.publishedAt,
+      scheduledAt: blog.scheduledAt,
+    }));
+
+    logger.info('Published blogs fetched', { 
+      status, 
+      category, 
+      page, 
+      count: blogs.length 
+    });
+
+    return {
+      success: true,
+      message: 'Blogs fetched',
+      data: {
+        blogs: formatted,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalCount / limit),
+          totalBlogs: totalCount,
+          hasMore: skip + blogs.length < totalCount,
+        },
+      },
+    };
+  } catch (error) {
+    logger.error('Get published blogs failed', { error: error.message });
+    return {
+      success: false,
+      message: 'Failed to fetch blogs',
+      data: null,
+      error: error.message,
+    };
+  }
+},
+
+/**
+ * Get all drafts with pagination
+ */
+// Used by: Admin Drafts page UI
+getDrafts: async ({ page, limit }) => {
+  try {
+    const skip = (page - 1) * limit;
+
+    const [drafts, totalCount] = await Promise.all([
+      Blog.find({ status: 'draft' })
+        .sort({ updatedAt: -1 })  // Most recently updated first
+        .skip(skip)
+        .limit(limit)
+        .select('title content updatedAt wordCount')
+        .lean(),
+      Blog.countDocuments({ status: 'draft' }),
+    ]);
+
+    // Format with excerpts
+    const formatted = drafts.map(draft => ({
+      _id: draft._id,
+      title: draft.title,
+      excerpt: draft.content
+        .replace(/<[^>]*>/g, '')  // Remove HTML
+        .split('\n')[0]
+        .substring(0, 150),
+      editedLabel: formatTimeAgo(draft.updatedAt),
+      wordCount: draft.wordCount || 0,
+      updatedAt: draft.updatedAt,
+    }));
+
+    logger.info('Drafts fetched', { page, count: drafts.length });
+
+    return {
+      success: true,
+      message: 'Drafts fetched',
+      data: {
+        drafts: formatted,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalCount / limit),
+          totalDrafts: totalCount,
+          hasMore: skip + drafts.length < totalCount,
+        },
+      },
+    };
+  } catch (error) {
+    logger.error('Get drafts failed', { error: error.message });
+    return {
+      success: false,
+      message: 'Failed to fetch drafts',
+      data: null,
+      error: error.message,
+    };
+  }
+},
+
+/**
+ * Delete blog (any status) 
+ */
+deleteBlog: async (blogId, { blogQueue }) => {
+  try {
+    const blog = await Blog.findById(blogId);
+
+    if (!blog) {
+      return {
+        success: false,
+        message: 'Blog not found',
+        data: null,
+      };
+    }
+
+    // Cancel scheduled publish job if exists
+    if (blog.status === 'scheduled' && blogQueue) {
+      const jobId = `publish-${blog._id}`;
+      try {
+        const job = await blogQueue.getJob(jobId);
+        if (job) {
+          await job.remove();
+          logger.info('Cancelled scheduled publish job', { jobId });
+        }
+      } catch (error) {
+        logger.warn('Could not cancel job', { jobId, error: error.message });
+      }
+    }
+
+    await blog.deleteOne();
+
+    // Delete associated data
+    await Promise.all([
+      BlogAnalytics.deleteOne({ blogId }),
+      BlogView.deleteMany({ blogId }),
+      Like.deleteMany({ blogId }),
+      Bookmark.deleteMany({ blogId }),
+      Comment.deleteMany({ blogId }),
+    ]);
+
+    logger.info('Blog deleted', { blogId, status: blog.status });
+
+    return {
+      success: true,
+      message: 'Blog deleted successfully',
+      data: { blogId },
+    };
+  } catch (error) {
+    logger.error('Delete blog failed', { error: error.message, blogId });
+    return {
+      success: false,
+      message: 'Failed to delete blog',
+      data: null,
+      error: error.message,
+    };
+  }
+},
+
+
+  /**
+   * List all blogs with filtering
+   */
+// Used by: Generic admin blog management
+  listBlogs: async ({ status, search, page, limit }) => {
+    try {
+      const query = {};
+
+      // Filter by status
+      if (status) {
+        query.status = status;
+      }
+
+      // Search by title/content
+      if (search && search.trim().length > 0) {
+        query.$or = [
+          { title: { $regex: search, $options: 'i' } },
+          { content: { $regex: search, $options: 'i' } },
+        ];
+      }
+
+      const skip = (page - 1) * limit;
+
+      const [blogs, totalCount] = await Promise.all([
+        Blog.find(query)
+          .select('title slug status coverImage tags category publishedAt scheduledAt createdAt updatedAt')
+          .sort({ updatedAt: -1 })
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+        Blog.countDocuments(query),
+      ]);
+
+      logger.info('Admin blogs listed', { status, count: blogs.length, totalCount });
+
+      return {
+        success: true,
+        message: 'Blogs fetched',
+        data: {
+          blogs,
+          pagination: {
+            currentPage: page,
+            totalPages: Math.ceil(totalCount / limit),
+            totalBlogs: totalCount,
+            hasMore: skip + blogs.length < totalCount,
+          },
+        },
+      };
+    } catch (error) {
+      logger.error('List blogs failed', { error: error.message });
+      return {
+        success: false,
+        message: 'Failed to fetch blogs',
+        data: null,
+        error: error.message,
+      };
+    }
+  },
+
+  /**
+   * Get blog by ID
+   */
+  getBlogById: async (blogId) => {
+    try {
+      const blog = await Blog.findById(blogId).lean();
+
+      if (!blog) {
+        return {
+          success: false,
+          message: 'Blog not found',
+          data: null,
+        };
+      }
+
+      logger.info('Admin blog fetched', { blogId });
+
+      return {
+        success: true,
+        message: 'Blog fetched',
+        data: blog,
+      };
+    } catch (error) {
+      logger.error('Get blog failed', { error: error.message, blogId });
+      return {
+        success: false,
+        message: 'Failed to fetch blog',
+        data: null,
+        error: error.message,
+      };
+    }
+  },
+
+  /**
+ * Get blog by draft slug (for editor)
+ */
+getBlogByDraftSlug: async (draftSlug) => {
+  try {
+    const blog = await Blog.findOne({ draftSlug }).lean();
+
+    if (!blog) {
+      return {
+        success: false,
+        message: 'Draft not found',
+        data: null,
+      };
+    }
+
+    logger.info('Blog fetched by draft slug', { draftSlug });
+
+    return {
+      success: true,
+      message: 'Blog fetched',
+      data: blog,
+    };
+  } catch (error) {
+    logger.error('Get blog by draft slug failed', { error: error.message, draftSlug });
+    return {
+      success: false,
+      message: 'Failed to fetch blog',
+      data: null,
+      error: error.message,
+    };
+  }
+},
+  
+/**
+ * Create new blog (draft by default)
+ * Returns draftSlug for editor navigation
+ */
+createBlog: async (blogData) => {
+  try {
+    // Generate unique draft slug
+    const draftSlug = nanoid(10);
+
+    const blog = await Blog.create({
+      ...blogData,
+      status: 'draft',
+      draftSlug,
+      authorId: 'single-author',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    logger.info('Blog created', { blogId: blog._id, draftSlug });
+
+    return {
+      success: true,
+      message: 'Blog created',
+      data: {
+        _id: blog._id,
+        draftSlug: blog.draftSlug,
+        title: blog.title,
+      },
+    };
+  } catch (error) {
+    logger.error('Create blog failed', { error: error.message });
+    return {
+      success: false,
+      message: 'Failed to create blog',
+      data: null,
+      error: error.message,
+    };
+  }
+},
+
+  /**
+   * Update blog
+   */
+  updateBlog: async (blogId, updates) => {
+    try {
+      const blog = await Blog.findById(blogId);
+
+      if (!blog) {
+        return {
+          success: false,
+          message: 'Blog not found',
+          data: null,
+        };
+      }
+
+      // Update fields
+      Object.keys(updates).forEach(key => {
+        if (updates[key] !== undefined) {
+          blog[key] = updates[key];
+        }
+      });
+
+      // Regenerate slug if title changed
+      if (updates.title) {
+        blog.slug = slugify(updates.title);
+      }
+
+      blog.updatedAt = new Date();
+      await blog.save();
+
+      logger.info('Blog updated', { blogId, status: blog.status });
+
+      return {
+        success: true,
+        message: 'Blog updated',
+        data: blog,
+      };
+    } catch (error) {
+      logger.error('Update blog failed', { error: error.message, blogId });
+      return {
+        success: false,
+        message: 'Failed to update blog',
+        data: null,
+        error: error.message,
+      };
+    }
+  },
+
+  
+  /**
+   * Auto-save blog (debounced from frontend)
+   */
+  autosaveBlog: async (blogId, updates) => {
+    try {
+      const blog = await Blog.findByIdAndUpdate(
+        blogId,
         {
-          title: title.trim(),
-          content,
-          coverImage: coverImage || null,
-          tags: Array.isArray(tags) ? tags : [],
+          ...updates,
+          autosaveAt: new Date(),
           updatedAt: new Date(),
-          autosaveAt: new Date()
         },
         { new: true }
       );
-      return {success: true, message: 'Draft Updated! ✅', data: updated_draft}
 
-    } else {
-      // Create new draft
-      const new_draft_created = await Draft.create({
-        title: title.trim(),
-        content,
-        coverImage: coverImage || null,
-        tags: Array.isArray(tags) ? tags : []
-      });
-      return {success: true, message: 'New Draft created !!', data: new_draft_created}
+      if (!blog) {
+        return {
+          success: false,
+          message: 'Blog not found',
+          data: null,
+        };
+      }
+
+      logger.debug('Blog autosaved', { blogId });
+
+      return {
+        success: true,
+        message: 'Blog autosaved',
+        data: blog,
+      };
+    } catch (error) {
+      logger.error('Autosave failed', { error: error.message, blogId });
+      return {
+        success: false,
+        message: 'Failed to autosave',
+        data: null,
+        error: error.message,
+      };
     }
-  } catch (error) {
-    console.error(`SERVICE: auto-save failed 🟥 => ${error.message}`)
-    // throw new Error(`Autosave failed: ${error.message}`);
-  }
-},
-
-//     updateDraft: async (draftId, updates) => {
-//     // if (!Draft) throw new Error("Draft model not available");
-//     // if (!mongoose.Types.ObjectId.isValid(draftId)) throw new Error("Invalid draft ID format");
-
-//     if (!Draft) return { found: false, message: "Draft model not available" };
-//     if (!mongoose.Types.ObjectId.isValid(draftId)) return { found: false, message: "Invalid draft ID" };
-
-
-//   return await Draft.findByIdAndUpdate(
-//     draftId,
-//     {
-//       ...updates,
-//       updatedAt: new Date()
-//     },
-//     { new: true }
-//   );
-// },
-
-  getDraftById: async (draftId) => {
-    // if (!Draft || typeof Draft.findById !== 'function') throw new Error("Draft model not created yet");
-    // if (!mongoose.Types.ObjectId.isValid(draftId)) throw new Error("Invalid draft ID format");
-
-    // OLD generation code
-
-    // if (!Draft || typeof Draft.findById !== 'function') {
-    // return { found: false, message: "Draft model not created yet", draft: null };
-    // }                                                                                                            
-    // if (!mongoose.Types.ObjectId.isValid(draftId)) {
-    // return { found: false, message: "Invalid draft ID format", draft: null };
-    // }
-
-
-  const draft = await Draft.findById(draftId).lean();
-
-  if (!draft) {
-    return { success: false, message: "Draft not found 🟥", data: null };
-  }
-
-  return { success: true, message: "Draft fetched! ✅", data: draft };
-},
-
-
-  // Publish now (status → published)
-  publishNow: async ({ title, content, tags, category, _id }) => {
-    // if (!Blog) throw new Error('Blog model not available');
-    // if (draftId && !Draft) throw new Error('Draft model not available');
-
-    // if (!Blog) return { success: false, message: "Blog model not available", data: null };
-    // if (draftId && !Draft) return { success: false, message: "Draft model not available", data: null };
-
-    const slug = slugify(title)
-
-    const blog = new Blog({
-      title, slug, content, tags, category,
-      status: "published",
-      publishedAt: new Date(),
-      scheduledAt: new Date()
-    });
-
-    const savedBlog = await blog.save()
-    console.log(`Blog created => ${savedBlog} ✅✅`);
-
-    if(_id){
-      await Draft.findByIdAndDelete(_id);
-      console.log('🗑️ Draft deleted after publish:', _id, '✅✅✅');
-    }
-
-    return { success: true, message: "Blog published ✅", data: savedBlog};
   },
 
+  /**
+   * Publish blog immediately
+   */
+  publishBlog: async (blogId, { blogQueue }) => {
+    try {
+      const blog = await Blog.findById(blogId);
 
-  // if (!Blog) throw new Error('Blog model not available');
- // if (draftId && !Draft) throw new Error('Draft model not available');
-  // Schedule publish via BullMQ
-scheduleBlog: async ({ title, content, tags, category, _id, scheduledAt }) => {
-    console.log('\nschedule blog reached! ✅')
-    console.log(`scheduled at: ${scheduledAt}\n`)
-    if(!_id) return { success: false, message: 'draft Id not present ❌❌', data: null}
-//   if (!Blog) return { success: false, message: "Blog model not available", data: null };
-//   if (_id && !Draft) return { success: false, message: "Draft model not available", data: null };
+      if (!blog) {
+        return {
+          success: false,
+          message: 'Blog not found',
+          data: null,
+        };
+      }
 
-    const slug = slugify(title)
-  const blog = new Blog({ title, slug, content, tags, category, scheduledAt, status: "scheduled" });
+      // If already published, return as-is
+      if (blog.status === 'published') {
+        return {
+          success: true,
+          message: 'Blog already published',
+          data: blog,
+        };
+      }
 
-  const delay = new Date(scheduledAt) - Date.now();
+      // Generate slug if not exists
+      if (!blog.slug) {
+        blog.slug = slugify(blog.title);
+      }
 
-  // ⏱ If scheduleAt is now/past => publish immediately
-  if (delay <= 0) {
-    blog.status = "published";
-    blog.publishedAt = new Date();
-    await blog.save();
-    console.log("⏱ Schedule time already passed → published immediately.");
+      // Update status
+      blog.status = 'published';
+      blog.publishedAt = new Date();
+      blog.scheduledAt = null;  // Clear scheduled time
+      blog.updatedAt = new Date();
 
-    if (_id) {
-      await Draft.findByIdAndDelete(_id);
-      console.log('🗑️ Draft deleted after publish:', _id);
-    }
-
-    return { success: false, message: " time expired! ✅ | Published IMMEDIATELY ❌", data: blog };
-  }
-
-  try {
       await blog.save();
-    await blogQueue.add("publish-blog", { blogId: blog._id }, { delay });
-    console.log(`🎯 Blog scheduled!! at: ${scheduledAt}`);
-    return { success: true, message: "Draft created ✅", data: blog };
-  } catch (err) {
-    console.log(`This error occurred while scheduling: ${err}`);
-    blog.status = "published";
-    blog.publishedAt = new Date();
-    blog.scheduledAt = new Date()
-    await blog.save();
-    console.log("Scheduling failed so PUBLISHED immediately.");
 
-    if (_id) {
-      await Draft.findByIdAndDelete(_id);
-      console.log('🗑️ Draft deleted after schedule:', _id);
+      // Cancel scheduled job if exists
+      if (blogQueue) {
+        const jobId = `publish:${blogId}`;
+        try {
+          const job = await blogQueue.getJob(jobId);
+          if (job) {
+            await job.remove();
+            logger.info('Scheduled job cancelled (published now)', { jobId });
+          }
+        } catch (err) {
+          logger.warn('Failed to cancel job', { jobId });
+        }
+      }
+
+      logger.info('Blog published', { blogId, slug: blog.slug });
+
+      return {
+        success: true,
+        message: 'Blog published',
+        data: blog,
+      };
+    } catch (error) {
+      logger.error('Publish blog failed', { error: error.message, blogId });
+      return {
+        success: false,
+        message: 'Failed to publish blog',
+        data: null,
+        error: error.message,
+      };
     }
+  },
 
-    return { success: false, message: "| Published IMMEDIATELY ❌", data: blog };
-  }
-}
+  /**
+   * Schedule blog for future publication
+   */
+  scheduleBlog: async (blogId, scheduledAt, { blogQueue }) => {
+    try {
+      const blog = await Blog.findById(blogId);
 
+      if (!blog) {
+        return {
+          success: false,
+          message: 'Blog not found',
+          data: null,
+        };
+      }
+
+      const scheduledDate = new Date(scheduledAt);
+      const now = new Date();
+
+      // Validate future date
+      if (scheduledDate <= now) {
+        return {
+          success: false,
+          message: 'Scheduled time must be in the future',
+          data: null,
+        };
+      }
+
+      // Generate slug if not exists
+      if (!blog.slug) {
+        blog.slug = slugify(blog.title);
+      }
+
+      // Update status
+      blog.status = 'scheduled';
+      blog.scheduledAt = scheduledDate;
+      blog.publishedAt = null;
+      blog.updatedAt = new Date();
+
+      await blog.save();
+
+      // Create BullMQ job
+      if (blogQueue) {
+        const delay = scheduledDate - now;
+        const jobId = `publish:${blogId}`;
+
+        await blogQueue.add(
+          'publish-blog',
+          { blogId: blogId.toString() },
+          {
+            delay,
+            jobId,
+            attempts: 3,
+            backoff: { type: 'exponential', delay: 5000 },
+          }
+        );
+
+        logger.info('Blog scheduled', { blogId, scheduledAt, delay });
+      }
+
+      return {
+        success: true,
+        message: 'Blog scheduled',
+        data: blog,
+      };
+    } catch (error) {
+      logger.error('Schedule blog failed', { error: error.message, blogId });
+      return {
+        success: false,
+        message: 'Failed to schedule blog',
+        data: null,
+        error: error.message,
+      };
+    }
+  },
+
+  /**
+   * Unpublish blog (back to draft)
+   */
+  unpublishBlog: async (blogId, { blogQueue }) => {
+    try {
+      const blog = await Blog.findById(blogId);
+
+      if (!blog) {
+        return {
+          success: false,
+          message: 'Blog not found',
+          data: null,
+        };
+      }
+
+      // Update status
+      blog.status = 'draft';
+      blog.publishedAt = null;
+      blog.scheduledAt = null;
+      blog.updatedAt = new Date();
+
+      await blog.save();
+
+      // Cancel job if exists
+      if (blogQueue) {
+        const jobId = `publish:${blogId}`;
+        try {
+          const job = await blogQueue.getJob(jobId);
+          if (job) {
+            await job.remove();
+            logger.info('Job cancelled on unpublish', { jobId });
+          }
+        } catch (err) {
+          logger.warn('Failed to cancel job', { jobId });
+        }
+      }
+
+      logger.info('Blog unpublished', { blogId });
+
+      return {
+        success: true,
+        message: 'Blog unpublished',
+        data: blog,
+      };
+    } catch (error) {
+      logger.error('Unpublish blog failed', { error: error.message, blogId });
+      return {
+        success: false,
+        message: 'Failed to unpublish blog',
+        data: null,
+        error: error.message,
+      };
+    }
+  },
 };
 
+
+
+// ===== HELPER FUNCTIONS =====
+
+/**
+ * Format date as "2h ago" or "3d 2h ago"
+ */
+function formatTimeAgo(date) {
+  const now = new Date();
+  const diff = now - new Date(date);
+  
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  const weeks = Math.floor(days / 7);
+  const months = Math.floor(days / 30);
+  
+  if (months > 0) return `${months}mo ago`;
+  if (weeks > 0) return `${weeks}w ago`;
+  if (days > 0) return `${days}d ago`;
+  if (hours > 0) return `${hours}h ago`;
+  return `${minutes}m ago`;
+}
+
+/**
+ * Format future date as "in 5 days" or "scheduled for Mar 10"
+ */
+function formatFutureDate(date) {
+  const now = new Date();
+  const target = new Date(date);
+  const diff = target - now;
+  
+  const days = Math.floor(diff / 86400000);
+  
+  if (days < 0) return 'overdue';
+  if (days === 0) return 'today';
+  if (days === 1) return 'tomorrow';
+  if (days < 7) return `in ${days} days`;
+  
+  // Format as "scheduled for Mar 10"
+  return `scheduled for ${target.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+}

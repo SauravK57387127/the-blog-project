@@ -2,16 +2,21 @@
   "name": "database",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "type":"module",
+  "main": "./index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prisma:generate": "prisma generate --schema=./postgres/prisma/schema.prisma",
+    "prisma:migrate": "prisma migrate dev --schema=./postgres/prisma/schema.prisma",
+    "prisma:migrate:deploy": "prisma migrate deploy --schema=./postgres/prisma/schema.prisma"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.12.1",
   "dependencies": {
-    "ioredis": "^5.6.1"
+    "@prisma/client": "^6.19.0",
+    "@theblogproj/config": "workspace:*",
+    "ioredis": "^5.6.1",
+    "mongoose": "^8.16.1"
   }
 }

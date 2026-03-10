@@ -1,25 +1,43 @@
 import { logger } from '../../../../packages/logger/index.js';
 import { sendResponse } from '../utils/sendResponse.js';
+import { captureException } from '../utils/sentry.js';
 
 export function errorHandler(err, req, res, next) {
-    logger.error(err.stack || err.message);
+    const statusCode = err.statusCode || 500;
+  const message = err.message || 'Internal server error';
+
+  // Log error
+  logger.error({
+    error: message,
+    stack: err.stack,
+    statusCode,
+    path: req.path,
+    method: req.method,
+  }, 'Request error');
+
+  // ✅ Send to Sentry for 500 errors
+  if (statusCode >= 500) {
+    captureException(err, {
+      tags: {
+        endpoint: req.path,
+        method: req.method,
+      },
+      extra: {
+        body: req.body,
+        params: req.params,
+        query: req.query,
+      },
+      user: req.auth ? { id: req.auth.userId } : undefined,
+    });
+  }
 
   sendResponse({
     res,
-    statusCode: err.statusCode || 500,
+    statusCode: statusCode,
     success: false,
     message: err.message || 'Internal Server Error',
-    errors: err.stack // Keeping stack for now, no production filter
+    stack: err.stack
   });
 }
-
-
-// export function errorHander(err, req, res, next) {
-
-//     res.status(err.status || 500).json({
-//         status: "error",
-//         message: err.message || 'Internal Server Error',
-//     })
-// }
 
 

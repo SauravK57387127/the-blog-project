@@ -39,3 +39,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# clerk configuration (can include secrets)
+/.clerk/
+
+# Local residue / archived folders
+/src/app-old-version
+/src/app-old-version-2
+/src/components-old-version
+/src/old-ui-format
+/src/frontend-logic-residue
+/src/new-unused-files
+
+# Scripts
+trace_imports.py
+*.sh

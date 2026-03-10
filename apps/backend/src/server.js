@@ -1,21 +1,54 @@
-import { createApp } from './app.js';
-import { port, flags } from './config/index.js';
-import loadMongo from './loaders/mongo.loader.js';
-import loadPrisma from './loaders/prisma.loader.js';
-import loadRedis from './loaders/redis.loader.js';
+
+import { config } from "@theblogproj/config";
 import { logger } from '../../../packages/logger/index.js';
-// import { runBlogReconciliation } from '../../../infra/bullmq/reconciliation/blogReconciliation.js';
-import { QueueEvents } from 'bullmq';
-import { getRedis } from '../../../database/redis/redisClient.js';
-import '../../../infra/bullmq/workers/blogWorker.js';
 
-// import { blogQueue } from '../../../infra/bullmq/queues/blogQueue.js';
+import { connectMongo, connectRedis, connectPrisma } from '../../../database/index.js';
+
+import { createApp } from './app.js';
+// import { loadMongo } from "../../../packages/infra/loaders/mongoLoader.js";
+// import { loadRedis } from "../../../packages/infra/loaders/redisLoader.js";
+// import { getRedis } from '../../../database/redis/redisClient.js';
+
+import { createBlogQueue } from '../../../packages/infra/bullmq/createBlogQueue.js';
+import { createDeadLetterQueue } from '../../../packages/infra/bullmq/createDeadLetterQueue.js';
 
 
+// Connect mongo
+if (config.flags.enableMongo) {
+  await connectMongo();
+}
+// console.log(`postgres URI: ${postgresUri} |`)
 
-if (flags.enableMongo) await loadMongo();
-if (flags.enablePrisma) await loadPrisma();
-if (flags.enableRedis) await loadRedis();
+// const redis = getRedis()
+// const redisUrl = process.env.REDIS_URL || undefined;
+// const redis = redisUrl ? getRedis({ url: redisUrl }) : getRedis();
+
+// const mongoConnectionString = process.env.MONGO_URI || mongoUri; // prefer injected test URI
+// if (flags.enableMongo) await loadMongo(dbName, mongoConnectionString);
+// const redis = getRedis({ url: redisUrl });
+
+// Connect to MongoDB
+//if (flags.enableMongo) {
+//  await loadMongo(dbName, mongoUri);
+// }
+
+// if (flags.enableRedis) await loadRedis(redis);
+// if (flags.enablePrisma) await loadPrisma();
+
+let redis;
+if (config.flags.enableRedis) {
+  redis = await connectRedis();
+}
+// backend's postInstall for prisma ->     "postinstall": "npx prisma generate --schema ../../database/postgres/prisma/schema.prisma",
+
+if (config.flags.enablePrisma) {
+  await connectPrisma();
+}
+
+// Create queues
+const blogQueue = redis ? createBlogQueue(redis) : null;
+const deadLetterQueue = redis ? createDeadLetterQueue(redis) : null;
+
 
 // 🟢 Run reconciliation once on startup
 // runBlogReconciliation();
@@ -26,20 +59,35 @@ if (flags.enableRedis) await loadRedis();
 
 // await blogQueue.obliterate({ force: true });                                 // command to eliminate left-over processes
 
-const queueEvents = new QueueEvents('blogQueue', { connection: getRedis() });
+// const queueEvents = new QueueEvents('blogQueue', { connection: getRedis() });
 
-queueEvents.on('waiting', ({ jobId }) => console.log(`🕒 waiting: ${jobId}`));
-queueEvents.on('active', ({ jobId }) => console.log(`▶️ active: ${jobId}`));
-queueEvents.on('completed', ({ jobId }) => console.log(`✅ completed: ${jobId}`));
-queueEvents.on('failed', ({ jobId, failedReason }) =>
-  console.log(`❌ failed: ${jobId} -> ${failedReason}`)
-);
-
-const app = createApp();
+// queueEvents.on('waiting', ({ jobId }) => console.log(`🕒 waiting: ${jobId}`));
+// queueEvents.on('active', ({ jobId }) => console.log(`▶️ active: ${jobId}`));
+// queueEvents.on('completed', ({ jobId }) => console.log(`✅ completed: ${jobId}`));
+// queueEvents.on('failed', ({ jobId, failedReason }) =>
+//   console.log(`❌ failed: ${jobId} -> ${failedReason}`)
+// );
 
 
-app.listen(port, () => {
-  logger.info(`🚀 Server running on http://localhost:${port}\n`);
+// await blogQueue.add(
+//   'reconcile-blogs',
+//   {},
+//   { repeat: { every: 5 * 60 * 1000 }, jobId: 'reconcile-blogs' }
+// );
+
+// const app = createApp();
+
+//const blogQueue = createBlogQueue(redis)
+//const deadLetterQueue = createDeadLetterQueue(redis)
+
+// Create app
+const app = createApp({ blogQueue, deadLetterQueue });
+
+// setupBullBoard(app, { blogQueue });
+
+
+app.listen(config.port, () => {
+  logger.info(`🚀 Server running on http://localhost:${config.port}\n`);
 });
 
 

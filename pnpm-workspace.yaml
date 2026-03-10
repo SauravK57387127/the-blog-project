@@ -1,9 +1,14 @@
 packages:
-  - "."
-  - "apps/*"
-  - "database"
-  - "database/models"
-  - "database/postgres"
-  - "packages"
-  - "packages/logger"
-  - "infra/*"  
+  - .
+  - apps/**
+  - database
+  - database/models
+  - database/postgres
+  - packages/logger
+  - packages/config
+  - packages/infra
+  - packages/cloudinary
+
+onlyBuiltDependencies:
+  - '@prisma/client'
+  - prisma
