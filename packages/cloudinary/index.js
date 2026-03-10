@@ -1,6 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { config } from '@theblogproj/config';
-import { config } from '@theblogproj/config';
 
 // Configure Cloudinary
 cloudinary.config({
