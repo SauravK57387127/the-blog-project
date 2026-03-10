@@ -56,6 +56,7 @@ export const config = {
   // Auth
   clerkSecretKey: process.env.CLERK_SECRET_KEY,
   clerkPublishableKey: process.env.CLERK_PUBLISHABLE_KEY,
+clerkWebhookSecret: process.env.CLERK_WEBHOOK_SECRET,
 
   // Rate Limiter
   rateLimitAdminLogin: process.env.RATE_LIMIT_ADMIN_LOGIN,
@@ -64,9 +65,9 @@ export const config = {
   rateLimitUser: process.env.RATE_LIMIT_USER,
 
   // Admin JWT
-  accessTokenSecret: required('ADMIN_JWT_SECRET'),
+  accessTokenSecret: process.env.ADMIN_JWT_SECRET,
   accessTokenExpiry: process.env.ADMIN_ACCESS_TOKEN_EXPIRY || '15m',
-  refreshTokenSecret: required('ADMIN_JWT_REFRESH_SECRET'),
+  refreshTokenSecret: process.env.ADMIN_JWT_REFRESH_SECRET,
   refreshTokenExpiry: process.env.ADMIN_REFRESH_TOKEN_EXPIRY || '7d',
 
   // Job Queue
