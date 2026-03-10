@@ -31,7 +31,7 @@ export default {
         };
       }
 
-      const result = await uploadImage(uploadSource, 'blog-covers');
+      const result = await uploadImage(uploadSource);
 
       if (!result.success) {
         return {

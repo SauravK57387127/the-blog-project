@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { config } from '@theblogproj/config';
+import { config } from '@theblogproj/config';
 
 // Configure Cloudinary
 cloudinary.config({
@@ -17,7 +18,13 @@ cloudinary.config({
  * @param {string} publicId - Optional custom public ID
  * @returns {Promise<Object>} - Upload result
  */
-export async function uploadImage(file, folder = 'blog-covers', publicId = null) {
+const folderMap = {
+  development: 'blog-covers-dev',
+  staging: 'blog-covers-staging',
+  production: 'blog-covers-production',
+};
+
+export async function uploadImage(file, folder = folderMap[config.nodeEnv] || 'blog-covers-dev', publicId = null) {
   try {
     const options = {
       folder,

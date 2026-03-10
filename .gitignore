@@ -52,6 +52,9 @@ new-unused-files/
 e2e-old/
 tests-old/
 project_analysis.md
+BEST_PRACTICES.md
+ai-notes.md
+babel.config.js
 
 # Backup files
 *.backup
