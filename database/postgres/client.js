@@ -1,13 +1,12 @@
-
-import pkg from '@prisma/client';
-const { PrismaClient } = pkg;
+import { PrismaClient } from '@prisma/client';
 
 let prisma = null;
 
 export function getPrisma() {
   if (!prisma) {
-    prisma = new PrismaClient();
-    console.log('✅ Prisma client initialized');
+    prisma = new PrismaClient({
+      log: ['error', 'warn'],
+    });
   }
   return prisma;
 }

@@ -2,7 +2,7 @@
 import { config } from "@theblogproj/config";
 import { logger } from '../../../packages/logger/index.js';
 
-import { connectMongo, connectRedis, connectPrisma } from '../../../database/index.js';
+import { connectMongo, connectRedis, connectPostgres } from '../../../database/index.js';
 
 import { createApp } from './app.js';
 // import { loadMongo } from "../../../packages/infra/loaders/mongoLoader.js";
@@ -42,7 +42,7 @@ if (config.flags.enableRedis) {
 // backend's postInstall for prisma ->     "postinstall": "npx prisma generate --schema ../../database/postgres/prisma/schema.prisma",
 
 if (config.flags.enablePrisma) {
-  await connectPrisma();
+  await connectPostgres();
 }
 
 // Create queues
