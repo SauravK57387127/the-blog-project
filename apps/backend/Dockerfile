@@ -59,6 +59,8 @@ COPY --from=builder --chown=appuser:nodejs /app/package.json ./
 RUN pnpm exec prisma generate --schema=./database/postgres/prisma/schema.prisma \
  && pnpm rebuild @prisma/client
 
+RUN npx prisma migrate deploy --schema=./database/postgres/prisma/schema.prisma || echo "Migrations failed or already applied"
+
 USER appuser
 
 EXPOSE 4000
