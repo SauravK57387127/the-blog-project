@@ -94,6 +94,8 @@ services:
       - mongodb
       - postgres
       - redis
+    ports:
+    - "4001:4001"
     env_file:
       - .env.development
     environment:

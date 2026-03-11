@@ -39,6 +39,7 @@ function required(key) {
 export const config = {
   nodeEnv: env,
   port: parseInt(process.env.PORT || '7000', 10),
+  workerPort: parseInt(process.env.WORKER_PORT || '4001', 10),
 
   // Database
   dbName: required('DB_NAME'),

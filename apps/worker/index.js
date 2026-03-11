@@ -1,3 +1,4 @@
+import http from 'http';
 import { config } from '@theblogproj/config';
 import { connectMongo, connectRedis, models } from '../../database/index.js';
 import { logger } from '../../packages/logger/index.js';
@@ -50,6 +51,21 @@ blogWorker.on("failed", (job, err) => {
 
 blogWorker.on("error", (err) => {
   logger.error({ error: err.message }, 'Worker error');
+});
+
+
+const server = http.createServer((req, res) => {
+  if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', worker: 'running' }));
+  } else {
+    res.writeHead(404);
+    res.end('Not found');
+  }
+});
+
+server.listen(config.workerPort, () => {
+  logger.info(`🏥 Worker health server on port ${config.workerPort}`);
 });
 
 
