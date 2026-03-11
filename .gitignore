@@ -55,6 +55,7 @@ project_analysis.md
 BEST_PRACTICES.md
 ai-notes.md
 babel.config.js
+archive/
 
 # Backup files
 *.backup
