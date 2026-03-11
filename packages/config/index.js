@@ -42,8 +42,8 @@ export const config = {
   workerPort: parseInt(process.env.WORKER_PORT || '4001', 10),
 
   // Database
-  dbName: required('DB_NAME'),
-  mongoUri: required('MONGO_URI'),
+  dbName: process.env.DB_NAME,
+  mongoUri: process.env.MONGO_URI,
   postgresUri: process.env.POSTGRES_DATABASE_URL,
   redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
 
