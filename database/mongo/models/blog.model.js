@@ -33,6 +33,7 @@ const BlogSchema = new mongoose.Schema({
   draftSlug: {
     type: String,
     unique: true,
+    sparse: true,
     index: true,
   },
   
@@ -56,7 +57,7 @@ const BlogSchema = new mongoose.Schema({
   
  category: {
   type: String,
-  enum: ['tech', 'life', 'experiments'],
+  enum: ['tech', 'life', 'Web Development', 'experiments', 'Technology', 'Tutorial', 'DevOps', 'webdev', 'Best Practices'],
   default: 'tech',
   index: true,
 }, 

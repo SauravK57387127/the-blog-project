@@ -6,7 +6,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "seed:author": "NODE_ENV=development node scripts/seed/seedAuthor.js",
+    "seed:all": "NODE_ENV=development node scripts/seed/seedAll.js",
+    "seed:clear": "NODE_ENV=development node scripts/seed/clearAll.js",
     "migrate:views": "NODE_ENV=development node scripts/migrations/addViewsAndReadTime.js",
     "db:generate": "pnpm --filter database prisma:generate",
     "db:migrate": "pnpm --filter database prisma:migrate",

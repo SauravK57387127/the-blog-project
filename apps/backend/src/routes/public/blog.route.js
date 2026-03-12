@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { cacheMiddleware } from '../../middlewares/cache.middleware.js';
 import PublicBlogController from '../../controllers/public/blog.controller.js';
+import ViewTrackingController from '../../controllers/public/viewTracking.controller.js'; // ADD
 
 const router = Router();
 
@@ -35,6 +36,9 @@ router.get(
   cacheMiddleware(600),  // 10 min cache
   PublicBlogController.getPopularBlogs
 );
+
+// ADD THIS — before /:slug to be safe
+router.post('/:slug/view', ViewTrackingController.trackViewBySlug);
 
 /**
  * GET /api/public/blogs/:slug

@@ -1,9 +1,28 @@
-import { models } from '../../../../../database/index.js';
+import {  models } from '../../../../../database/index.js';
 import { logger } from '../../../../../packages/logger/index.js';
 
-const { BlogView } = models;
+const { BlogView, Blog } = models;
 
-export default {
+const ViewTrackingService ={
+  trackViewBySlug: async ({ slug, sessionId, userId, referrer, device }) => {
+    try {
+      const blog = await Blog.findOne({ slug, status: 'published' }).select('_id').lean();
+      if (!blog) return { success: false, message: 'Blog not found', data: null };
+
+      return ViewTrackingService.trackView({ // ✅ now defined
+        blogId: blog._id,
+        sessionId,
+        userId,
+        referrer,
+        device,
+      });
+    } catch (error) {
+      console.error('trackViewBySlug actual error:', error);
+      logger.error('trackViewBySlug failed', { error: error.message, slug });
+      return { success: false, message: 'Failed to track view', data: null };
+    }
+  },
+  
   /**
    * Track initial view
    */
@@ -91,3 +110,5 @@ export default {
     }
   },
 };
+
+export default ViewTrackingService;  // ← export the named const, not an anonymous object

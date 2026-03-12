@@ -17,20 +17,19 @@ export default {
     } = req.query;
 
     const result = await PublicBlogService.listBlogs({
-      page: parseInt(page),
-      limit: parseInt(limit),
-      tags: tags ? tags.split(',') : undefined,
-      category,
-      sort,
-    });
-
+  page: parseInt(page),
+  limit: parseInt(limit),
+  tags: tags ? tags.split(',') : undefined,
+  category,
+  sort,
+});
      return sendResponse({
-        res,
-        statusCode: 400,
-        success: false,
-        message: 'Search query required',
-        data: null,
-      });
+  res,
+  statusCode: result.success ? 200 : 400,
+  success: result.success,
+  message: result.message,
+  data: result.data,
+}); 
   }),
 
   /**
