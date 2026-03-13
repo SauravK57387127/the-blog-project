@@ -1,25 +1,14 @@
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { sendResponse } from '../../utils/sendResponse.js';
 import CommentService from '../../services/user/comment.service.js';
-import { getAuth } from '@clerk/express';
 
 export default {
   /**
  * GET /api/user/comments/my
  */
 getMyComments: asyncHandler(async (req, res) => {
-  const { userId } = getAuth(req);
+ const  userId  = req.userId; 
   const { page = 1, limit = 10 } = req.query;
-
-  if (!userId) {
-    return sendResponse({
-      res,
-      statusCode: 401,
-      success: false,
-      message: 'Unauthorized',
-      data: null,
-    });
-  }
 
   const result = await CommentService.getMyComments({
     userId,
@@ -37,20 +26,10 @@ getMyComments: asyncHandler(async (req, res) => {
 }),
 
   addComment: asyncHandler(async (req, res) => {
-    const { userId } = getAuth(req);
+ const  userId  = req.userId; 
     const { blogId } = req.params;
-    const { content } = req.sanitizedBody || req.body;
-
-    if (!userId) {
-      return sendResponse({
-        res,
-        statusCode: 401,
-        success: false,
-        message: 'Unauthorized',
-        data: null,
-      });
-    }
-
+   const { content, parentId } = req.sanitizedBody || req.body;
+   
     if (!content || content.trim().length === 0) {
       return sendResponse({
         res,
@@ -61,11 +40,7 @@ getMyComments: asyncHandler(async (req, res) => {
       });
     }
 
-    const result = await CommentService.addComment({
-      userId,
-      blogId,
-      content,
-    });
+const result = await CommentService.addComment({ userId, blogId, content, parentId }); 
 
     sendResponse({
       res,
@@ -77,19 +52,9 @@ getMyComments: asyncHandler(async (req, res) => {
   }),
 
   updateComment: asyncHandler(async (req, res) => {
-    const { userId } = getAuth(req);
+  const  userId  = req.userId; 
     const { commentId } = req.params;
     const { content } = req.sanitizedBody || req.body;
-
-    if (!userId) {
-      return sendResponse({
-        res,
-        statusCode: 401,
-        success: false,
-        message: 'Unauthorized',
-        data: null,
-      });
-    }
 
     const result = await CommentService.updateComment({
       userId,
@@ -107,18 +72,8 @@ getMyComments: asyncHandler(async (req, res) => {
   }),
 
   deleteComment: asyncHandler(async (req, res) => {
-    const { userId } = getAuth(req);
+  const  userId  = req.userId; 
     const { commentId } = req.params;
-
-    if (!userId) {
-      return sendResponse({
-        res,
-        statusCode: 401,
-        success: false,
-        message: 'Unauthorized',
-        data: null,
-      });
-    }
 
     const result = await CommentService.deleteComment({
       userId,

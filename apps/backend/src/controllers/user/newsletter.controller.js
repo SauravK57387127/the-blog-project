@@ -1,21 +1,10 @@
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { sendResponse } from '../../utils/sendResponse.js';
 import UserNewsletterService from '../../services/user/newsletter.service.js';
-import { getAuth } from '@clerk/express';
 
 export default {
   getStatus: asyncHandler(async (req, res) => {
-    const { userId } = getAuth(req);
-
-    if (!userId) {
-      return sendResponse({
-        res,
-        statusCode: 401,
-        success: false,
-        message: 'Unauthorized',
-        data: null,
-      });
-    }
+   const userId = req.userId; 
 
     const result = await UserNewsletterService.getStatus(userId);
 
@@ -29,17 +18,7 @@ export default {
   }),
 
   unsubscribe: asyncHandler(async (req, res) => {
-    const { userId } = getAuth(req);
-
-    if (!userId) {
-      return sendResponse({
-        res,
-        statusCode: 401,
-        success: false,
-        message: 'Unauthorized',
-        data: null,
-      });
-    }
+   const userId = req.userId; 
 
     const result = await UserNewsletterService.unsubscribe(userId);
 
@@ -53,17 +32,7 @@ export default {
   }),
 
   resubscribe: asyncHandler(async (req, res) => {
-    const { userId } = getAuth(req);
-
-    if (!userId) {
-      return sendResponse({
-        res,
-        statusCode: 401,
-        success: false,
-        message: 'Unauthorized',
-        data: null,
-      });
-    }
+   const userId = req.userId; 
 
     const result = await UserNewsletterService.resubscribe(userId);
 

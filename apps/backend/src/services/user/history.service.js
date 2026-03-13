@@ -24,20 +24,20 @@ export default {
 
       // Find views that qualify as "reads"
       const readViews = await BlogView.find({
-        userId: user._id,
+        userId: userId,
         $or: [
           { timeSpent: { $gte: 30 } },
           { scrollDepth: { $gte: 50 } },
           { completed: true },
         ],
       })
-        .sort({ exitedAt: -1 })  // Most recent reads first
+        .sort({ viewedAt: -1 })  // Most recent reads first
         .skip(skip)
         .limit(limit)
         .lean();
 
       const totalCount = await BlogView.countDocuments({
-        userId: user._id,
+        userId: userId,
         $or: [
           { timeSpent: { $gte: 30 } },
           { scrollDepth: { $gte: 50 } },

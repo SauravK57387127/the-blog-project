@@ -76,7 +76,7 @@ getMyComments: async ({ userId, page, limit }) => {
   /**
    * Add comment to blog
    */
-  addComment: async ({ userId, blogId, content }) => {
+  addComment: async ({ userId, blogId, content, parentId = null }) => {
     try {
       const user = await User.findOne({ clerkUserId: userId });
       
@@ -97,12 +97,12 @@ getMyComments: async ({ userId, page, limit }) => {
         };
       }
 
-      const comment = await Comment.create({
-        blogId: new mongoose.Types.ObjectId(blogId),
-        userId: user._id,
-        content,
-        createdAt: new Date(),
-      });
+     const comment = await Comment.create({
+    blogId: new mongoose.Types.ObjectId(blogId),
+    userId: user._id,
+    content,
+    parentId: parentId ? new mongoose.Types.ObjectId(parentId) : null,
+  }); 
 
       // Update analytics
       await BlogAnalytics.findOneAndUpdate(
@@ -221,7 +221,8 @@ getMyComments: async ({ userId, page, limit }) => {
 
       const blogId = comment.blogId;
       await Comment.deleteOne({ _id: commentId });
-
+      await Comment.deleteMany({ parentId: commentId });
+      
       // Update analytics
       await BlogAnalytics.findOneAndUpdate(
         { blogId },

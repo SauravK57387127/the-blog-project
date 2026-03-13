@@ -1,22 +1,11 @@
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { sendResponse } from '../../utils/sendResponse.js';
 import NotificationService from '../../services/user/notification.service.js';
-import { getAuth } from '@clerk/express';
 
 export default {
   getNotifications: asyncHandler(async (req, res) => {
-    const { userId } = getAuth(req);
+   const userId = req.userId; 
     const { page = 1, limit = 10 } = req.query;
-
-    if (!userId) {
-      return sendResponse({
-        res,
-        statusCode: 401,
-        success: false,
-        message: 'Unauthorized',
-        data: null,
-      });
-    }
 
     const result = await NotificationService.getNotifications({
       userId,
@@ -34,18 +23,8 @@ export default {
   }),
 
   markAsRead: asyncHandler(async (req, res) => {
-    const { userId } = getAuth(req);
+   const userId = req.userId; 
     const { id } = req.params;
-
-    if (!userId) {
-      return sendResponse({
-        res,
-        statusCode: 401,
-        success: false,
-        message: 'Unauthorized',
-        data: null,
-      });
-    }
 
     const result = await NotificationService.markAsRead(userId, id);
 
@@ -59,17 +38,7 @@ export default {
   }),
 
   markAllAsRead: asyncHandler(async (req, res) => {
-    const { userId } = getAuth(req);
-
-    if (!userId) {
-      return sendResponse({
-        res,
-        statusCode: 401,
-        success: false,
-        message: 'Unauthorized',
-        data: null,
-      });
-    }
+   const userId = req.userId; 
 
     const result = await NotificationService.markAllAsRead(userId);
 

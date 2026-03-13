@@ -45,6 +45,11 @@ const BlogViewSchema = new mongoose.Schema({
     default: Date.now,
     index: true,
   },
+
+  exitedAt: {
+  type: Date,
+  default: null,
+},
 });
 
 // Unique view per session per blog
