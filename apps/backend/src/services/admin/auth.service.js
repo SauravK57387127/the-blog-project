@@ -342,8 +342,11 @@ if (existing) {
    * 4. Return success
    * 
    * Note: Access token can't be revoked (stateless)
-   * But it expires in 15 minutes anyway
+   * But it expires in 15 minutes anywa// TODO: Implement token blacklist in Redis for immediate access token invalidation
+// Store revoked token JTI (JWT ID) in Redis with TTL = remaining token expiry
+// Check blacklist in requireAdmin middleware before allowing accessy
    */
+
   logout: async ({ refreshToken, adminId, ipAddress, userAgent }) => {
     console.log('\n🚪 Logout Service - START');
 

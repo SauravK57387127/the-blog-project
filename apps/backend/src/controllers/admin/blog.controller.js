@@ -9,7 +9,7 @@ export default ({ blogQueue } = {}) => ({
 getPublishedBlogs: asyncHandler(async (req, res) => {
   const { status, category, page = 1, limit = 15 } = req.query;
 
-  const result = await blogService.getPublishedBlogs({
+  const result = await AdminBlogService.getPublishedBlogs({
     status,
     category,
     page: parseInt(page),
@@ -31,7 +31,7 @@ getPublishedBlogs: asyncHandler(async (req, res) => {
 getDrafts: asyncHandler(async (req, res) => {
   const { page = 1, limit = 15 } = req.query;
 
-  const result = await blogService.getDrafts({
+  const result = await AdminBlogService.getDrafts({
     page: parseInt(page),
     limit: parseInt(limit),
   });
@@ -45,23 +45,6 @@ getDrafts: asyncHandler(async (req, res) => {
   });
 }),
 
-
-/**
- * DELETE /api/admin/blogs/:id
- */
-deleteBlog: asyncHandler(async (req, res) => {
-  const { id } = req.params;
-
-  const result = await blogService.deleteBlog(id);
-
-  sendResponse({
-    res,
-    statusCode: result.success ? 200 : 404,
-    success: result.success,
-    message: result.message,
-    data: result.data,
-  });
-}),
 
 
   /**

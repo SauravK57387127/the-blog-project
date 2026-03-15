@@ -1,13 +1,20 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { config } from '@theblogproj/config';
+import https from "https";
 
+const agent = new https.Agent({
+  keepAlive: true,
+  maxSockets: 100,
+});
 // Configure Cloudinary
 cloudinary.config({
   cloud_name: config.cloudinaryCloudName,
   api_key: config.cloudinaryApiKey,
   api_secret: config.cloudinaryApiSecret,
   secure: true,
+  upload_prefix: "https://api.cloudinary.com",
 });
+
 
 /**
  * Upload image to Cloudinary
@@ -28,19 +35,72 @@ export async function uploadImage(file, folder = folderMap[config.nodeEnv] || 'b
     const options = {
       folder,
       resource_type: 'image',
-      transformation: [
-        { width: 1200, height: 630, crop: 'limit' },  // Max dimensions
-        { quality: 'auto:good' },  // Auto quality
-        { fetch_format: 'auto' },  // Auto format (WebP, etc)
-      ],
+     transformation: [
+  { width: 1200, height: 630, crop: 'limit' },
+  { quality: 'auto:good' },
+  { fetch_format: 'auto' },
+], 
     };
 
-    if (publicId) {
-      options.public_id = publicId;
-      options.overwrite = true;
-    }
+    let uploadSource = file;
 
-    const result = await cloudinary.uploader.upload(file, options);
+   if (typeof file === 'string' && file.startsWith('http')) {
+  try {
+    const response = await fetch(file, { signal: AbortSignal.timeout(10000) }); // 10s timeout
+    if (!response.ok) throw new Error(`Failed to fetch URL: ${response.status}`);
+    const buffer = await response.arrayBuffer();
+    const contentType = response.headers.get('content-type') || 'image/jpeg';
+    uploadSource = `data:${contentType};base64,${Buffer.from(buffer).toString('base64')}`;
+  } catch (error) {
+    return {
+      success: false,
+      error: `Failed to fetch image URL: ${error.message}`,
+    };
+  }
+} 
+
+if (Buffer.isBuffer(file)) {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(options, (error, result) => {
+      if (error) {
+        console.error("Cloudinary stream error:", error);
+        return resolve({
+          success: false,
+          error: error.message,
+        });
+      }
+
+      if (!result) {
+        return resolve({
+          success: false,
+          error: "No result from Cloudinary",
+        });
+      }
+
+      resolve({
+        success: true,
+        data: {
+          url: result.secure_url,
+          publicId: result.public_id,
+          width: result.width,
+          height: result.height,
+          format: result.format,
+        },
+      });
+    });
+
+    stream.end(file);
+  });
+}
+
+console.log('Upload source type:', typeof uploadSource);
+console.log('Is Buffer:', Buffer.isBuffer(uploadSource));
+console.log('Upload source preview:', typeof uploadSource === 'string' ? uploadSource.substring(0, 50) : 'not a string');
+
+const result =await cloudinary.uploader.upload(
+  "data:" + mimetype + ";base64," + file.toString("base64"),
+  options
+); 
 
     return {
       success: true,

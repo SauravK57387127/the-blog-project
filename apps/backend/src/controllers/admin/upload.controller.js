@@ -8,6 +8,10 @@ export default {
    * Upload cover image (file, base64, or URL)
    */
   uploadCoverImage: asyncHandler(async (req, res) => {
+    
+console.log("FILE:", req.file);
+console.log("BODY:", req.body);
+
     const { base64, url } = req.body;
     const file = req.file;
 

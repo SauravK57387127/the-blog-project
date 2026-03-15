@@ -16,7 +16,7 @@ export default {
 
       if (file) {
         // Multer file object
-        uploadSource = file.path || file.buffer;
+        uploadSource = file.buffer;
       } else if (base64) {
         // Base64 string
         uploadSource = base64;
@@ -34,6 +34,7 @@ export default {
       const result = await uploadImage(uploadSource);
 
       if (!result.success) {
+          console.error('Cloudinary result error:', result.error); // ADD THIS
         return {
           success: false,
           message: 'Upload failed',
@@ -56,6 +57,7 @@ export default {
         },
       };
     } catch (error) {
+        console.error('Upload service full error:', error); // ADD THIS
       logger.error('Upload cover image failed', { error: error.message });
       return {
         success: false,

@@ -2,7 +2,7 @@ import { models } from '../../../../../database/index.js';
 import { logger } from '../../../../../packages/logger/index.js';
 import { nanoid } from 'nanoid';
 
-const { Blog } = models;
+const { Blog, BlogAnalytics, BlogView, Like, Bookmark, Comment } = models;
 
 /**
  * Generate slug from title
@@ -169,7 +169,7 @@ deleteBlog: async (blogId, { blogQueue }) => {
 
     // Cancel scheduled publish job if exists
     if (blog.status === 'scheduled' && blogQueue) {
-      const jobId = `publish-${blog._id}`;
+     const jobId = `publish_${blog._id}`; 
       try {
         const job = await blogQueue.getJob(jobId);
         if (job) {
@@ -379,50 +379,32 @@ createBlog: async (blogData) => {
   /**
    * Update blog
    */
-  updateBlog: async (blogId, updates) => {
-    try {
-      const blog = await Blog.findById(blogId);
-
-      if (!blog) {
-        return {
-          success: false,
-          message: 'Blog not found',
-          data: null,
-        };
-      }
-
-      // Update fields
-      Object.keys(updates).forEach(key => {
-        if (updates[key] !== undefined) {
-          blog[key] = updates[key];
-        }
-      });
-
-      // Regenerate slug if title changed
-      if (updates.title) {
-        blog.slug = slugify(updates.title);
-      }
-
-      blog.updatedAt = new Date();
-      await blog.save();
-
-      logger.info('Blog updated', { blogId, status: blog.status });
-
-      return {
-        success: true,
-        message: 'Blog updated',
-        data: blog,
-      };
-    } catch (error) {
-      logger.error('Update blog failed', { error: error.message, blogId });
-      return {
-        success: false,
-        message: 'Failed to update blog',
-        data: null,
-        error: error.message,
-      };
+ updateBlog: async (blogId, updates) => {
+  try {
+    // Regenerate slug if title changed
+    if (updates.title) {
+      updates.slug = slugify(updates.title);
     }
-  },
+
+    const blog = await Blog.findByIdAndUpdate(
+      blogId,
+      { ...updates, updatedAt: new Date() },
+      { new: true, runValidators: false }  // runValidators: false avoids required field checks on partial update
+    );
+
+    if (!blog) {
+      return { success: false, message: 'Blog not found', data: null };
+    }
+
+    logger.info('Blog updated', { blogId, status: blog.status });
+    return { success: true, message: 'Blog updated', data: blog };
+
+  } catch (error) {
+    console.error('Update blog actual error:', error);
+    logger.error('Update blog failed', { error: error.message, blogId });
+    return { success: false, message: 'Failed to update blog', data: null, error: error.message };
+  }
+}, 
 
   
   /**
@@ -469,204 +451,116 @@ createBlog: async (blogData) => {
   /**
    * Publish blog immediately
    */
-  publishBlog: async (blogId, { blogQueue }) => {
-    try {
-      const blog = await Blog.findById(blogId);
+ publishBlog: async (blogId, { blogQueue }) => {
+  try {
+    const blog = await Blog.findById(blogId).lean();
 
-      if (!blog) {
-        return {
-          success: false,
-          message: 'Blog not found',
-          data: null,
-        };
-      }
+    if (!blog) return { success: false, message: 'Blog not found', data: null };
 
-      // If already published, return as-is
-      if (blog.status === 'published') {
-        return {
-          success: true,
-          message: 'Blog already published',
-          data: blog,
-        };
-      }
-
-      // Generate slug if not exists
-      if (!blog.slug) {
-        blog.slug = slugify(blog.title);
-      }
-
-      // Update status
-      blog.status = 'published';
-      blog.publishedAt = new Date();
-      blog.scheduledAt = null;  // Clear scheduled time
-      blog.updatedAt = new Date();
-
-      await blog.save();
-
-      // Cancel scheduled job if exists
-      if (blogQueue) {
-        const jobId = `publish:${blogId}`;
-        try {
-          const job = await blogQueue.getJob(jobId);
-          if (job) {
-            await job.remove();
-            logger.info('Scheduled job cancelled (published now)', { jobId });
-          }
-        } catch (err) {
-          logger.warn('Failed to cancel job', { jobId });
-        }
-      }
-
-      logger.info('Blog published', { blogId, slug: blog.slug });
-
-      return {
-        success: true,
-        message: 'Blog published',
-        data: blog,
-      };
-    } catch (error) {
-      logger.error('Publish blog failed', { error: error.message, blogId });
-      return {
-        success: false,
-        message: 'Failed to publish blog',
-        data: null,
-        error: error.message,
-      };
+    if (blog.status === 'published') {
+      return { success: true, message: 'Blog already published', data: blog };
     }
-  },
+
+    const updated = await Blog.findByIdAndUpdate(blogId, {
+      status: 'published',
+      publishedAt: new Date(),
+      scheduledAt: null,
+      updatedAt: new Date(),
+      ...(!blog.slug && { slug: slugify(blog.title) }),
+    }, { new: true, runValidators: false });
+
+    if (blogQueue) {
+      const jobId = `publish_${blogId}`;
+      try {
+        const job = await blogQueue.getJob(jobId);
+        if (job) { await job.remove(); logger.info('Scheduled job cancelled', { jobId }); }
+      } catch (err) { logger.warn('Failed to cancel job', { jobId }); }
+    }
+
+    logger.info('Blog published', { blogId, slug: updated.slug });
+    return { success: true, message: 'Blog published', data: updated };
+
+  } catch (error) {
+    logger.error('Publish blog failed', { error: error.message, blogId });
+    return { success: false, message: 'Failed to publish blog', data: null };
+  }
+}, 
 
   /**
    * Schedule blog for future publication
    */
-  scheduleBlog: async (blogId, scheduledAt, { blogQueue }) => {
-    try {
-      const blog = await Blog.findById(blogId);
+ scheduleBlog: async (blogId, scheduledAt, { blogQueue }) => {
+  try {
+    const blog = await Blog.findById(blogId).lean();
+    if (!blog) return { success: false, message: 'Blog not found', data: null };
 
-      if (!blog) {
-        return {
-          success: false,
-          message: 'Blog not found',
-          data: null,
-        };
-      }
+    const scheduledDate = new Date(scheduledAt);
+    const now = new Date();
 
-      const scheduledDate = new Date(scheduledAt);
-      const now = new Date();
-
-      // Validate future date
-      if (scheduledDate <= now) {
-        return {
-          success: false,
-          message: 'Scheduled time must be in the future',
-          data: null,
-        };
-      }
-
-      // Generate slug if not exists
-      if (!blog.slug) {
-        blog.slug = slugify(blog.title);
-      }
-
-      // Update status
-      blog.status = 'scheduled';
-      blog.scheduledAt = scheduledDate;
-      blog.publishedAt = null;
-      blog.updatedAt = new Date();
-
-      await blog.save();
-
-      // Create BullMQ job
-      if (blogQueue) {
-        const delay = scheduledDate - now;
-        const jobId = `publish:${blogId}`;
-
-        await blogQueue.add(
-          'publish-blog',
-          { blogId: blogId.toString() },
-          {
-            delay,
-            jobId,
-            attempts: 3,
-            backoff: { type: 'exponential', delay: 5000 },
-          }
-        );
-
-        logger.info('Blog scheduled', { blogId, scheduledAt, delay });
-      }
-
-      return {
-        success: true,
-        message: 'Blog scheduled',
-        data: blog,
-      };
-    } catch (error) {
-      logger.error('Schedule blog failed', { error: error.message, blogId });
-      return {
-        success: false,
-        message: 'Failed to schedule blog',
-        data: null,
-        error: error.message,
-      };
+    if (scheduledDate <= now) {
+      return { success: false, message: 'Scheduled time must be in the future', data: null };
     }
-  },
+
+    const updated = await Blog.findByIdAndUpdate(blogId, {
+      status: 'scheduled',
+      scheduledAt: scheduledDate,
+      publishedAt: null,
+      updatedAt: new Date(),
+      ...(!blog.slug && { slug: slugify(blog.title) }),
+    }, { new: true, runValidators: false });
+
+    if (blogQueue) {
+      const delay = scheduledDate - now;
+      const jobId = `publish_${blogId}`;
+      await blogQueue.add('publish-blog', { blogId: blogId.toString() }, {
+        delay, jobId, attempts: 3,
+        backoff: { type: 'exponential', delay: 5000 },
+      });
+      logger.info('Blog scheduled', { blogId, scheduledAt, delay });
+    }
+
+    return { success: true, message: 'Blog scheduled', data: updated };
+
+  } catch (error) {
+    console.error('Schedule blog actual error:', error);
+    logger.error('Schedule blog failed', { error: error.message, blogId });
+    return { success: false, message: 'Failed to schedule blog', data: null };
+  }
+},
+
 
   /**
    * Unpublish blog (back to draft)
    */
-  unpublishBlog: async (blogId, { blogQueue }) => {
-    try {
-      const blog = await Blog.findById(blogId);
+ unpublishBlog: async (blogId, { blogQueue }) => {
+  try {
+    const blog = await Blog.findById(blogId).lean();
+    if (!blog) return { success: false, message: 'Blog not found', data: null };
 
-      if (!blog) {
-        return {
-          success: false,
-          message: 'Blog not found',
-          data: null,
-        };
-      }
+    const updated = await Blog.findByIdAndUpdate(blogId, {
+      status: 'draft',
+      publishedAt: null,
+      scheduledAt: null,
+      updatedAt: new Date(),
+    }, { new: true, runValidators: false });
 
-      // Update status
-      blog.status = 'draft';
-      blog.publishedAt = null;
-      blog.scheduledAt = null;
-      blog.updatedAt = new Date();
-
-      await blog.save();
-
-      // Cancel job if exists
-      if (blogQueue) {
-        const jobId = `publish:${blogId}`;
-        try {
-          const job = await blogQueue.getJob(jobId);
-          if (job) {
-            await job.remove();
-            logger.info('Job cancelled on unpublish', { jobId });
-          }
-        } catch (err) {
-          logger.warn('Failed to cancel job', { jobId });
-        }
-      }
-
-      logger.info('Blog unpublished', { blogId });
-
-      return {
-        success: true,
-        message: 'Blog unpublished',
-        data: blog,
-      };
-    } catch (error) {
-      logger.error('Unpublish blog failed', { error: error.message, blogId });
-      return {
-        success: false,
-        message: 'Failed to unpublish blog',
-        data: null,
-        error: error.message,
-      };
+    if (blogQueue) {
+      const jobId = `publish_${blogId}`;
+      try {
+        const job = await blogQueue.getJob(jobId);
+        if (job) { await job.remove(); logger.info('Job cancelled on unpublish', { jobId }); }
+      } catch (err) { logger.warn('Failed to cancel job', { jobId }); }
     }
-  },
+
+    logger.info('Blog unpublished', { blogId });
+    return { success: true, message: 'Blog unpublished', data: updated };
+
+  } catch (error) {
+    logger.error('Unpublish blog failed', { error: error.message, blogId });
+    return { success: false, message: 'Failed to unpublish blog', data: null };
+  }
+}, 
 };
-
-
 
 // ===== HELPER FUNCTIONS =====
 

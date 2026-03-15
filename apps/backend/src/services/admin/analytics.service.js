@@ -181,6 +181,9 @@ export default {
   /**
    * Get sidebar stats based on period
    */
+  // TODO: Performance — getSidebarStats with period=year makes ~365 sequential DB queries
+// (one per day via getActivityForDay). Refactor to use MongoDB aggregation pipeline
+// to batch all date queries in a single operation before production launch.
   getSidebarStats: async ({ period = 'year' }) => {
     try {
       const now = new Date();

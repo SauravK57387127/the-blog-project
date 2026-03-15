@@ -40,7 +40,7 @@ export default {
     const { q, tags, category, page = 1, limit = 20 } = req.query;
 
     if (!q || q.trim().length === 0) {
-     sendResponse({
+     return sendResponse({
       res,
       statusCode: 200,
       success: true,

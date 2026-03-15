@@ -68,13 +68,9 @@ export default {
         ],
       });
 
-      if (!subscriber) {
-        return {
-          success: false,
-          message: 'Not subscribed',
-          data: null,
-        };
-      }
+     if (!subscriber.isActive) {
+  return { success: false, message: 'Not subscribed', data: null };
+} 
 
       subscriber.isActive = false;
       subscriber.unsubscribedAt = new Date();
