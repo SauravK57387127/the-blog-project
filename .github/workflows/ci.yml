@@ -52,7 +52,12 @@ jobs:
         run: docker build -t backend:test -f apps/backend/Dockerfile .
 
       - name: Build Frontend
-        run: docker build -t frontend:test -f apps/frontend/Dockerfile .
+        run: |
+          docker build \
+            -t frontend:test \
+            -f apps/frontend/Dockerfile \
+            --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }} \
+            . 
 
       - name: Build Worker
         run: docker build -t worker:test -f apps/worker/Dockerfile .

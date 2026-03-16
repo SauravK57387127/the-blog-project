@@ -22,6 +22,9 @@ COPY package.json pnpm-workspace.yaml ./
 
 WORKDIR /app/apps/frontend
 
+ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+
 RUN pnpm build
 
 # ===== Stage 3: Production =====

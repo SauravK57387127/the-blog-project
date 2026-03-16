@@ -63,6 +63,8 @@ services:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
       target: production
     container_name: theblogproj-frontend 
     ports:
@@ -71,13 +73,12 @@ services:
       NEXT_PUBLIC_API_URL: http://backend:7000
 
     # For Dockerized development (hot reload)
-    command: pnpm dev:frontend
 
     # Uncomment for Dockerized development
-    volumes:
-      - ./apps/frontend:/app/apps/frontend
-      - /app/apps/frontend/node_modules
-      - /app/apps/frontend/.next
+    #volumes:
+    #  - ./apps/frontend:/app/apps/frontend
+    #  - /app/apps/frontend/node_modules
+    #  - /app/apps/frontend/.next
 
     # For production container
     # command: node server.js
