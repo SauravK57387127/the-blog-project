@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Home, Search, Info, Mail, LogIn, Moon, Sun, CircleUser } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
+import { SignInButton, UserButton, SignedIn, SignedOut } from "@clerk/nextjs";
 
 const isAuthenticated = true; // TODO: Replace with useAuth()
 
@@ -21,8 +22,18 @@ const navItems = [
 
 export function FloatingDock() {
   const [hoveredIndex, setHoveredIndex] = useState(null);
-  const { theme, setTheme } = useTheme();
+   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
+
+  const [mounted, setMounted] = useState(false);
+
+useEffect(() => {
+  setMounted(true);
+}, []);
+
+if (!mounted) return null;
+
+ 
 
   const getScale = (index) => {
     if (hoveredIndex === null) return 1;
@@ -101,6 +112,8 @@ export function FloatingDock() {
         <div className="w-px h-5 sm:h-6 bg-border/40 mx-0.5 sm:mx-1 self-center" />
 
         {/* Login */}
+<SignedOut>
+  <SignInButton mode="modal">
         <button
           onMouseEnter={() => setHoveredIndex(navItems.length + 1)}
           className="relative flex flex-col items-center text-muted-foreground hover:text-foreground transition-all duration-300 ease-out"
@@ -115,6 +128,35 @@ export function FloatingDock() {
             <LogIn className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
         </button>
+  </SignInButton>
+</SignedOut>
+
+<SignedIn>
+  <div
+    onMouseEnter={() => setHoveredIndex(navItems.length + 1)}
+    className="relative flex flex-col items-center text-muted-foreground hover:text-foreground transition-all duration-300 ease-out"
+    style={{
+      transform: `scale(${getScale(navItems.length + 1)}) translateY(${getTranslateY(getScale(navItems.length + 1))})`,
+    }}
+  >
+    <div
+      className={`p-2 sm:p-3 transition-colors duration-150 flex items-center justify-center ${
+        isHovered(navItems.length + 1) ? "bg-white/20 dark:bg-white/10" : ""
+      }`}
+      style={{ borderRadius: "0.5rem" }}
+    >
+      <UserButton
+        afterSignOutUrl="/"
+        appearance={{
+          elements: {
+            avatarBox: "h-4 w-4 sm:h-5 sm:w-5 scale-150",
+          },
+        }}
+      />
+    </div>
+  </div>
+</SignedIn>
+
       </div>
     </div>
   );

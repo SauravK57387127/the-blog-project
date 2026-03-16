@@ -55,7 +55,7 @@ async function BlogPost({ id }) {
     <p>These trends represent just the beginning of an exciting new chapter in web development. As developers, staying informed and adaptable will be key to success in this rapidly changing landscape.</p>
   `,
   tags: ["Web Development", "React", "AI", "Performance"],
-  publishedAt: new Date().toISOString(),
+  publishedAt: "2025-01-10T00:00:00.000Z",
   readingTime: 5,
   author: {
     _id: "author1",
@@ -203,7 +203,8 @@ export default function BlogDetail() {
           <div
             ref={contentRef}
             className="blog-content max-w-none mb-12"
-            dangerouslySetInnerHTML={{ __html: blog.content }}
+    suppressHydrationWarning        
+    dangerouslySetInnerHTML={{ __html: blog.content }}
           />
 
           {/* ── Author Banner ───────────────────────────── */}

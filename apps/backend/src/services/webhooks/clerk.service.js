@@ -19,6 +19,22 @@ export default {
         return;
       }
 
+      const existingUser = await User.findOne({ clerkUserId: clerkUser.id });
+
+   if (existingUser) {
+  if (!existingUser.isActive) {
+    existingUser.isActive = true;
+    existingUser.updatedAt = new Date();
+    await existingUser.save();
+
+    logger.info('Reactivated existing user', { clerkUserId: clerkUser.id });
+  } else {
+    logger.info('User already exists, skipping', { clerkUserId: clerkUser.id });
+  }
+
+  return;
+} 
+
       // Create user in MongoDB
       const user = await User.create({
         clerkUserId: clerkUser.id,
