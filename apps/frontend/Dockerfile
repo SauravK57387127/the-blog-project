@@ -30,7 +30,6 @@ RUN pnpm build
 # ===== Stage 3: Production =====
 FROM node:20-alpine AS production
 RUN corepack enable
-
 WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs && \
