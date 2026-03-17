@@ -5,6 +5,7 @@ import { Trash2, Send, CornerDownRight } from "lucide-react";
 import { DESIGN_CONSTANTS } from "@/lib/design-constants";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import AuthAction from "@/components/auth/AuthAction";
+import { useToast } from "@/hooks/use-toast";
 
 const demoComments = [
   {
@@ -167,8 +168,9 @@ export default function CommentSection_New({ blogId }) {
   const [comments, setComments] = useState(demoComments);
   const [visibleCount, setVisibleCount] = useState(5);
 const [isLoadingMore, setIsLoadingMore] = useState(false);
+const { toast } = useToast();
 
- const { isAuthenticated, userId } = useAuthGuard();
+ const { isAuthenticated, userId, userName, userAvatar } = useAuthGuard();
 const currentUserId = userId; 
 
 
@@ -185,9 +187,9 @@ const handleChange = (e) => {
   const comment = {
     _id: Date.now().toString(),
     author: {
-      _id: "current-user",
-      name: "You",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=You",
+      _id: currentUserId,
+      name: userName,
+      avatar: userAvatar,
     },
     content: newComment,
     createdAt: new Date().toISOString(),
@@ -196,6 +198,7 @@ const handleChange = (e) => {
   setComments([comment, ...comments]);
   setNewComment("");
    sessionStorage.removeItem(`draft-comment-${blogId}`);
+   toast({ title: "💬 Comment posted!" });
 }; 
 
   // Recursive delete — your logic, untouched
@@ -209,6 +212,7 @@ const handleChange = (e) => {
         }));
     };
     setComments(deleteFromComments(comments));
+    toast({ title: "Comment removed", variant: "destructive" });
   };
 
   // Recursive reply — your logic, untouched
@@ -216,9 +220,9 @@ const handleChange = (e) => {
     const newReply = {
       _id: Date.now().toString(),
       author: {
-        _id: "current-user",
-        name: "You",
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=You",
+        _id: currentUserId,
+        name: userName,
+        avatar: userAvatar,
       },
       content: replyContent,
       createdAt: new Date().toISOString(),
@@ -270,7 +274,7 @@ const handleChange = (e) => {
     className="w-full text-sm font-reading bg-background border border-foreground/20 focus:border-foreground/50 outline-none px-4 py-3 resize-none placeholder:text-muted-foreground"
   />
   <div className="flex justify-end">
-    <AuthAction>
+    <AuthAction actionKey="post-comment" onAuthenticated={handleSubmitComment}>
       <button
         type="button"                      
     onClick={handleSubmitComment}     

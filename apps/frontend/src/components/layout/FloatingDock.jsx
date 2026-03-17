@@ -32,6 +32,27 @@ export function FloatingDock() {
     setMounted(true);
   }, []);
 
+// Replace the continuous scroll tracker with this
+useEffect(() => {
+  const handleScroll = () => {
+    sessionStorage.setItem("scrollPosition", window.scrollY.toString());
+  };
+  window.addEventListener("scroll", handleScroll, { passive: true });
+  return () => window.removeEventListener("scroll", handleScroll);
+}, []);
+
+// Restore scroll on any auth redirect (sign-in or sign-out)
+useEffect(() => {
+  const savedScroll = sessionStorage.getItem("scrollPosition");
+  if (savedScroll) {
+    window.scrollTo({ top: 0, behavior: "instant" });
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: parseInt(savedScroll), behavior: "smooth" });
+    });
+    sessionStorage.removeItem("scrollPosition");
+  }
+}, []);
+
   if (!mounted) return null; 
 
 
@@ -124,7 +145,10 @@ const navItems = [
 
         {/* Login */}
 <SignedOut>
-  <SignInButton mode="modal">
+  <SignInButton 
+  mode="modal"
+  forceRedirectUrl={typeof window !== "undefined" ? window.location.href : "/"}
+  >
         <button
           onMouseEnter={() => setHoveredIndex(navItems.length + 1)}
           className="relative flex flex-col items-center text-muted-foreground hover:text-foreground transition-all duration-300 ease-out"
@@ -157,7 +181,7 @@ const navItems = [
       style={{ borderRadius: "0.5rem" }}
     >
       <UserButton
-        afterSignOutUrl="/"
+        afterSignOutUrl={typeof window !== "undefined" ? window.location.href : "/"}
         appearance={{
           elements: {
             avatarBox: "h-4 w-4 sm:h-5 sm:w-5 scale-150",

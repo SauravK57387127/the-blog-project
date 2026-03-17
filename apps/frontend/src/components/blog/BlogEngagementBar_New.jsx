@@ -2,6 +2,7 @@
 import { Heart, Bookmark, Share2, MessageCircle } from "lucide-react";
 import { DESIGN_CONSTANTS } from "@/lib/design-constants";
 import AuthAction from "@/components/auth/AuthAction";
+import { useToast } from "@/hooks/use-toast";
 
 export default function BlogEngagementBar_New({
   likeCount,
@@ -12,11 +13,16 @@ export default function BlogEngagementBar_New({
   onShare,
   onScrollToComments,
 }) {
+  const { toast } = useToast();
+
   const actions = [
     {
       icon: Heart,
       label: `${likeCount}`,
-      onClick: onLike,
+      onClick: () => {
+        onLike?.();
+        toast({ title: isLiked ? "Like removed" : "❤️ Liked!" });
+      },
       active: isLiked,
       activeClass: "text-accent",
       fillActive: true,
@@ -25,7 +31,10 @@ export default function BlogEngagementBar_New({
     {
       icon: Bookmark,
       label: "Save",
-      onClick: onBookmark,
+      onClick: () => {
+        onBookmark?.();
+        toast({ title: isBookmarked ? "Bookmark removed" : "🔖 Bookmarked!" });
+      },
       active: isBookmarked,
       activeClass: "text-foreground",
       fillActive: true,
@@ -60,7 +69,7 @@ export default function BlogEngagementBar_New({
           <button
             key={action.label}
             // ✅ Only attach onClick directly for actions that don't require auth
-            onClick={action.requiresAuth ? undefined : action.onClick}
+            onClick={action.onClick}
             className={`group flex items-center gap-2 px-6 py-4 text-sm font-mono ${DESIGN_CONSTANTS.transitions.fast} hover:bg-muted/40 ${
               action.active
                 ? action.activeClass
@@ -80,6 +89,7 @@ export default function BlogEngagementBar_New({
           // ✅ AuthAction owns the onClick and only calls it post-auth
           <AuthAction
             key={action.label}
+          actionKey={action.label}
             onAuthenticated={action.onClick}
           >
             {buttonContent}
