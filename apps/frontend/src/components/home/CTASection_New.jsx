@@ -41,7 +41,7 @@ export default function CTASection() {
               </h2>
             </div>
             <p className="text-base text-foreground font-mono font-medium">
-              Real dev. Real struggles. Real progress — delivered weekly.
+              Real dev. Real struggles. Real progress — delivered to you.
             </p>
             <button
               onClick={() => router.push("/newsletter")}

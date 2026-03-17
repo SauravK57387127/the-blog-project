@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Trash2, Send, CornerDownRight } from "lucide-react";
 import { DESIGN_CONSTANTS } from "@/lib/design-constants";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
+import AuthAction from "@/components/auth/AuthAction";
 
 const demoComments = [
   {
@@ -158,38 +160,43 @@ function CommentCard({ comment, onDelete, onReply, canDelete, currentUserId, lev
 // ─── Main CommentSection ──────────────────────────────────────
 
 export default function CommentSection_New({ blogId }) {
-  const [newComment, setNewComment] = useState("");
+  const [newComment, setNewComment] = useState(() => {
+    if (typeof window === "undefined") return "";
+  return sessionStorage.getItem(`draft-comment-${blogId}`) ?? "";
+});  
   const [comments, setComments] = useState(demoComments);
   const [visibleCount, setVisibleCount] = useState(5);
 const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  // TODO: Replace with auth context
-  const isAuthenticated = true;
-  const currentUserId = "current-user";
+ const { isAuthenticated, userId } = useAuthGuard();
+const currentUserId = userId; 
 
-  const handleSubmitComment = (e) => {
-    e.preventDefault();
-    if (!isAuthenticated) {
-      alert("Please sign in to comment");
-      return;
-    }
-    if (!newComment.trim()) return;
 
-    // TODO: POST /api/comments
-    const comment = {
-      _id: Date.now().toString(),
-      author: {
-        _id: "current-user",
-        name: "You",
-        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=You",
-      },
-      content: newComment,
-      createdAt: new Date().toISOString(),
-      replies: []
-    };
-    setComments([comment, ...comments]);
-    setNewComment("");
+// save on every keystroke
+const handleChange = (e) => {
+  setNewComment(e.target.value);
+  sessionStorage.setItem(`draft-comment-${blogId}`, e.target.value);
+};
+
+ const handleSubmitComment = () => {   // ← no event param needed anymore
+  if (!newComment.trim()) return;
+
+  // TODO: POST /api/comments
+  const comment = {
+    _id: Date.now().toString(),
+    author: {
+      _id: "current-user",
+      name: "You",
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=You",
+    },
+    content: newComment,
+    createdAt: new Date().toISOString(),
+    replies: [],
   };
+  setComments([comment, ...comments]);
+  setNewComment("");
+   sessionStorage.removeItem(`draft-comment-${blogId}`);
+}; 
 
   // Recursive delete — your logic, untouched
   const handleDeleteComment = (commentId) => {
@@ -254,26 +261,28 @@ const [isLoadingMore, setIsLoadingMore] = useState(false);
       </div>
 
       {/* Comment form */}
-      <form onSubmit={handleSubmitComment} className="space-y-3">
-        <textarea
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder={isAuthenticated ? "Share your thoughts..." : "Sign in to comment"}
-          disabled={!isAuthenticated}
-          rows={3}
-          className="w-full text-sm font-reading bg-background border border-foreground/20 focus:border-foreground/50 outline-none px-4 py-3 resize-none placeholder:text-muted-foreground disabled:opacity-50"
-        />
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={!isAuthenticated || !newComment.trim()}
-            className={`group flex items-center gap-2 px-5 py-2.5 text-xs font-mono font-bold uppercase tracking-wide border-2 border-foreground bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40 disabled:pointer-events-none`}
-          >
-            <Send className="h-3.5 w-3.5" />
-            Post Comment
-          </button>
-        </div>
-      </form>
+<form className="space-y-3">  
+    <textarea
+    value={newComment}
+    onChange={handleChange}
+    placeholder="Share your thoughts..."  
+    rows={3}
+    className="w-full text-sm font-reading bg-background border border-foreground/20 focus:border-foreground/50 outline-none px-4 py-3 resize-none placeholder:text-muted-foreground"
+  />
+  <div className="flex justify-end">
+    <AuthAction>
+      <button
+        type="button"                      
+    onClick={handleSubmitComment}     
+    disabled={!newComment.trim()}
+        className={`group flex items-center gap-2 px-5 py-2.5 text-xs font-mono font-bold uppercase tracking-wide border-2 border-foreground bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40 disabled:pointer-events-none`}
+      >
+        <Send className="h-3.5 w-3.5" />
+        Post Comment
+      </button>
+    </AuthAction>
+  </div>
+</form> 
 
       {/* Comments list */}
       {comments.length === 0 ? (

@@ -1,7 +1,7 @@
 "use client";
-
 import { Heart, Bookmark, Share2, MessageCircle } from "lucide-react";
 import { DESIGN_CONSTANTS } from "@/lib/design-constants";
+import AuthAction from "@/components/auth/AuthAction";
 
 export default function BlogEngagementBar_New({
   likeCount,
@@ -15,11 +15,12 @@ export default function BlogEngagementBar_New({
   const actions = [
     {
       icon: Heart,
-      label: isLiked ? `${likeCount}` : `${likeCount}`,
+      label: `${likeCount}`,
       onClick: onLike,
       active: isLiked,
       activeClass: "text-accent",
       fillActive: true,
+      requiresAuth: true,
     },
     {
       icon: Bookmark,
@@ -28,6 +29,7 @@ export default function BlogEngagementBar_New({
       active: isBookmarked,
       activeClass: "text-foreground",
       fillActive: true,
+      requiresAuth: true,
     },
     {
       icon: Share2,
@@ -36,6 +38,7 @@ export default function BlogEngagementBar_New({
       active: false,
       activeClass: "",
       fillActive: false,
+      requiresAuth: false,
     },
     {
       icon: MessageCircle,
@@ -44,6 +47,7 @@ export default function BlogEngagementBar_New({
       active: false,
       activeClass: "",
       fillActive: false,
+      requiresAuth: false,
     },
   ];
 
@@ -51,12 +55,16 @@ export default function BlogEngagementBar_New({
     <div className="flex items-center justify-center gap-0 border-y border-border divide-x divide-border">
       {actions.map((action) => {
         const Icon = action.icon;
-        return (
+
+        const buttonContent = (
           <button
             key={action.label}
-            onClick={action.onClick}
+            // ✅ Only attach onClick directly for actions that don't require auth
+            onClick={action.requiresAuth ? undefined : action.onClick}
             className={`group flex items-center gap-2 px-6 py-4 text-sm font-mono ${DESIGN_CONSTANTS.transitions.fast} hover:bg-muted/40 ${
-              action.active ? action.activeClass : "text-muted-foreground hover:text-foreground"
+              action.active
+                ? action.activeClass
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <Icon
@@ -66,6 +74,18 @@ export default function BlogEngagementBar_New({
             />
             <span className="hidden sm:inline">{action.label}</span>
           </button>
+        );
+
+        return action.requiresAuth ? (
+          // ✅ AuthAction owns the onClick and only calls it post-auth
+          <AuthAction
+            key={action.label}
+            onAuthenticated={action.onClick}
+          >
+            {buttonContent}
+          </AuthAction>
+        ) : (
+          buttonContent
         );
       })}
     </div>

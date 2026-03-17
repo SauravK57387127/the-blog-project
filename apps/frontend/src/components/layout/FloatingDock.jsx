@@ -6,34 +6,45 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { SignInButton, UserButton, SignedIn, SignedOut } from "@clerk/nextjs";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
-const isAuthenticated = true; // TODO: Replace with useAuth()
 
-const navItems = [
-  { title: "Home",       url: "/",           icon: Home,       mobileHidden: false },
-  { title: "Search",     url: "/search",     icon: Search,     mobileHidden: false },
-  { title: "About",      url: "/about",      icon: Info,       mobileHidden: false },
-  { title: "Newsletter", url: "/newsletter", icon: Mail,       mobileHidden: true  },
-  ...(isAuthenticated
-    ? [{ title: "Profile", url: "/profile", icon: CircleUser, mobileHidden: false }]
-    : []
-  ),
-];
+//const navItems = [
+//  { title: "Home",       url: "/",           icon: Home,       mobileHidden: false },
+//  { title: "Search",     url: "/search",     icon: Search,     mobileHidden: false },
+//  { title: "About",      url: "/about",      icon: Info,       mobileHidden: false },
+//  { title: "Newsletter", url: "/newsletter", icon: Mail,       mobileHidden: true  },
+//  ...(isAuthenticated
+//    ? [{ title: "Profile", url: "/profile", icon: CircleUser, mobileHidden: false }]
+//    : []
+//  ),
+//];
 
 export function FloatingDock() {
   const [hoveredIndex, setHoveredIndex] = useState(null);
-   const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const pathname = usePathname();
+  const { isAuthenticated } = useAuthGuard();  // ← here
 
   const [mounted, setMounted] = useState(false);
 
-useEffect(() => {
-  setMounted(true);
-}, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-if (!mounted) return null;
+  if (!mounted) return null; 
 
- 
+
+const navItems = [
+  { title: "Home", url: "/", icon: Home, mobileHidden: false },
+  { title: "Search", url: "/search", icon: Search, mobileHidden: false },
+  { title: "About", url: "/about", icon: Info, mobileHidden: false },
+  { title: "Newsletter", url: "/newsletter", icon: Mail, mobileHidden: true },
+
+  ...(isAuthenticated
+    ? [{ title: "Profile", url: "/profile", icon: CircleUser }]
+    : []),
+];
 
   const getScale = (index) => {
     if (hoveredIndex === null) return 1;
