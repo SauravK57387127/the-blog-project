@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Trash2, Send, CornerDownRight } from "lucide-react";
 import { DESIGN_CONSTANTS } from "@/lib/design-constants";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
@@ -13,7 +13,7 @@ const demoComments = [
     author: { _id: "u1", name: "Alex Johnson", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" },
     content: "Great article! Really insightful perspective on the future of web development.",
     createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    replies: []
+    replies: [],
   },
   {
     _id: "c3",
@@ -26,24 +26,26 @@ const demoComments = [
         author: { _id: "u4", name: "Emma Davis", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma" },
         content: "I can help with that! CDNs cache static assets, edge computing runs actual logic close to the user.",
         createdAt: new Date(Date.now() - 7 * 60 * 60 * 1000).toISOString(),
-        replies: []
-      }
-    ]
+        replies: [],
+      },
+    ],
   },
   {
     _id: "c2",
     author: { _id: "u2", name: "Sarah Chen", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" },
     content: "The section on Server Components was particularly helpful. Thanks for sharing!",
     createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    replies: []
+    replies: [],
   },
 ];
 
 function formatTimeAgo(dateString) {
   const diff = Date.now() - new Date(dateString).getTime();
+  const secs  = Math.floor(diff / 1000);
   const mins  = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days  = Math.floor(diff / 86400000);
+  if (secs < 60)  return "just now";
   if (mins < 60)  return `${mins}m ago`;
   if (hours < 24) return `${hours}h ago`;
   return `${days}d ago`;
@@ -54,6 +56,13 @@ function formatTimeAgo(dateString) {
 function CommentCard({ comment, onDelete, onReply, canDelete, currentUserId, level = 0 }) {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyText, setReplyText] = useState("");
+  const [, setTick] = useState(0);
+
+  // Re-render every minute so timestamps stay live
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleReply = () => {
     if (!replyText.trim()) return;
@@ -65,7 +74,6 @@ function CommentCard({ comment, onDelete, onReply, canDelete, currentUserId, lev
   return (
     <div className={level > 0 ? "ml-6 sm:ml-10 mt-3" : ""}>
 
-      {/* Reply indent indicator */}
       {level > 0 && (
         <div className="flex items-center gap-2 mb-2">
           <CornerDownRight className="h-3.5 w-3.5 text-muted-foreground/40 flex-shrink-0" />
@@ -74,19 +82,20 @@ function CommentCard({ comment, onDelete, onReply, canDelete, currentUserId, lev
 
       <div className={`group flex gap-3 py-4 border-b border-border last:border-0 ${DESIGN_CONSTANTS.transitions.fast}`}>
 
-        {/* Avatar */}
         <img
           src={comment.author.avatar}
           alt={comment.author.name}
           className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-1 ring-border mt-0.5"
         />
 
-        {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-1.5">
             <div className="flex items-center gap-2">
               <span className="font-sans font-semibold text-sm">{comment.author.name}</span>
-              <span className="text-xs font-mono text-muted-foreground">{formatTimeAgo(comment.createdAt)}</span>
+              {/* suppressHydrationWarning: Date.now() differs between SSR and client */}
+              <span suppressHydrationWarning className="text-xs font-mono text-muted-foreground">
+                {formatTimeAgo(comment.createdAt)}
+              </span>
             </div>
 
             {canDelete && (
@@ -104,7 +113,6 @@ function CommentCard({ comment, onDelete, onReply, canDelete, currentUserId, lev
             {comment.content}
           </p>
 
-          {/* Reply trigger */}
           {level < 3 && (
             <button
               onClick={() => setShowReplyForm(!showReplyForm)}
@@ -114,7 +122,6 @@ function CommentCard({ comment, onDelete, onReply, canDelete, currentUserId, lev
             </button>
           )}
 
-          {/* Reply form */}
           {showReplyForm && (
             <div className="mt-3 flex gap-2 items-start">
               <textarea
@@ -124,22 +131,19 @@ function CommentCard({ comment, onDelete, onReply, canDelete, currentUserId, lev
                 rows={2}
                 className="flex-1 text-sm font-reading bg-background border border-foreground/20 focus:border-foreground/50 outline-none px-3 py-2 resize-none placeholder:text-muted-foreground"
               />
-              <div className="flex flex-col gap-1">
-                <button
-                  onClick={handleReply}
-                  disabled={!replyText.trim()}
-                  className={`px-3 py-2 text-xs font-mono font-bold uppercase tracking-wide border-2 border-foreground bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40 disabled:pointer-events-none`}
-                >
-                  <Send className="h-3 w-3" />
-                </button>
-              </div>
+              <button
+                onClick={handleReply}
+                disabled={!replyText.trim()}
+                className={`px-3 py-2 text-xs font-mono font-bold uppercase tracking-wide border-2 border-foreground bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40 disabled:pointer-events-none`}
+              >
+                <Send className="h-3 w-3" />
+              </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Nested replies */}
-      {comment.replies && comment.replies.length > 0 && (
+      {comment.replies?.length > 0 && (
         <div>
           {comment.replies.map((reply) => (
             <CommentCard
@@ -161,96 +165,95 @@ function CommentCard({ comment, onDelete, onReply, canDelete, currentUserId, lev
 // ─── Main CommentSection ──────────────────────────────────────
 
 export default function CommentSection_New({ blogId }) {
-  const [newComment, setNewComment] = useState(() => {
-    if (typeof window === "undefined") return "";
-  return sessionStorage.getItem(`draft-comment-${blogId}`) ?? "";
-});  
+  const [mounted, setMounted] = useState(false);
   const [comments, setComments] = useState(demoComments);
   const [visibleCount, setVisibleCount] = useState(5);
-const [isLoadingMore, setIsLoadingMore] = useState(false);
-const { toast } = useToast();
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
- const { isAuthenticated, userId, userName, userAvatar } = useAuthGuard();
-const currentUserId = userId; 
+  // Draft survives refresh — safe because it only runs on client
+  const [newComment, setNewComment] = useState("");
 
+  const { toast } = useToast();
+  const { userId, userName, userAvatar } = useAuthGuard();
 
-// save on every keystroke
-const handleChange = (e) => {
-  setNewComment(e.target.value);
-  sessionStorage.setItem(`draft-comment-${blogId}`, e.target.value);
-};
+  // On mount: restore draft + full comments array from sessionStorage
+  useEffect(() => {
+    setMounted(true);
+    const draft = sessionStorage.getItem(`draft-comment-${blogId}`);
+    if (draft) setNewComment(draft);
 
- const handleSubmitComment = () => {   // ← no event param needed anymore
-  if (!newComment.trim()) return;
+    const saved = sessionStorage.getItem(`comments-${blogId}`);
+    if (saved) {
+      try {
+        setComments(JSON.parse(saved));
+      } catch {
+        // corrupted — fall back to demoComments silently
+      }
+    }
+  }, [blogId]);
 
-  // TODO: POST /api/comments
-  const comment = {
-    _id: Date.now().toString(),
-    author: {
-      _id: currentUserId,
-      name: userName,
-      avatar: userAvatar,
-    },
-    content: newComment,
-    createdAt: new Date().toISOString(),
-    replies: [],
+  // Persist full comments array on every change (covers posts, replies, deletes)
+  useEffect(() => {
+    if (!mounted) return;
+    sessionStorage.setItem(`comments-${blogId}`, JSON.stringify(comments));
+  }, [comments, mounted, blogId]);
+
+  const handleChange = (e) => {
+    setNewComment(e.target.value);
+    sessionStorage.setItem(`draft-comment-${blogId}`, e.target.value);
   };
-  setComments([comment, ...comments]);
-  setNewComment("");
-   sessionStorage.removeItem(`draft-comment-${blogId}`);
-   toast({ title: "💬 Comment posted!" });
-}; 
 
-  // Recursive delete — your logic, untouched
-  const handleDeleteComment = (commentId) => {
-    const deleteFromComments = (comments) => {
-      return comments
-        .filter(comment => comment._id !== commentId)
-        .map(comment => ({
-          ...comment,
-          replies: comment.replies ? deleteFromComments(comment.replies) : []
-        }));
+  const handleSubmitComment = () => {
+    if (!newComment.trim()) return;
+    const comment = {
+      _id: Date.now().toString(),
+      author: { _id: userId, name: userName, avatar: userAvatar },
+      content: newComment,
+      createdAt: new Date().toISOString(),
+      replies: [],
     };
-    setComments(deleteFromComments(comments));
+    // TODO (API wiring): fire POST /api/comments here, then reconcile with
+    // React Query cache on success (match by userId + content + ~timestamp).
+    setComments((prev) => [comment, ...prev]);
+    setNewComment("");
+    sessionStorage.removeItem(`draft-comment-${blogId}`);
+    toast({ title: "💬 Comment posted!" });
+  };
+
+  const handleDeleteComment = (commentId) => {
+    const deleteFromList = (list) =>
+      list
+        .filter((c) => c._id !== commentId)
+        .map((c) => ({ ...c, replies: deleteFromList(c.replies ?? []) }));
+    setComments(deleteFromList);
     toast({ title: "Comment removed", variant: "destructive" });
   };
 
-  // Recursive reply — your logic, untouched
-  const handleReplyToComment = (parentCommentId, replyContent) => {
+  const handleReplyToComment = (parentId, replyContent) => {
     const newReply = {
       _id: Date.now().toString(),
-      author: {
-        _id: currentUserId,
-        name: userName,
-        avatar: userAvatar,
-      },
+      author: { _id: userId, name: userName, avatar: userAvatar },
       content: replyContent,
       createdAt: new Date().toISOString(),
-      replies: []
+      replies: [],
     };
-
-    const addReplyToComment = (comments) => {
-      return comments.map(comment => {
-        if (comment._id === parentCommentId) {
-          return { ...comment, replies: [...(comment.replies || []), newReply] };
-        }
-        if (comment.replies && comment.replies.length > 0) {
-          return { ...comment, replies: addReplyToComment(comment.replies) };
-        }
-        return comment;
+    const addReply = (list) =>
+      list.map((c) => {
+        if (c._id === parentId) return { ...c, replies: [...(c.replies ?? []), newReply] };
+        if (c.replies?.length) return { ...c, replies: addReply(c.replies) };
+        return c;
       });
-    };
-    setComments(addReplyToComment(comments));
+    setComments(addReply);
   };
 
   const handleLoadMore = () => {
-  setIsLoadingMore(true);
-  // TODO: fetchNextPage() from React Query infinite scroll
-  setTimeout(() => {
-    setVisibleCount(prev => prev + 5);
-    setIsLoadingMore(false);
-  }, 600); // simulates network delay
-};
+    setIsLoadingMore(true);
+    // TODO: fetchNextPage() from React Query
+    setTimeout(() => {
+      setVisibleCount((prev) => prev + 5);
+      setIsLoadingMore(false);
+    }, 600);
+  };
 
   return (
     <div className="space-y-8">
@@ -260,33 +263,35 @@ const handleChange = (e) => {
         <span className="text-xs font-mono font-medium uppercase tracking-widest text-muted-foreground">
           Comments
         </span>
-        <span className="text-xs font-mono text-muted-foreground/50">[ {comments.length} ]</span>
+        <span className="text-xs font-mono text-muted-foreground/50">
+          [ {mounted ? comments.length : demoComments.length} ]
+        </span>
         <div className="flex-1 h-[1px] bg-border" />
       </div>
 
       {/* Comment form */}
-<form className="space-y-3">  
-    <textarea
-    value={newComment}
-    onChange={handleChange}
-    placeholder="Share your thoughts..."  
-    rows={3}
-    className="w-full text-sm font-reading bg-background border border-foreground/20 focus:border-foreground/50 outline-none px-4 py-3 resize-none placeholder:text-muted-foreground"
-  />
-  <div className="flex justify-end">
-    <AuthAction actionKey="post-comment" onAuthenticated={handleSubmitComment}>
-      <button
-        type="button"                      
-    onClick={handleSubmitComment}     
-    disabled={!newComment.trim()}
-        className={`group flex items-center gap-2 px-5 py-2.5 text-xs font-mono font-bold uppercase tracking-wide border-2 border-foreground bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40 disabled:pointer-events-none`}
-      >
-        <Send className="h-3.5 w-3.5" />
-        Post Comment
-      </button>
-    </AuthAction>
-  </div>
-</form> 
+      <div className="space-y-3">
+        <textarea
+          value={newComment}
+          onChange={handleChange}
+          placeholder="Share your thoughts..."
+          rows={3}
+          className="w-full text-sm font-reading bg-background border border-foreground/20 focus:border-foreground/50 outline-none px-4 py-3 resize-none placeholder:text-muted-foreground"
+        />
+        <div className="flex justify-end">
+          <AuthAction actionKey="post-comment" onAuthenticated={handleSubmitComment}>
+            <button
+              type="button"
+              onClick={handleSubmitComment}
+              disabled={!newComment.trim()}
+              className={`group flex items-center gap-2 px-5 py-2.5 text-xs font-mono font-bold uppercase tracking-wide border-2 border-foreground bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40 disabled:pointer-events-none`}
+            >
+              <Send className="h-3.5 w-3.5" />
+              Post Comment
+            </button>
+          </AuthAction>
+        </div>
+      </div>
 
       {/* Comments list */}
       {comments.length === 0 ? (
@@ -297,7 +302,6 @@ const handleChange = (e) => {
         </div>
       ) : (
         <div className="border border-border">
-          {/* Scrollable comment window */}
           <div className="overflow-y-auto custom-scroll px-4" style={{ maxHeight: "480px" }}>
             {comments.slice(0, visibleCount).map((comment) => (
               <CommentCard
@@ -305,25 +309,20 @@ const handleChange = (e) => {
                 comment={comment}
                 onDelete={handleDeleteComment}
                 onReply={handleReplyToComment}
-                canDelete={comment.author._id === currentUserId}
-                currentUserId={currentUserId}
+                canDelete={comment.author._id === userId}
+                currentUserId={userId}
               />
             ))}
           </div>
 
-          {/* Load more banner — always at bottom, outside scroll */}
           <div className="border-t border-border">
             {isLoadingMore ? (
               <div className="flex items-center justify-center gap-2 py-3">
-                <span className="text-xs font-mono text-muted-foreground animate-pulse">
-                  loading...
-                </span>
+                <span className="text-xs font-mono text-muted-foreground animate-pulse">loading...</span>
               </div>
             ) : visibleCount >= comments.length ? (
               <div className="flex items-center justify-center py-3">
-                <span className="text-xs font-mono text-muted-foreground/50">
-                  — no more comments —
-                </span>
+                <span className="text-xs font-mono text-muted-foreground/50">— no more comments —</span>
               </div>
             ) : (
               <button
@@ -339,4 +338,3 @@ const handleChange = (e) => {
     </div>
   );
 }
-    
