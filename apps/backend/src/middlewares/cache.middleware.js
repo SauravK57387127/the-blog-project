@@ -7,10 +7,12 @@ import { logger } from '../../../../packages/logger/index.js';
  */
 export function cacheMiddleware(ttlSeconds = 300) {
   return async (req, res, next) => {
+if (!config.flags.enableCache) return next()
     // Only cache GET requests
-    if (req.method !== 'GET') {
+   if (!config.flags.enableCache) {
+      logger.warn('Cache disabled — skipping cache middleware');
       return next();
-    }
+    } 
 
     // Generate cache key from route + query params
     const cacheKey = `cache:${req.path}:${JSON.stringify(req.query)}`;
@@ -53,6 +55,11 @@ export function invalidateCache(pattern) {
   return async (req, res, next) => {
     // Continue to controller first
     next();
+
+if (!config.flags.enableCache) {
+      logger.warn('Cache disabled — skipping invalidation');
+      return;
+    }
 
     // Invalidate cache after response (non-blocking)
     res.on('finish', async () => {
