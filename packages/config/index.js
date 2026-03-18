@@ -52,6 +52,7 @@ export const config = {
     enableMongo: process.env.ENABLE_MONGO === 'true',
     enablePrisma: process.env.ENABLE_PRISMA === 'true',
     enableRedis: process.env.ENABLE_REDIS === 'true',
+    enableCache: process.env.ENABLE_CACHE === 'true',
   },
 
   // Auth
