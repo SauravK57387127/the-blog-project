@@ -1,5 +1,6 @@
 import { cache } from '../utils/cache.js';
 import { logger } from '../../../../packages/logger/index.js';
+import { config } from '@theblogproj/config';
 
 /**
  * Cache middleware for GET requests
