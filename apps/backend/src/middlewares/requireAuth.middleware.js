@@ -6,10 +6,10 @@ import { getAuth } from '@clerk/express';
  * Checks if user is authenticated via Clerk
  */
 export const requireAuth = (req, res, next) => {
-  // const { userId } = getAuth(req);
+  const { userId } = getAuth(req);
   
   // TODO: Replace with Clerk when auth is enabled
-  const userId = req.headers['x-test-user-id'] || 'user_test1';
+  // const userId = req.headers['x-test-user-id'] || 'user_test1';
   
   if (!userId) {
     return sendResponse({
