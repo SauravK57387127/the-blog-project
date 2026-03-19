@@ -43,7 +43,7 @@ export default {
 
     const [blogs, totalCount] = await Promise.all([
       Blog.find(query)
-        .select('title slug excerpt coverImage tags category publishedAt')
+        .select('title slug excerpt coverImage tags category readingTime publishedAt')
         .sort(sortQuery)
         .skip(skip)
         .limit(limit)
@@ -167,17 +167,13 @@ searchBlogs: async ({ query, tags, category, page, limit }) => {
       .lean();
 
     // Merge with analytics data
-    const blogsWithStats = blogs.map(blog => {
-      const stats = analytics.find(a => a.blogId.toString() === blog._id.toString());
-      return {
-        success: true,
-        message: "Blogs with stats fetched!",
-        data: {
-            ...blog,
-            views: stats?.totalViews || 0,
-        }
-      };
-    });
+   const blogsWithStats = blogs.map(blog => {
+  const stats = analytics.find(a => a.blogId.toString() === blog._id.toString());
+  return {
+    ...blog,
+    views: stats?.totalViews || 0,
+  };
+}); 
 
     // Sort by views
     blogsWithStats.sort((a, b) => b.views - a.views);
@@ -216,9 +212,9 @@ getBlogBySlug: async (slug) => {
 
     // Get author
     const Author = mongoose.model('Author');
-    const author = await Author.findById('single-author')
-      .select('name bio profileImage socialLinks')
-      .lean();
+   const author = await Author.findOne({ isActive: true })
+  .select('name bio profileImage socialLinks')
+  .lean(); 
 
     // Combine data
     const blogWithExtras = {
