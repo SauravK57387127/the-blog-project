@@ -1,43 +1,12 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Trash2, Send, CornerDownRight } from "lucide-react";
-import { DESIGN_CONSTANTS } from "@/lib/design-constants";
-import { useAuthGuard } from "@/hooks/useAuthGuard";
-import AuthAction from "@/components/auth/AuthAction";
-import { useToast } from "@/hooks/use-toast";
-
-const demoComments = [
-  {
-    _id: "c1",
-    author: { _id: "u1", name: "Alex Johnson", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" },
-    content: "Great article! Really insightful perspective on the future of web development.",
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    replies: [],
-  },
-  {
-    _id: "c3",
-    author: { _id: "u3", name: "Mike Wilson", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike" },
-    content: "I have a question about edge computing — how does it differ from traditional CDN caching?",
-    createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-    replies: [
-      {
-        _id: "c3-r1",
-        author: { _id: "u4", name: "Emma Davis", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma" },
-        content: "I can help with that! CDNs cache static assets, edge computing runs actual logic close to the user.",
-        createdAt: new Date(Date.now() - 7 * 60 * 60 * 1000).toISOString(),
-        replies: [],
-      },
-    ],
-  },
-  {
-    _id: "c2",
-    author: { _id: "u2", name: "Sarah Chen", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" },
-    content: "The section on Server Components was particularly helpful. Thanks for sharing!",
-    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    replies: [],
-  },
-];
+import { useState, useEffect } from 'react';
+import { Trash2, Send, CornerDownRight } from 'lucide-react';
+import { DESIGN_CONSTANTS } from '@/lib/design-constants';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
+import AuthAction from '@/components/auth/AuthAction';
+import { useToast } from '@/hooks/use-toast';
+import { useComments, useAddComment, useDeleteComment } from '@/hooks/api/public/useComments';
 
 function formatTimeAgo(dateString) {
   const diff = Date.now() - new Date(dateString).getTime();
@@ -45,7 +14,7 @@ function formatTimeAgo(dateString) {
   const mins  = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days  = Math.floor(diff / 86400000);
-  if (secs < 60)  return "just now";
+  if (secs < 60)  return 'just now';
   if (mins < 60)  return `${mins}m ago`;
   if (hours < 24) return `${hours}h ago`;
   return `${days}d ago`;
@@ -53,10 +22,11 @@ function formatTimeAgo(dateString) {
 
 // ─── CommentCard ─────────────────────────────────────────────
 
-function CommentCard({ comment, onDelete, onReply, canDelete, currentUserId, level = 0 }) {
+function CommentCard({ comment, blogId, onDelete, currentUserId, level = 0 }) {
   const [showReplyForm, setShowReplyForm] = useState(false);
-  const [replyText, setReplyText] = useState("");
+  const [replyText, setReplyText] = useState('');
   const [, setTick] = useState(0);
+  const { mutate: addComment, isPending: isReplying } = useAddComment(blogId);
 
   // Re-render every minute so timestamps stay live
   useEffect(() => {
@@ -66,13 +36,24 @@ function CommentCard({ comment, onDelete, onReply, canDelete, currentUserId, lev
 
   const handleReply = () => {
     if (!replyText.trim()) return;
-    onReply(comment._id, replyText);
-    setReplyText("");
-    setShowReplyForm(false);
+    addComment(
+      { content: replyText, parentId: comment._id?.toString() },
+      {
+        onSuccess: () => {
+          setReplyText('');
+          setShowReplyForm(false);
+        },
+      }
+    );
   };
 
+  const authorName   = comment.userId?.name ?? 'User';
+  const authorAvatar = comment.userId?.profileImage
+    ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${authorName}`;
+  const canDelete    = !!currentUserId && comment.userId?.clerkUserId === currentUserId;
+
   return (
-    <div className={level > 0 ? "ml-6 sm:ml-10 mt-3" : ""}>
+    <div className={level > 0 ? 'ml-6 sm:ml-10 mt-3' : ''}>
 
       {level > 0 && (
         <div className="flex items-center gap-2 mb-2">
@@ -81,18 +62,16 @@ function CommentCard({ comment, onDelete, onReply, canDelete, currentUserId, lev
       )}
 
       <div className={`group flex gap-3 py-4 border-b border-border last:border-0 ${DESIGN_CONSTANTS.transitions.fast}`}>
-
         <img
-          src={comment.author.avatar}
-          alt={comment.author.name}
+          src={authorAvatar}
+          alt={authorName}
           className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-1 ring-border mt-0.5"
         />
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-1.5">
             <div className="flex items-center gap-2">
-              <span className="font-sans font-semibold text-sm">{comment.author.name}</span>
-              {/* suppressHydrationWarning: Date.now() differs between SSR and client */}
+              <span className="font-sans font-semibold text-sm">{authorName}</span>
               <span suppressHydrationWarning className="text-xs font-mono text-muted-foreground">
                 {formatTimeAgo(comment.createdAt)}
               </span>
@@ -113,45 +92,61 @@ function CommentCard({ comment, onDelete, onReply, canDelete, currentUserId, lev
             {comment.content}
           </p>
 
-          {level < 3 && (
-            <button
-              onClick={() => setShowReplyForm(!showReplyForm)}
-              className={`mt-2 text-xs font-mono text-muted-foreground hover:text-foreground ${DESIGN_CONSTANTS.transitions.fast}`}
+          {/* Reply toggle — only gate this with auth, not the form itself */}
+          {level < 3 && !showReplyForm && (
+            <AuthAction
+              actionKey={`reply-${comment._id}`}
+              onAuthenticated={() => setShowReplyForm(true)}
             >
-              {showReplyForm ? "cancel" : "reply"}
-            </button>
+              <button
+                onClick={() => setShowReplyForm(true)}
+                className={`mt-2 text-xs font-mono text-muted-foreground hover:text-foreground ${DESIGN_CONSTANTS.transitions.fast}`}
+              >
+                reply
+              </button>
+            </AuthAction>
           )}
 
+          {/* Reply form — only renders when authenticated (user clicked reply) */}
           {showReplyForm && (
-            <div className="mt-3 flex gap-2 items-start">
+            <div className="mt-3 space-y-2">
               <textarea
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
                 placeholder="Write a reply..."
                 rows={2}
-                className="flex-1 text-sm font-reading bg-background border border-foreground/20 focus:border-foreground/50 outline-none px-3 py-2 resize-none placeholder:text-muted-foreground"
+                className="w-full text-sm font-reading bg-background border border-foreground/20 focus:border-foreground/50 outline-none px-3 py-2 resize-none placeholder:text-muted-foreground"
               />
-              <button
-                onClick={handleReply}
-                disabled={!replyText.trim()}
-                className={`px-3 py-2 text-xs font-mono font-bold uppercase tracking-wide border-2 border-foreground bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40 disabled:pointer-events-none`}
-              >
-                <Send className="h-3 w-3" />
-              </button>
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => { setShowReplyForm(false); setReplyText(''); }}
+                  className={`text-xs font-mono text-muted-foreground hover:text-foreground ${DESIGN_CONSTANTS.transitions.fast}`}
+                >
+                  cancel
+                </button>
+                <button
+                  onClick={handleReply}
+                  disabled={!replyText.trim() || isReplying}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-mono font-bold uppercase tracking-wide border-2 border-foreground bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40 disabled:pointer-events-none`}
+                >
+                  <Send className="h-3 w-3" />
+                  {isReplying ? 'Posting...' : 'Reply'}
+                </button>
+              </div>
             </div>
           )}
         </div>
       </div>
 
+      {/* Nested replies */}
       {comment.replies?.length > 0 && (
         <div>
           {comment.replies.map((reply) => (
             <CommentCard
               key={reply._id}
               comment={reply}
+              blogId={blogId}
               onDelete={onDelete}
-              onReply={onReply}
-              canDelete={reply.author._id === currentUserId}
               currentUserId={currentUserId}
               level={level + 1}
             />
@@ -165,38 +160,24 @@ function CommentCard({ comment, onDelete, onReply, canDelete, currentUserId, lev
 // ─── Main CommentSection ──────────────────────────────────────
 
 export default function CommentSection_New({ blogId }) {
-  const [mounted, setMounted] = useState(false);
-  const [comments, setComments] = useState(demoComments);
-  const [visibleCount, setVisibleCount] = useState(5);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [mounted, setMounted]       = useState(false);
+  const { toast }                   = useToast();
+  const { userId }                  = useAuthGuard();
 
-  // Draft survives refresh — safe because it only runs on client
-  const [newComment, setNewComment] = useState("");
+  const { data, isLoading, isFetchingNextPage, fetchNextPage } = useComments(blogId);
+  const { mutate: addComment, isPending: isPosting }           = useAddComment(blogId);
+  const { mutate: deleteComment }                              = useDeleteComment(blogId);
 
-  const { toast } = useToast();
-  const { userId, userName, userAvatar } = useAuthGuard();
+  const comments      = data?.comments      ?? [];
+  const totalComments = data?.totalComments ?? 0;
+  const hasNextPage   = data?.hasNextPage   ?? false;
 
-  // On mount: restore draft + full comments array from sessionStorage
   useEffect(() => {
     setMounted(true);
     const draft = sessionStorage.getItem(`draft-comment-${blogId}`);
     if (draft) setNewComment(draft);
-
-    const saved = sessionStorage.getItem(`comments-${blogId}`);
-    if (saved) {
-      try {
-        setComments(JSON.parse(saved));
-      } catch {
-        // corrupted — fall back to demoComments silently
-      }
-    }
   }, [blogId]);
-
-  // Persist full comments array on every change (covers posts, replies, deletes)
-  useEffect(() => {
-    if (!mounted) return;
-    sessionStorage.setItem(`comments-${blogId}`, JSON.stringify(comments));
-  }, [comments, mounted, blogId]);
 
   const handleChange = (e) => {
     setNewComment(e.target.value);
@@ -205,54 +186,15 @@ export default function CommentSection_New({ blogId }) {
 
   const handleSubmitComment = () => {
     if (!newComment.trim()) return;
-    const comment = {
-      _id: Date.now().toString(),
-      author: { _id: userId, name: userName, avatar: userAvatar },
-      content: newComment,
-      createdAt: new Date().toISOString(),
-      replies: [],
-    };
-    // TODO (API wiring): fire POST /api/comments here, then reconcile with
-    // React Query cache on success (match by userId + content + ~timestamp).
-    setComments((prev) => [comment, ...prev]);
-    setNewComment("");
-    sessionStorage.removeItem(`draft-comment-${blogId}`);
-    toast({ title: "💬 Comment posted!" });
-  };
-
-  const handleDeleteComment = (commentId) => {
-    const deleteFromList = (list) =>
-      list
-        .filter((c) => c._id !== commentId)
-        .map((c) => ({ ...c, replies: deleteFromList(c.replies ?? []) }));
-    setComments(deleteFromList);
-    toast({ title: "Comment removed", variant: "destructive" });
-  };
-
-  const handleReplyToComment = (parentId, replyContent) => {
-    const newReply = {
-      _id: Date.now().toString(),
-      author: { _id: userId, name: userName, avatar: userAvatar },
-      content: replyContent,
-      createdAt: new Date().toISOString(),
-      replies: [],
-    };
-    const addReply = (list) =>
-      list.map((c) => {
-        if (c._id === parentId) return { ...c, replies: [...(c.replies ?? []), newReply] };
-        if (c.replies?.length) return { ...c, replies: addReply(c.replies) };
-        return c;
-      });
-    setComments(addReply);
-  };
-
-  const handleLoadMore = () => {
-    setIsLoadingMore(true);
-    // TODO: fetchNextPage() from React Query
-    setTimeout(() => {
-      setVisibleCount((prev) => prev + 5);
-      setIsLoadingMore(false);
-    }, 600);
+    addComment(
+      { content: newComment, parentId: null },
+      {
+        onSuccess: () => {
+          setNewComment('');
+          sessionStorage.removeItem(`draft-comment-${blogId}`);
+        },
+      }
+    );
   };
 
   return (
@@ -264,12 +206,12 @@ export default function CommentSection_New({ blogId }) {
           Comments
         </span>
         <span className="text-xs font-mono text-muted-foreground/50">
-          [ {mounted ? comments.length : demoComments.length} ]
+          [ {mounted ? totalComments : 0} ]
         </span>
         <div className="flex-1 h-[1px] bg-border" />
       </div>
 
-      {/* Comment form */}
+      {/* Top-level comment form */}
       <div className="space-y-3">
         <textarea
           value={newComment}
@@ -283,18 +225,30 @@ export default function CommentSection_New({ blogId }) {
             <button
               type="button"
               onClick={handleSubmitComment}
-              disabled={!newComment.trim()}
+              disabled={!newComment.trim() || isPosting}
               className={`group flex items-center gap-2 px-5 py-2.5 text-xs font-mono font-bold uppercase tracking-wide border-2 border-foreground bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40 disabled:pointer-events-none`}
             >
               <Send className="h-3.5 w-3.5" />
-              Post Comment
+              {isPosting ? 'Posting...' : 'Post Comment'}
             </button>
           </AuthAction>
         </div>
       </div>
 
       {/* Comments list */}
-      {comments.length === 0 ? (
+      {isLoading ? (
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex gap-3 py-4">
+              <div className="w-8 h-8 rounded-full bg-muted animate-pulse flex-shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3 bg-muted animate-pulse rounded w-1/4" />
+                <div className="h-3 bg-muted animate-pulse rounded w-3/4" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : comments.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-sm font-reading text-muted-foreground italic">
             No comments yet. Be the first to share your thoughts.
@@ -302,35 +256,35 @@ export default function CommentSection_New({ blogId }) {
         </div>
       ) : (
         <div className="border border-border">
-          <div className="overflow-y-auto custom-scroll px-4" style={{ maxHeight: "480px" }}>
-            {comments.slice(0, visibleCount).map((comment) => (
+          <div className="overflow-y-auto custom-scroll px-4" style={{ maxHeight: '480px' }}>
+            {comments.map((comment) => (
               <CommentCard
                 key={comment._id}
                 comment={comment}
-                onDelete={handleDeleteComment}
-                onReply={handleReplyToComment}
-                canDelete={comment.author._id === userId}
+                blogId={blogId}
+                onDelete={(id) => deleteComment(id)}
                 currentUserId={userId}
+                level={0}
               />
             ))}
           </div>
 
           <div className="border-t border-border">
-            {isLoadingMore ? (
+            {isFetchingNextPage ? (
               <div className="flex items-center justify-center gap-2 py-3">
                 <span className="text-xs font-mono text-muted-foreground animate-pulse">loading...</span>
               </div>
-            ) : visibleCount >= comments.length ? (
+            ) : hasNextPage ? (
+              <button
+                onClick={() => fetchNextPage()}
+                className={`w-full flex items-center justify-center gap-2 py-3 text-xs font-mono text-muted-foreground hover:text-foreground hover:bg-muted/30 ${DESIGN_CONSTANTS.transitions.fast}`}
+              >
+                load more comments
+              </button>
+            ) : (
               <div className="flex items-center justify-center py-3">
                 <span className="text-xs font-mono text-muted-foreground/50">— no more comments —</span>
               </div>
-            ) : (
-              <button
-                onClick={handleLoadMore}
-                className={`w-full flex items-center justify-center gap-2 py-3 text-xs font-mono text-muted-foreground hover:text-foreground hover:bg-muted/30 ${DESIGN_CONSTANTS.transitions.fast}`}
-              >
-                load {Math.min(comments.length - visibleCount, 5)} more comments
-              </button>
             )}
           </div>
         </div>

@@ -215,7 +215,7 @@ export default {
    */
   getCategoryBreakdown: async () => {
     try {
-      const categories = ['tech', 'life', 'experiments'];
+      const categories = ['tech-deep-dive', 'life-and-growth', 'career-and-learnings']; 
 
       // Get total views across all blogs
       const totalViewsData = await BlogAnalytics.aggregate([

@@ -350,7 +350,7 @@ export default {
     try {
       const draft = await Blog.findOne({ status: 'draft' })
         .sort({ updatedAt: -1 })
-        .select('title content updatedAt')
+        .select('title content updatedAt draftSlug')
         .lean();
 
       if (!draft) {
@@ -377,6 +377,7 @@ export default {
         data: {
           _id: draft._id,
           title: draft.title,
+          draftSlug: draft.draftSlug,
           excerpt,
           lastOpened: timeSinceUpdate,
         },
@@ -436,12 +437,13 @@ export default {
       const drafts = await Blog.find({ status: 'draft' })
         .sort({ updatedAt: 1 })  // Oldest first
         .limit(limit)
-        .select('title content updatedAt')
+        .select('title content updatedAt draftSlug')
         .lean();
 
       const formatted = drafts.map(draft => ({
         _id: draft._id,
         title: draft.title,
+        draftSlug: draft.draftSlug,
         excerpt: draft.content
           .replace(/<[^>]*>/g, '')
           .split('\n')[0]

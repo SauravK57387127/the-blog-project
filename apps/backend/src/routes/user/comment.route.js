@@ -17,7 +17,7 @@ router.get('/my', CommentController.getMyComments);
  */
 router.post(
   '/:blogId',
-  sanitizeFields({ content: sanitizeHTML }),
+  sanitizeFields({ content: sanitizeHTML, parentId: (val) => val || null, }),
   CommentController.addComment
 );
 

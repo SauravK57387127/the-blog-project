@@ -1,4 +1,4 @@
-import PublicHomeWrapper from "@/components/PublicHomeWrapper_New";
+import PublicHomeWrapper from "@/components/PublicHomeWrapper";
 import AppLayout from "@/components/layout/AppLayout";
 export default function Home() {
   return <AppLayout>

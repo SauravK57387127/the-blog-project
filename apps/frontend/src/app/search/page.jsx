@@ -1,6 +1,6 @@
 "use client";
 
-import Search from "@/ui-pages/Search_New";
+import Search from "@/ui-pages/Search";
 import AppLayout from "@/components/layout/AppLayout";
 import { Suspense } from "react";
 

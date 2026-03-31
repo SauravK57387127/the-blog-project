@@ -44,9 +44,6 @@ export default function RecentHighlightsSection({ blogs, onBlogClick }) {
                 <h2 className="text-2xl font-sans font-bold leading-snug group-hover:text-accent transition-colors duration-200 line-clamp-2">
                   {big.title}
                 </h2>
-                <p className="text-foreground/70 font-reading text-base leading-relaxed line-clamp-2">
-                  {big.excerpt}
-                </p>
                 <Tags tags={big.tags} />
               </div>
             </div>

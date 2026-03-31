@@ -144,7 +144,7 @@ function EmptyState({ statusFilter, categoryFilter, onReset }) {
   );
 }
 
-export default function BlogsPageComponent() {
+export default function AdminBlogsPage() {
   const router = useRouter();
   const [blogs, setBlogs] = useState(demoBlogs);
   const [searchQuery, setSearchQuery] = useState("");

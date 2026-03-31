@@ -1,13 +1,26 @@
 import axios from 'axios';
-import { getAuthToken, getAdminToken, clearAdminToken } from './auth-token';
+import { getAuthToken, getAdminToken, setAdminToken, clearAdminToken } from './auth-token';
 
 export const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:7000',
   headers: { 'Content-Type': 'application/json' },
   timeout: 30000,
+  withCredentials: true, // send httpOnly refresh token cookie automatically
 });
 
-// ── Request interceptor ──────────────────────────────────────────────────────
+// ── Token refresh state ───────────────────────────────────────────────────────
+let isRefreshing = false;
+let failedQueue  = [];
+
+function processQueue(error, token = null) {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) reject(error);
+    else resolve(token);
+  });
+  failedQueue = [];
+}
+
+// ── Request interceptor ───────────────────────────────────────────────────────
 apiClient.interceptors.request.use(
   async (config) => {
     const url = config.url ?? '';
@@ -29,30 +42,82 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ── Response interceptor ─────────────────────────────────────────────────────
+// ── Response interceptor ──────────────────────────────────────────────────────
 apiClient.interceptors.response.use(
-  // Return response.data directly — no need to unwrap in services
+  // Unwrap response.data — services receive { success, message, data } directly
   (response) => response.data,
 
-  (error) => {
-    const status = error.response?.status;
+  async (error) => {
+    const status        = error.response?.status;
+    const originalConfig = error.config;
 
-    // User session expired → redirect to sign-in
-    if (status === 401 && error.config?.url?.includes('/api/user')) {
+    // ── User 401 → redirect to sign-in (Clerk handles its own refresh)
+    if (status === 401 && originalConfig?.url?.includes('/api/user')) {
       if (typeof window !== 'undefined') {
         window.location.href = '/sign-in';
       }
+      return Promise.reject(error.response?.data ?? { message: error.message });
     }
 
-    // Admin session expired → clear token + redirect to admin login
-    if (status === 401 && error.config?.url?.includes('/api/admin')) {
-      clearAdminToken();
-      if (typeof window !== 'undefined') {
-        window.location.href = '/admin/login';
+    // ── Admin 401 → attempt silent token refresh before giving up
+    if (status === 401 && originalConfig?.url?.includes('/api/admin')) {
+
+      // Do not retry the refresh endpoint itself — would cause infinite loop
+      if (originalConfig?.url?.includes('/auth/refresh')) {
+        clearAdminToken();
+        if (typeof window !== 'undefined') window.location.href = '/admin/login';
+        return Promise.reject(error.response?.data ?? { message: error.message });
+      }
+
+      // Do not retry requests already marked as retried
+      if (originalConfig?._retry) {
+        clearAdminToken();
+        if (typeof window !== 'undefined') window.location.href = '/admin/login';
+        return Promise.reject(error.response?.data ?? { message: error.message });
+      }
+
+      // If a refresh is already in flight, queue this request
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalConfig.headers.Authorization = `Bearer ${token}`;
+            return apiClient(originalConfig);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      // Start refresh
+      isRefreshing = true;
+      originalConfig._retry = true;
+
+      try {
+        // httpOnly refresh token cookie is sent automatically via withCredentials
+        const data     = await apiClient.post('/api/admin/auth/refresh');
+        const newToken = data?.data?.accessToken;
+
+        if (!newToken) throw new Error('No token in refresh response');
+
+        setAdminToken(newToken);
+        processQueue(null, newToken);
+
+        // Retry the original request with the new token
+        originalConfig.headers.Authorization = `Bearer ${newToken}`;
+        return apiClient(originalConfig);
+
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+        clearAdminToken();
+        if (typeof window !== 'undefined') window.location.href = '/admin/login';
+        return Promise.reject(refreshError?.response?.data ?? { message: 'Session expired' });
+
+      } finally {
+        isRefreshing = false;
       }
     }
 
-    // Reject with backend error shape so hooks can read .message
+    // All other errors — reject with backend error shape
     return Promise.reject(error.response?.data ?? { message: error.message });
   }
 );

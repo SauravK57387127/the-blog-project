@@ -29,7 +29,7 @@ getMyComments: asyncHandler(async (req, res) => {
  const  userId  = req.userId; 
     const { blogId } = req.params;
    const { content, parentId } = req.sanitizedBody || req.body;
-   
+   console.log('💬 addComment received:', { blogId, content, parentId });
     if (!content || content.trim().length === 0) {
       return sendResponse({
         res,

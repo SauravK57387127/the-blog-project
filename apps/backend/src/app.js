@@ -67,10 +67,9 @@ if (config.nodeEnv === 'test') {
     req.auth = testUserId ? { userId: testUserId } : null;
     next();
   });
-} 
-//else {
-  //app.use(clerkMiddleware());
-//}
+} else {
+  app.use(clerkMiddleware());
+}
 
     app.use((req, res, next) => {
   console.log('🔴 After Clerk:', req.path);

@@ -1,4 +1,4 @@
-import DraftsPageComponent from "@/ui-pages/admin/Drafts_New";
+import DraftsPageComponent from "@/ui-pages/admin/Drafts";
 
 export default function DraftsPage(){
     return <DraftsPageComponent />

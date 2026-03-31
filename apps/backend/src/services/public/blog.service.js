@@ -265,7 +265,7 @@ getBlogBySlug: async (slug) => {
       status: 'published',
       tags: { $in: currentBlog.tags },
     })
-      .select('title slug excerpt coverImage tags publishedAt')
+      .select('title slug excerpt coverImage tags readingTime publishedAt')
       .sort({ publishedAt: -1 })
       .limit(limit)
       .lean();

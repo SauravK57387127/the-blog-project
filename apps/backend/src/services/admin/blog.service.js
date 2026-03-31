@@ -44,7 +44,7 @@ getPublishedBlogs: async ({ status, category, page, limit }) => {
         .sort({ publishedAt: -1, scheduledAt: -1 })  // Most recent first
         .skip(skip)
         .limit(limit)
-        .select('title slug coverImage status category publishedAt scheduledAt')
+        .select('title slug draftSlug coverImage status category publishedAt scheduledAt') 
         .lean(),
       Blog.countDocuments(query),
     ]);
@@ -52,6 +52,7 @@ getPublishedBlogs: async ({ status, category, page, limit }) => {
     // Format with time labels
     const formatted = blogs.map(blog => ({
       _id: blog._id,
+      draftSlug: blog.draftSlug,
       title: blog.title,
       slug: blog.slug,
       coverImage: blog.coverImage,
@@ -108,7 +109,7 @@ getDrafts: async ({ page, limit }) => {
         .sort({ updatedAt: -1 })  // Most recently updated first
         .skip(skip)
         .limit(limit)
-        .select('title content updatedAt wordCount')
+        .select('title content updatedAt wordCount draftSlug')
         .lean(),
       Blog.countDocuments({ status: 'draft' }),
     ]);
@@ -117,6 +118,7 @@ getDrafts: async ({ page, limit }) => {
     const formatted = drafts.map(draft => ({
       _id: draft._id,
       title: draft.title,
+      draftSlug: draft.draftSlug,
       excerpt: draft.content
         .replace(/<[^>]*>/g, '')  // Remove HTML
         .split('\n')[0]
@@ -347,8 +349,10 @@ createBlog: async (blogData) => {
 
     const blog = await Blog.create({
       ...blogData,
-      status: 'draft',
+      content: '<p></p>',
+      slug: slugify(blogData.title) + '-' + nanoid(6),
       draftSlug,
+      status: 'draft',
       authorId: 'single-author',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -366,6 +370,7 @@ createBlog: async (blogData) => {
       },
     };
   } catch (error) {
+    console.error('Create blog ACTUAL error:', error);
     logger.error('Create blog failed', { error: error.message });
     return {
       success: false,

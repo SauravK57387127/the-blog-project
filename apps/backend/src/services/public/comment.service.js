@@ -20,7 +20,7 @@ export default {
         .sort({ createdAt: -1 })  // Newest first
         .skip(skip)
         .limit(limit)
-        .populate('userId', 'name profileImage')
+        .populate('userId', 'name profileImage clerkUserId')
         .lean();
 
       // Get total count of top-level comments (for pagination)
@@ -78,7 +78,7 @@ export default {
 async function buildNestedReplies(parentId) {
   const replies = await Comment.find({ parentId })
     .sort({ createdAt: 1 })  // Oldest first for replies (natural conversation flow)
-    .populate('userId', 'name profileImage')
+    .populate('userId', 'name profileImage clerkUserId')
     .lean();
 
   // Recursively fetch replies for each reply

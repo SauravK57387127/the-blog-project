@@ -11,8 +11,8 @@ export default function AuthorBanner_New({ author }) {
 
       {/* Avatar */}
       <img
-        src={author.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${author.name}`}
-        alt={author.name}
+         src={author.profileImage || author.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${author.name}`}
+       alt={author.name}
         className="w-14 h-14 rounded-full object-cover ring-2 ring-border flex-shrink-0"
       />
 

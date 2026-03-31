@@ -1,6 +1,6 @@
 "use client";
 
-import BlogsPage from "@/ui-pages/admin/Blogs_New";
+import AdminBlogsPage from "@/ui-pages/admin/Blogs";
 export default function AdminBlogs() {
-  return <BlogsPage />;
+  return <AdminBlogsPage />;
 }
