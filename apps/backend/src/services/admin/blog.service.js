@@ -44,7 +44,7 @@ getPublishedBlogs: async ({ status, category, page, limit }) => {
         .sort({ publishedAt: -1, scheduledAt: -1 })  // Most recent first
         .skip(skip)
         .limit(limit)
-        .select('title slug draftSlug coverImage status category publishedAt scheduledAt') 
+        .select('title slug draftSlug coverImage status category publishedAt scheduledAt editorsPick') 
         .lean(),
       Blog.countDocuments(query),
     ]);
@@ -63,6 +63,7 @@ getPublishedBlogs: async ({ status, category, page, limit }) => {
         : formatFutureDate(blog.scheduledAt),
       publishedAt: blog.publishedAt,
       scheduledAt: blog.scheduledAt,
+      editorsPick: blog.editorsPick ?? null,
     }));
 
     logger.info('Published blogs fetched', { 
@@ -564,7 +565,56 @@ createBlog: async (blogData) => {
     logger.error('Unpublish blog failed', { error: error.message, blogId });
     return { success: false, message: 'Failed to unpublish blog', data: null };
   }
-}, 
+},
+
+toggleEditorsPick: async (blogId, { isEditorsPick, annotation }) => {
+  try {
+    const blog = await Blog.findById(blogId).lean();
+    if (!blog) return { success: false, message: 'Blog not found', data: null };
+ 
+    if (!isEditorsPick) {
+      await Blog.findByIdAndUpdate(blogId, {
+        $unset: { editorsPick: '' },
+        updatedAt: new Date(),
+      }, { runValidators: false });
+ 
+      logger.info('Blog removed from editors choice', { blogId });
+      return { success: true, message: 'Removed from editors choice', data: null };
+    }
+ 
+    // Check current count — max 4
+    const currentPicks = await Blog.find(
+      { 'editorsPick.isEditorsPick': true },
+      { _id: 1, 'editorsPick.pickOrder': 1 }
+    ).lean();
+ 
+    if (currentPicks.length >= 4) {
+      const oldest = currentPicks.sort((a, b) =>
+        (a.editorsPick?.pickOrder ?? 0) - (b.editorsPick?.pickOrder ?? 0)
+      )[0];
+      await Blog.findByIdAndUpdate(oldest._id, {
+        $unset: { editorsPick: '' },
+      }, { runValidators: false });
+      logger.info('Oldest editors pick removed to make room', { removed: oldest._id });
+    }
+ 
+    await Blog.findByIdAndUpdate(blogId, {
+      editorsPick: {
+        isEditorsPick: true,
+        annotation: annotation ?? '',
+        pickOrder: Date.now(),
+      },
+      updatedAt: new Date(),
+    }, { runValidators: false });
+ 
+    logger.info('Blog added to editors choice', { blogId });
+    return { success: true, message: 'Added to editors choice', data: null };
+ 
+  } catch (error) {
+    logger.error('Toggle editors choice failed', { error: error.message, blogId });
+    return { success: false, message: 'Failed to toggle editors choice', data: null };
+  }
+},
 };
 
 // ===== HELPER FUNCTIONS =====

@@ -98,5 +98,7 @@ router.get('/draft/:draftSlug', blogController.getBlogByDraftSlug);
   router.post('/:id/unpublish', invalidateCache('cache:/api/public/blogs*'), blogController.unpublishBlog);
 
 
+router.post('/:id/editors-choice', blogController.toggleEditorsPick);
+
   return router;
 };

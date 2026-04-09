@@ -97,6 +97,7 @@ export const API_ENDPOINTS = {
       PUBLISH:       (id) => `/api/admin/blogs/${id}/publish`,
       UNPUBLISH:     (id) => `/api/admin/blogs/${id}/unpublish`,
       SCHEDULE:      (id) => `/api/admin/blogs/${id}/schedule`,
+      EDITORS_CHOICE: (id) => `/api/admin/blogs/${id}/editors-choice`,
     },
 
     UPLOAD: {

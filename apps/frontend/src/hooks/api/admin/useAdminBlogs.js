@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminBlogsService } from '@/api/services/admin/blogs.service';
 import { toast } from 'sonner';
+import { apiClient } from '@/lib/axios';
+
 
 const keys = {
   published: (filters) => ['admin', 'blogs', 'published', filters],
@@ -51,5 +53,17 @@ export function usePublishNow() {
       toast.success('Blog published!');
     },
     onError: () => toast.error('Failed to publish blog'),
+  });
+}
+
+export function useToggleEditorsPick() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ blogId, isEditorsPick, annotation }) =>
+      apiClient.post(`/api/admin/blogs/${blogId}/editors-choice`, { isEditorsPick, annotation }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'blogs'] });
+    },
+    onError: () => toast.error("Failed to update editor's choice"),
   });
 }

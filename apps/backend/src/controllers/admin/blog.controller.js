@@ -232,7 +232,21 @@ getBlogByDraftSlug: asyncHandler(async (req, res) => {
       statusCode: result.success ? 200 : 404,
       success: result.success,
       message: result.message,
-      data: result.data,
+      data: result.data
     });
+  }),
+
+  toggleEditorsPick: asyncHandler(async (req, res) => {
+  const { isEditorsPick, annotation } = req.body;
+  const result = await AdminBlogService.toggleEditorsPick(req.params.id, { isEditorsPick, annotation });
+  
+sendResponse({
+      res,
+      statusCode: result.success ? 200 : 404,
+      success: result.success,
+      message: result.message,
+      data: result.data
+    });
+
   }),
 });

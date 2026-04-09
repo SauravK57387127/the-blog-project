@@ -37,7 +37,7 @@ export default function EditorsChoiceSection({ blogs, onBlogClick }) {
             >
               {/* Personal annotation */}
              <p className="text-sm italic font-reading text-muted-foreground/70 leading-relaxed">
-  "{EDITORS_PICKS[index]?.annotation || "a piece close to my heart"}"
+"{blog.editorsPick?.annotation || "a piece close to my heart"}"
 </p> 
 
               {/* Divider */}
