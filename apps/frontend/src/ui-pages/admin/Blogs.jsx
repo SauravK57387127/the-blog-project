@@ -1,10 +1,8 @@
 'use client';
-
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Trash2, Eye, Edit3, Send, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-//import { Textarea } from '@/components/ui/textarea';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -42,7 +40,6 @@ function StatusBadge({ status }) {
 
 function BlogRow({ blog, onView, onEdit, onPublishNow, onDelete, onEditorsPick }) {
   const isPick = blog.editorsPick?.isEditorsPick ?? false;
-
   return (
     <div className={`group flex items-center gap-4 py-4 border-b border-border hover:bg-muted/20 ${DESIGN_CONSTANTS.transitions.fast}`}>
       <div className="w-16 h-12 flex-shrink-0 overflow-hidden bg-muted">
@@ -51,7 +48,6 @@ function BlogRow({ blog, onView, onEdit, onPublishNow, onDelete, onEditorsPick }
           : <div className="w-full h-full bg-muted" />
         }
       </div>
-
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p className={`font-sans font-semibold text-sm line-clamp-1 group-hover:text-accent ${DESIGN_CONSTANTS.transitions.fast}`}>
@@ -66,7 +62,6 @@ function BlogRow({ blog, onView, onEdit, onPublishNow, onDelete, onEditorsPick }
           <span className="text-xs font-mono text-muted-foreground">{blog.timeLabel}</span>
         </div>
       </div>
-
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
         <button
           onClick={() => onView(blog)}
@@ -93,7 +88,6 @@ function BlogRow({ blog, onView, onEdit, onPublishNow, onDelete, onEditorsPick }
             </button>
           </>
         )}
-        {/* Editor's pick toggle — only for published */}
         {blog.status === 'published' && (
           <button
             onClick={() => onEditorsPick(blog)}
@@ -138,7 +132,6 @@ function EmptyState({ statusFilter, categoryFilter, onReset }) {
 
 export default function AdminBlogsPage() {
   const router = useRouter();
-
   const [statusFilter,   setStatusFilter]   = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [searchQuery,    setSearchQuery]    = useState('');
@@ -148,19 +141,21 @@ export default function AdminBlogsPage() {
   const debounceRef = useRef(null);
 
   // Editor's pick modal state
-  const [pickModal,      setPickModal]      = useState(null); // { blog }
-  const [annotation,     setAnnotation]     = useState('');
+  const [pickModal,  setPickModal]  = useState(null);
+  const [annotation, setAnnotation] = useState('');
 
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
     if (!token) router.replace('/admin/login');
   }, []);
 
+  // ─── FIX: reset only page on filter change, NOT accBlogs ──────────────────
+  // accBlogs reset is handled by the accumulation effect below via filterKey.
+  // Resetting accBlogs here caused a race: React Query returned cached data with
+  // the same array reference, so the accumulation effect never re-fired → blank list.
   useEffect(() => {
     setPage(1);
-    setAccBlogs([]);
   }, [statusFilter, categoryFilter]);
-
 
   const handleSearch = (e) => {
     const val = e.target.value;
@@ -169,39 +164,50 @@ export default function AdminBlogsPage() {
     debounceRef.current = setTimeout(() => setDebouncedQuery(val), 300);
   };
 
-const { data, isLoading, isFetching } = usePublishedBlogs({
-  status: (statusFilter === 'all' || statusFilter === 'editors-choice') 
-    ? undefined : statusFilter,
-  category: categoryFilter !== 'all' ? categoryFilter : undefined,
-  page,
-  limit: statusFilter === 'editors-choice' ? 500 : PAGE_SIZE,
-});
-
-  useEffect(() => {
-    if (!data?.blogs?.length) return;
-    setAccBlogs(prev => page === 1 ? data.blogs : [...prev, ...data.blogs]);
-  }, [data?.blogs, page]);
-
-  const { data: counts }           = usePublishedBlogsCounts(categoryFilter);
-  const publishedCount             = counts?.published ?? 0;
-  const scheduledCount             = counts?.scheduled ?? 0;
-
-  const { mutate: deleteBlog }     = useDeleteBlog();
-  const { mutate: publishNow }     = usePublishNow();
-  const { mutate: togglePick, isPending: isTogglingPick } = useToggleEditorsPick();
-
-  const blogs = accBlogs
-  .filter(blog => !debouncedQuery || blog.title.toLowerCase().includes(debouncedQuery.toLowerCase()))
-  .filter(blog => {
-    if (statusFilter === 'editors-choice') return blog.editorsPick?.isEditorsPick === true;
-    if (statusFilter === 'published') return blog.status === 'published' && !blog.editorsPick?.isEditorsPick;
-    if (statusFilter === 'scheduled') return blog.status === 'scheduled';
-    return true; // all
+  const { data, isLoading, isFetching } = usePublishedBlogs({
+    status: (statusFilter === 'all' || statusFilter === 'editors-choice')
+      ? undefined : statusFilter,
+    category: categoryFilter !== 'all' ? categoryFilter : undefined,
+    page,
+    limit: statusFilter === 'editors-choice' ? 500 : PAGE_SIZE,
   });
 
- const hasMore = statusFilter === 'editors-choice' 
-  ? false 
-  : (data?.pagination?.hasMore ?? false); 
+  // ─── FIX: stable filterKey as dependency ──────────────────────────────────
+  // Previously depended on data?.blogs (array reference). React Query returns the
+  // same cached reference when revisiting a filter → effect never re-ran → blank.
+  // Now filterKey changes whenever the filter does, guaranteeing a re-run.
+  const filterKey = `${statusFilter}__${categoryFilter}`;
+
+  useEffect(() => {
+    if (!data?.blogs) return;
+    setAccBlogs(prev =>
+      page === 1 ? data.blogs : [...prev, ...data.blogs]
+    );
+  }, [data, filterKey, page]); // filterKey ensures re-run even on same data reference
+
+  const { data: counts }       = usePublishedBlogsCounts(categoryFilter);
+  const publishedCount         = counts?.published ?? 0;
+  const scheduledCount         = counts?.scheduled ?? 0;
+
+  const { mutate: deleteBlog } = useDeleteBlog();
+  const { mutate: publishNow } = usePublishNow();
+  const { mutate: togglePick, isPending: isTogglingPick } = useToggleEditorsPick();
+
+  // ─── FIX: `all` now explicitly excludes editor's picks ────────────────────
+  // Previously hit `return true` which included every blog regardless of editorsPick.
+  const blogs = accBlogs
+    .filter(blog => !debouncedQuery || blog.title.toLowerCase().includes(debouncedQuery.toLowerCase()))
+    .filter(blog => {
+      if (statusFilter === 'editors-choice') return blog.editorsPick?.isEditorsPick === true;
+      if (statusFilter === 'published')      return blog.status === 'published' && !blog.editorsPick?.isEditorsPick;
+      if (statusFilter === 'scheduled')      return blog.status === 'scheduled';
+      // all: exclude editor's picks — they live only in the Editor's Choice tab
+      return !blog.editorsPick?.isEditorsPick;
+    });
+
+  const hasMore = statusFilter === 'editors-choice'
+    ? false
+    : (data?.pagination?.hasMore ?? false);
 
   const handleView       = (blog) => { if (blog.slug) window.open(`/blog/${blog.slug}`, '_blank'); };
   const handleEdit       = (blog) => { router.push(`/admin/drafts/${blog.draftSlug}`); };
@@ -222,7 +228,6 @@ const { data, isLoading, isFetching } = usePublishedBlogs({
   const handleEditorsPick = (blog) => {
     const isPick = blog.editorsPick?.isEditorsPick ?? false;
     if (isPick) {
-      // Remove directly — no modal needed
       togglePick({ blogId: blog._id, isEditorsPick: false, annotation: '' }, {
         onSuccess: () => {
           setAccBlogs(prev => prev.map(b =>
@@ -233,7 +238,6 @@ const { data, isLoading, isFetching } = usePublishedBlogs({
         onError: () => toast.error('Failed to update'),
       });
     } else {
-      // Open modal to write annotation
       setAnnotation(blog.editorsPick?.annotation ?? '');
       setPickModal({ blog });
     }
@@ -263,7 +267,6 @@ const { data, isLoading, isFetching } = usePublishedBlogs({
   return (
     <AdminLayout_New>
       <div className="space-y-8">
-
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
@@ -281,10 +284,10 @@ const { data, isLoading, isFetching } = usePublishedBlogs({
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between border-b border-border pb-4">
           <div className="flex gap-0">
             {[
-              { value: 'all',       label: 'All' },
-              { value: 'published', label: `Published [ ${publishedCount} ]` },
-              { value: 'scheduled', label: `Scheduled [ ${scheduledCount} ]` },
-            { value: 'editors-choice', label: `Editor's Choice` },
+              { value: 'all',            label: 'All' },
+              { value: 'published',      label: `Published [ ${publishedCount} ]` },
+              { value: 'scheduled',      label: `Scheduled [ ${scheduledCount} ]` },
+              { value: 'editors-choice', label: `Editor's Choice` },
             ].map((tab) => (
               <button key={tab.value} onClick={() => setStatusFilter(tab.value)}
                 className={`px-4 py-2 text-xs font-mono font-medium uppercase tracking-widest border-b-2 ${DESIGN_CONSTANTS.transitions.fast} whitespace-nowrap ${
@@ -338,7 +341,6 @@ const { data, isLoading, isFetching } = usePublishedBlogs({
             )}
           </>
         )}
-
       </div>
 
       {/* Editor's Pick Modal */}
@@ -379,7 +381,6 @@ const { data, isLoading, isFetching } = usePublishedBlogs({
           </div>
         </DialogContent>
       </Dialog>
-
     </AdminLayout_New>
   );
 }
