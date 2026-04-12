@@ -20,3 +20,18 @@ export function useAdminLogin() {
     },
   });
 }
+
+export function useAdminGuard() {
+  const router = useRouter();
+
+  const [isAuthed] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return !!localStorage.getItem('adminToken');
+  });
+
+  useEffect(() => {
+    if (!isAuthed) router.replace('/admin/login');
+  }, []);
+
+  return isAuthed;
+}
