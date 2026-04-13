@@ -1,7 +1,9 @@
 'use client';
 
+import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useHomepage } from '@/hooks/api/public/useHomepage';
+// TODO: cleanup — useHomepage replaced by ISR server fetch in page.js
+// import { useHomepage } from '@/hooks/api/public/useHomepage';
 import HeroSection from '@/components/home/HeroSection';
 import RecentHighlightsSection from '@/components/home/RecentHighlightsSection';
 import TrendingSection from '@/components/home/TrendingSection';
@@ -9,22 +11,24 @@ import PopularPostsSection from '@/components/home/PopularPostsSection';
 import EditorsChoiceSection from '@/components/home/EditorsChoiceSection';
 import CTASection from '@/components/home/CTASection_New';
 
-export default function PublicHomeWrapper() {
+
+export default function PublicHomeWrapper({ data }) {
   const router = useRouter();
-  const { data, isLoading, isError } = useHomepage();
 
-  const handleBlogClick = (slug) => {
+  // TODO: cleanup — no longer needed, data comes from ISR
+  // const { data, isLoading, isError } = useHomepage();
+
+  const handleBlogClick = useCallback((slug) => {
     router.push(`/blog/${slug}`);
-  };
+  }, [router]);
 
-  // Hero handles its own loading/empty states via isLoading prop
   return (
     <div className="min-h-screen w-full">
 
       {/* Hero — latest story */}
       <HeroSection
         blog={data?.hero}
-        isLoading={isLoading}
+        isLoading={false}
         onBlogClick={handleBlogClick}
       />
 
