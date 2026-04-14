@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Calendar } from "lucide-react";
 import { DESIGN_CONSTANTS } from "@/lib/design-constants";
+
 
 export default function RecentHighlightsSection({ blogs, onBlogClick }) {
   const [big, ...smalls] = blogs.slice(0, 5);
@@ -28,12 +30,15 @@ export default function RecentHighlightsSection({ blogs, onBlogClick }) {
               onClick={() => onBlogClick(big.slug)}
               className="lg:col-span-3 group cursor-pointer flex flex-col gap-4"
             >
-              <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+              <div className="aspect-video rounded-lg overflow-hidden bg-muted relative">
                 {big.coverImage ? (
-                  <img
+                  <Image
                     src={big.coverImage}
                     alt={big.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                    fill
+                    loading="lazy"
+                    sizes="(max-width: 1024px) 100vw, 60vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                   />
                 ) : (
                   <div className="w-full h-full bg-muted" />
@@ -57,12 +62,15 @@ export default function RecentHighlightsSection({ blogs, onBlogClick }) {
                 onClick={() => onBlogClick(blog.slug)}
                 className="group cursor-pointer flex gap-4"
               >
-                <div className="w-28 h-28 flex-shrink-0 rounded-md overflow-hidden bg-muted">
+                <div className="w-28 h-28 flex-shrink-0 rounded-md overflow-hidden bg-muted relative">
                   {blog.coverImage ? (
-                    <img
+                    <Image
                       src={blog.coverImage}
                       alt={blog.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                      fill
+                      loading="lazy"
+                      sizes="112px"
+                      className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                     />
                   ) : (
                     <div className="w-full h-full bg-muted" />

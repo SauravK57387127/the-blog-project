@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Clock } from "lucide-react";
 import { DESIGN_CONSTANTS } from "@/lib/design-constants";
+
 
 export default function PopularPostsSection({ blogs, onBlogClick }) {
   const popular = blogs.slice(0, 5);
@@ -30,10 +32,13 @@ export default function PopularPostsSection({ blogs, onBlogClick }) {
               {/* Cover Image */}
               <div className="aspect-video rounded-lg overflow-hidden bg-muted relative">
                 {blog.coverImage ? (
-                  <img
+                  <Image
                     src={blog.coverImage}
                     alt={blog.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                    fill
+                    loading="lazy"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 20vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                   />
                 ) : (
                   <div className="w-full h-full bg-muted" />
