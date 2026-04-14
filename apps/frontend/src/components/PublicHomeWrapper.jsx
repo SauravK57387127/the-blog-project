@@ -2,14 +2,20 @@
 
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
 // TODO: cleanup — useHomepage replaced by ISR server fetch in page.js
 // import { useHomepage } from '@/hooks/api/public/useHomepage';
+
+// OPT-1: Above-fold — static imports, needed immediately on paint
 import HeroSection from '@/components/home/HeroSection';
 import RecentHighlightsSection from '@/components/home/RecentHighlightsSection';
-import TrendingSection from '@/components/home/TrendingSection';
-import PopularPostsSection from '@/components/home/PopularPostsSection';
-import EditorsChoiceSection from '@/components/home/EditorsChoiceSection';
-import CTASection from '@/components/home/CTASection_New';
+
+// OPT-3: Below-fold — dynamically imported.
+const TrendingSection      = dynamic(() => import('@/components/home/TrendingSection'));
+const PopularPostsSection  = dynamic(() => import('@/components/home/PopularPostsSection'));
+const EditorsChoiceSection = dynamic(() => import('@/components/home/EditorsChoiceSection'));
+const CTASection           = dynamic(() => import('@/components/home/CTASection_New'));
 
 
 export default function PublicHomeWrapper({ data }) {
@@ -63,7 +69,6 @@ export default function PublicHomeWrapper({ data }) {
 
       {/* CTA — static, no data needed */}
       <CTASection />
-
     </div>
   );
 }
