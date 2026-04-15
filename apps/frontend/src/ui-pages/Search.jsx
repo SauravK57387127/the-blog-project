@@ -1,15 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search as SearchIcon, X, SlidersHorizontal } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import BlogCard_New from '@/components/BlogCard_New';
 import { DESIGN_CONSTANTS } from '@/lib/design-constants';
-import { useSearchInitial, useSearchBlogs } from '@/hooks/api/public/useSearch';
+// S-1: useSearchInitial commented out — replaced by ISR prop from page.jsx
+// import { useSearchInitial, useSearchBlogs } from '@/hooks/api/public/useSearch';
+import { useSearchBlogs } from '@/hooks/api/public/useSearch';
 
-// Categories are UI constants — they map to tags, no backend call needed
+const SEARCH_PAGE_SIZE = 9; // S-7: limit results — load more for the rest
+
 const categories = [
   {
     label: '[ tech ]',
@@ -34,33 +37,59 @@ const categories = [
   },
 ];
 
-export default function Search() {
+// S-1: initialData arrives as ISR prop — topTags + popularReads pre-rendered
+export default function Search({ initialData }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery,    setSearchQuery]    = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [selectedTags, setSelectedTags] = useState([]);
+  const [selectedTags,   setSelectedTags]   = useState([]);
   const [activeCategory, setActiveCategory] = useState(null);
 
-  // ── API data ─────────────────────────────────────────────────────────────
-  const { data: initialData } = useSearchInitial();
-  const { data: searchData, isFetching: isSearching } = useSearchBlogs({
-    query: debouncedQuery,
-    tags: selectedTags,
-  });
+  // S-7: pagination state — same page + accBlogs pattern as admin blogs
+  const [page,     setPage]     = useState(1);
+  const [accBlogs, setAccBlogs] = useState([]);
 
-  // Tags come from backend, fall back to empty while loading
-  const allTags = initialData?.topTags?.map((t) => t.tag) ?? [];
+  const debounceRef = useRef(null);
 
-  // Popular reads from backend, fall back to empty while loading
+  // S-1: initialData from ISR — no hook needed for this
+  // TODO: cleanup — useSearchInitial replaced by ISR prop
+  // const { data: initialData } = useSearchInitial();
+  const allTags    = initialData?.topTags?.map((t) => t.tag) ?? [];
   const popularBlogs = initialData?.popularReads ?? [];
 
   const isFiltering = debouncedQuery || selectedTags.length > 0;
-  const filteredBlogs = searchData?.blogs ?? [];
-  const displayBlogs = isFiltering ? filteredBlogs : popularBlogs;
 
-  // ── Sync category from URL on mount ──────────────────────────────────────
+  const { data: searchData, isFetching: isSearching } = useSearchBlogs({
+    query: debouncedQuery,
+    tags: selectedTags,
+    page,
+    limit: SEARCH_PAGE_SIZE,
+  });
+
+  // S-7: accumulate pages — reset on new query/tag change
+  const filterKey = `${debouncedQuery}__${selectedTags.join(',')}`;
+
+  useEffect(() => {
+    if (!searchData?.blogs) return;
+    setAccBlogs(prev =>
+      page === 1 ? searchData.blogs : [...prev, ...searchData.blogs]
+    );
+  }, [searchData, filterKey, page]);
+
+  // Reset page when filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedQuery, selectedTags]);
+
+  const hasMore = isFiltering
+    ? (searchData?.pagination?.hasMore ?? false)
+    : false; // popular reads don't paginate
+
+  const displayBlogs = isFiltering ? accBlogs : popularBlogs;
+
+  // Sync category from URL on mount
   useEffect(() => {
     const categoryParam = searchParams.get('category');
     if (categoryParam) {
@@ -72,16 +101,15 @@ export default function Search() {
     }
   }, [searchParams]);
 
-  // ── Debounce search input ─────────────────────────────────────────────────
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(searchQuery);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+  // S-6: useCallback on all handlers — stable references, no child re-renders
+  const handleSearch = useCallback((e) => {
+    const val = e.target.value;
+    setSearchQuery(val);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedQuery(val), 300);
+  }, []);
 
-  // ── Handlers ─────────────────────────────────────────────────────────────
-  const handleCategoryClick = (category) => {
+  const handleCategoryClick = useCallback((category) => {
     if (activeCategory === category.value) {
       setActiveCategory(null);
       setSelectedTags([]);
@@ -91,21 +119,24 @@ export default function Search() {
       setSelectedTags(category.tags);
       router.push(`/search?category=${category.value}`, { shallow: true });
     }
-  };
+  }, [activeCategory, router]);
 
-  const handleTagToggle = (tag) => {
+  const handleTagToggle = useCallback((tag) => {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
     setActiveCategory(null);
-  };
+  }, []);
 
-  const handleClearAll = () => {
+  const handleClearAll = useCallback(() => {
     setSearchQuery('');
+    setDebouncedQuery('');
     setSelectedTags([]);
     setActiveCategory(null);
+    setPage(1);
+    setAccBlogs([]);
     router.push('/search', { shallow: true });
-  };
+  }, [router]);
 
   const hasActiveFilters = selectedTags.length > 0 || debouncedQuery;
 
@@ -131,7 +162,7 @@ export default function Search() {
           <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearch}
             placeholder="Search articles..."
             className="pl-11 pr-11 h-12 font-reading border-foreground/20 focus:border-foreground/50 bg-background"
           />
@@ -226,8 +257,8 @@ export default function Search() {
           <span className="text-xs font-mono font-medium uppercase tracking-widest text-muted-foreground">
             {isFiltering ? (
               <>
-                <span className="text-foreground">{filteredBlogs.length}</span>
-                {filteredBlogs.length === 1 ? ' article' : ' articles'}
+                <span className="text-foreground">{accBlogs.length}</span>
+                {accBlogs.length === 1 ? ' article' : ' articles'}
                 {debouncedQuery && (
                   <> for "<span className="text-foreground">{debouncedQuery}</span>"</>
                 )}
@@ -241,11 +272,24 @@ export default function Search() {
 
         {/* Blog Grid */}
         {displayBlogs.length > 0 ? (
-          <div className={`${DESIGN_CONSTANTS.grids.recentHighlights} ${DESIGN_CONSTANTS.spacing.cardGap}`}>
-            {displayBlogs.map((blog) => (
-              <BlogCard_New key={blog._id} blog={blog} />
-            ))}
-          </div>
+          <>
+            <div className={`${DESIGN_CONSTANTS.grids.recentHighlights} ${DESIGN_CONSTANTS.spacing.cardGap}`}>
+              {displayBlogs.map((blog) => (
+                <BlogCard_New key={blog._id} blog={blog} />
+              ))}
+            </div>
+
+            {/* S-7: Load more — same pattern as admin blogs page */}
+            {hasMore && (
+              <button
+                onClick={() => setPage(p => p + 1)}
+                disabled={isSearching}
+                className={`w-full flex items-center justify-center py-4 mt-8 text-xs font-mono text-muted-foreground hover:text-foreground border border-dashed border-border hover:border-foreground/30 ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40`}
+              >
+                {isSearching ? 'loading...' : 'load more'}
+              </button>
+            )}
+          </>
         ) : (
           <div className="text-center py-24 space-y-3">
             <p className="text-4xl font-mono font-bold text-muted-foreground/20">?</p>
