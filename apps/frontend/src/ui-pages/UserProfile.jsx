@@ -1,5 +1,4 @@
-'use client';
-
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -44,12 +43,12 @@ function BlogRow({ blog, meta, onNavigate }) {
       onClick={() => onNavigate(`/blog/${blog.slug}`)}
       className={`flex gap-4 p-4 border border-border cursor-pointer hover:border-foreground/30 hover:bg-muted/30 ${DESIGN_CONSTANTS.transitions.smooth} group`}
     >
-      <div className="w-24 h-16 overflow-hidden flex-shrink-0 bg-muted">
-        {blog.coverImage
-          ? <img src={blog.coverImage} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-          : <div className="w-full h-full bg-muted" />
-        }
-      </div>
+    <div className="w-24 h-16 overflow-hidden flex-shrink-0 bg-muted relative">
+  {blog.coverImage
+    ? <Image src={blog.coverImage} alt={blog.title} fill loading="lazy" sizes="96px" className="object-cover group-hover:scale-105 transition-transform duration-300" />
+    : <div className="w-full h-full bg-muted" />
+  }
+</div> 
       <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
         <h3 className={`font-sans font-semibold text-sm leading-snug line-clamp-2 group-hover:text-accent ${DESIGN_CONSTANTS.transitions.fast}`}>
           {blog.title}
@@ -84,11 +83,14 @@ className={`flex gap-4 p-4 border cursor-pointer ${DESIGN_CONSTANTS.transitions.
           : 'border-border hover:border-foreground/20 hover:bg-muted/30'
       }`}
     >
-      <img
-        src={avatar}
-        alt={notification.actor?.name}
-        className="w-10 h-10 rounded-full flex-shrink-0 ring-2 ring-border"
-      />
+     <Image
+  src={avatar}
+  alt={notification.actor?.name}
+  width={40}
+  height={40}
+  loading="lazy"
+  className="rounded-full flex-shrink-0 ring-2 ring-border"
+/> 
       <div className="flex-1 min-w-0">
         <p className="text-sm leading-snug mb-1.5">
           <span className="font-sans font-semibold">{notification.actor?.name}</span>
@@ -242,14 +244,16 @@ export default function UserProfile() {
 
         {/* Profile Header */}
         <div className="flex items-center gap-4 mb-8">
-          <img
-            src={
-              profile?.profileImage
-              ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.name}`
-            }
-            alt={profile?.name ?? 'User'}
-            className="w-14 h-14 rounded-full object-cover ring-2 ring-border flex-shrink-0"
-          />
+        <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-border flex-shrink-0 relative">
+  <Image
+    src={profile?.profileImage ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile?.name}`}
+    alt={profile?.name ?? 'User'}
+    fill
+    priority
+    sizes="56px"
+    className="object-cover rounded-full"
+  />
+</div> 
           <div>
             {profileLoading
               ? <>
