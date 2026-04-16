@@ -1,11 +1,8 @@
-'use client';
-
+import Image from "next/image";
+import Link from "next/link";
 import { Code, Target, PenTool, Mail, Twitter, Github, Linkedin, ArrowRight } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { DESIGN_CONSTANTS } from '@/lib/design-constants';
-import { useActiveAuthor } from '@/hooks/api/public/useAuthor';
 
-// Category cards are UI constants — they just route to search
 const categoryCards = [
   {
     label: '[ tech ]',
@@ -27,7 +24,6 @@ const categoryCards = [
   },
 ];
 
-// Map social link keys to icons
 const SOCIAL_ICONS = {
   twitter:  { icon: Twitter,  name: 'Twitter' },
   github:   { icon: Github,   name: 'GitHub' },
@@ -36,15 +32,7 @@ const SOCIAL_ICONS = {
   leetcode: { icon: Code,     name: 'LeetCode' },
 };
 
-export default function About() {
-  const router = useRouter();
-  const { data: author, isLoading } = useActiveAuthor();
-
-  const handleCategoryClick = (category) => {
-    router.push(`/search?category=${category}`);
-  };
-
-  // Build social links array from author data
+export default function About({ author }) {
   const socialLinks = author?.socialLinks
     ? Object.entries(author.socialLinks)
         .filter(([, url]) => url)
@@ -55,9 +43,9 @@ export default function About() {
         }))
     : [];
 
-  const learningAreas  = author?.learningAreas  ?? [];
-  const currentFocus   = author?.currentFocus   ?? [];
-  const writingTopics  = author?.writingTopics  ?? [];
+  const learningAreas = author?.learningAreas ?? [];
+  const currentFocus  = author?.currentFocus  ?? [];
+  const writingTopics = author?.writingTopics  ?? [];
 
   return (
     <div className="w-full min-h-screen">
@@ -68,12 +56,15 @@ export default function About() {
           <section className="mb-16">
             <div className="flex flex-col md:flex-row gap-8 items-start">
               {/* Profile Image */}
-              <div className="w-32 h-32 rounded-full flex-shrink-0 overflow-hidden bg-muted ring-2 ring-border">
+              <div className="w-32 h-32 rounded-full flex-shrink-0 overflow-hidden bg-muted ring-2 ring-border relative">
                 {author?.profileImage && (
-                  <img
+                  <Image
                     src={author.profileImage}
-                    alt={author.name}
-                    className="w-full h-full object-cover"
+                    alt={author?.name ?? 'Author'}
+                    fill
+                    priority
+                    sizes="128px"
+                    className="object-cover"
                   />
                 )}
               </div>
@@ -82,9 +73,7 @@ export default function About() {
               <div className="flex-1">
                 <blockquote className="border-l-4 border-foreground pl-6 py-2">
                   <p className="text-2xl md:text-3xl font-serif italic leading-relaxed mb-4 text-foreground">
-                    {isLoading
-                      ? <span className="block h-8 bg-muted animate-pulse rounded w-3/4" />
-                      : author?.tagline}
+                    {author?.tagline}
                   </p>
                   <cite className="block text-right font-mono text-sm text-muted-foreground not-italic tracking-widest uppercase">
                     ꕤ {author?.name ?? 'Saurav Kumar Yadav'}
@@ -111,7 +100,6 @@ export default function About() {
           <section className="mb-16">
             <div className="grid md:grid-cols-3 gap-10">
 
-              {/* Learning */}
               <div>
                 <div className="flex items-center gap-2 mb-5">
                   <Code className="h-4 w-4 text-muted-foreground" />
@@ -129,7 +117,6 @@ export default function About() {
                 </ul>
               </div>
 
-              {/* Current Focus */}
               <div>
                 <div className="flex items-center gap-2 mb-5">
                   <Target className="h-4 w-4 text-muted-foreground" />
@@ -147,7 +134,6 @@ export default function About() {
                 </ul>
               </div>
 
-              {/* I Write About */}
               <div>
                 <div className="flex items-center gap-2 mb-5">
                   <PenTool className="h-4 w-4 text-muted-foreground" />
@@ -179,10 +165,10 @@ export default function About() {
 
             <div className="flex flex-col gap-px">
               {categoryCards.map((card) => (
-                <div
+                <Link
                   key={card.category}
-                  onClick={() => handleCategoryClick(card.category)}
-                  className={`group cursor-pointer flex items-center justify-between p-5 border border-border hover:border-foreground/30 hover:bg-muted/30 ${DESIGN_CONSTANTS.transitions.fast}`}
+                  href={`/search?category=${card.category}`}
+                  className={`group flex items-center justify-between p-5 border border-border hover:border-foreground/30 hover:bg-muted/30 ${DESIGN_CONSTANTS.transitions.fast}`}
                 >
                   <div className="flex items-center gap-5">
                     <span className="text-xs font-mono font-medium tracking-widest text-muted-foreground w-16 flex-shrink-0 whitespace-nowrap">
@@ -198,7 +184,7 @@ export default function About() {
                     </div>
                   </div>
                   <ArrowRight className={`h-4 w-4 text-muted-foreground/40 group-hover:text-accent group-hover:translate-x-1 ${DESIGN_CONSTANTS.transitions.fast} flex-shrink-0`} />
-                </div>
+                </Link>
               ))}
             </div>
           </section>
@@ -221,19 +207,20 @@ export default function About() {
             Whether it's feedback, a collab idea, or just a hello — I'm always around.
           </p>
 
-          {/* Social Links — dynamic from author */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {socialLinks.map((social) => {
               const Icon = social.icon;
               return (
-                <button
+                <a
                   key={social.name}
-                  onClick={() => window.open(social.url, '_blank')}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className={`w-full h-16 flex flex-col items-center justify-center gap-1.5 border-4 border-foreground bg-background hover:bg-foreground hover:text-background ${DESIGN_CONSTANTS.transitions.fast} shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[4px] hover:translate-y-[4px]`}
                 >
                   <Icon className="h-5 w-5" />
                   <span className="text-xs font-mono font-medium uppercase tracking-wide">{social.name}</span>
-                </button>
+                </a>
               );
             })}
           </div>
