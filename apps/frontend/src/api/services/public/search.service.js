@@ -14,10 +14,10 @@ export const searchService = {
    * Search blogs by query and/or tags.
    * Called when user types or selects tags.
    */
-  searchBlogs: async ({ query, tags, page = 1, limit = 20 }) => {
+  searchBlogs: async ({ query, tags, page = 1, limit = 9 }) => {
     return apiClient.get(API_ENDPOINTS.PUBLIC.BLOGS.SEARCH, {
       params: {
-        q: query || undefined,
+        q: query,
         tags: tags?.length > 0 ? tags.join(',') : undefined,
         page,
         limit,

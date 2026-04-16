@@ -39,15 +39,13 @@ export default {
   searchBlogs: asyncHandler(async (req, res) => {
     const { q, tags, category, page = 1, limit = 20 } = req.query;
 
-    if (!q || q.trim().length === 0) {
-     return sendResponse({
-      res,
-      statusCode: 200,
-      success: true,
-      message: 'Search results',
-      data: result,
-    });
-    }
+   if (!q || q.trim().length === 0) {
+  return sendResponse({
+    res, statusCode: 200, success: true,
+    message: 'Search results',
+    data: { blogs: [], pagination: { hasMore: false, totalBlogs: 0 } },
+  });
+} 
 
     const result = await PublicBlogService.searchBlogs({
       query: q,
