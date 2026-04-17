@@ -521,10 +521,10 @@ export default function AdminHomePage() {
   const router = useRouter();
 
   // Client-side admin guard
-  useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
-    if (!token) router.replace('/admin/login');
-  }, []);
+  //useEffect(() => {
+  //  const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
+  //  if (!token) router.replace('/admin/login');
+  //}, []);
 
   const { data: recentDraft,    isLoading: draftLoading     } = useRecentDraft();
   const { data: scheduledBlogs, isLoading: scheduledLoading } = useScheduledUpcoming();
