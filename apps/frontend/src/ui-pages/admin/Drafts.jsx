@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Trash2, ArrowRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import { API_ENDPOINTS } from '@/api/endpoints';
 
 const PAGE_SIZE = 20;
 
+// Moved outside component — not recreated on every render
 function formatTimeAgo(dateString) {
   const diff  = Date.now() - new Date(dateString).getTime();
   const mins  = Math.floor(diff / 60000);
@@ -23,10 +24,13 @@ function formatTimeAgo(dateString) {
   return `${days}d ago`;
 }
 
+// Hooks outside component — consistent with useAdminBlogs pattern
 function useDrafts(page = 1) {
   return useQuery({
     queryKey: ['admin', 'drafts', page],
-    queryFn: () => apiClient.get(API_ENDPOINTS.ADMIN.BLOGS.DRAFTS, { params: { page, limit: PAGE_SIZE } }),
+    queryFn: () => apiClient.get(API_ENDPOINTS.ADMIN.BLOGS.DRAFTS, {
+      params: { page, limit: PAGE_SIZE },
+    }),
     staleTime: 60 * 1000,
     select: (r) => r?.data ?? { drafts: [], pagination: {} },
   });
@@ -57,7 +61,6 @@ function DraftRow({ draft, onEdit, onDelete }) {
           <span>{draft.wordCount ?? 0} words</span>
         </div>
       </div>
-
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
         <button
           onClick={() => onEdit(draft)}
@@ -98,34 +101,35 @@ function EmptyState({ onCreateNew }) {
 }
 
 export default function DraftsPageComponent() {
-  const router       = useRouter();
-  const [searchQuery, setSearchQuery]     = useState('');
+  const router = useRouter();
+  const [searchQuery,    setSearchQuery]    = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [page, setPage]                   = useState(1);
-  const [accDrafts, setAccDrafts]         = useState([]);
-  const debounceRef  = useRef(null);
+  const [page,           setPage]           = useState(1);
+  const [accDrafts,      setAccDrafts]      = useState([]);
+  const debounceRef = useRef(null);
 
-  useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
-    if (!token) router.replace('/admin/login');
-  }, []);
+  // Removed: localStorage auth check — middleware.js handles route protection now
 
   const { data, isLoading, isFetching } = useDrafts(page);
   const { mutate: deleteDraft }         = useDeleteDraft();
 
-  // Accumulate pages
+  // FIX: same stale cache pattern as admin blogs —
+  // data?.drafts reference doesn't change on cached responses → effect never re-fires.
+  // page as explicit dep guarantees re-run on load more.
   useEffect(() => {
-    if (!data?.drafts?.length) return;
-    setAccDrafts(prev => page === 1 ? data.drafts : [...prev, ...data.drafts]);
-  }, [data?.drafts, page]);
+    if (!data?.drafts) return;
+    setAccDrafts(prev =>
+      page === 1 ? data.drafts : [...prev, ...data.drafts]
+    );
+  }, [data, page]);
 
-  // Debounce search
-  const handleSearch = (e) => {
+  // useCallback — stable reference, no re-renders on debounce timer
+  const handleSearch = useCallback((e) => {
     const val = e.target.value;
     setSearchQuery(val);
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => setDebouncedQuery(val), 300);
-  };
+  }, []);
 
   const filtered = accDrafts.filter(d =>
     !debouncedQuery || d.title?.toLowerCase().includes(debouncedQuery.toLowerCase())
@@ -133,11 +137,11 @@ export default function DraftsPageComponent() {
 
   const hasMore = data?.pagination?.hasMore ?? false;
 
-  const handleEdit = (draft) => {
+  const handleEdit = useCallback((draft) => {
     router.push(`/admin/drafts/${draft.draftSlug}`);
-  };
+  }, [router]);
 
-  const handleDelete = (draft) => {
+  const handleDelete = useCallback((draft) => {
     deleteDraft(draft._id, {
       onSuccess: () => {
         setAccDrafts(prev => prev.filter(d => d._id !== draft._id));
@@ -151,7 +155,7 @@ export default function DraftsPageComponent() {
       },
       onError: () => toast.error('Failed to delete draft'),
     });
-  };
+  }, [deleteDraft]);
 
   return (
     <AdminLayout_New>
