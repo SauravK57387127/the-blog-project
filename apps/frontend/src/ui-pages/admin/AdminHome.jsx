@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { Plus, Globe, FileText, ArrowRight } from 'lucide-react';
+import { Plus, Globe, FileText, ArrowRight, Edit3 } from 'lucide-react';
 import AdminLayout_New from '@/components/admin/AdminLayout_New';
 import { DESIGN_CONSTANTS } from '@/lib/design-constants';
 import { useRecentDraft, useScheduledUpcoming, useStaleDrafts } from '@/hooks/api/admin/useAdminHome';
@@ -30,48 +30,48 @@ function getNextSlotDate(scheduled) {
 }
 
 // ── QuickActions ──────────────────────────────────────────────
-
 function QuickActions({ onNewPost, onDrafts }) {
+  const itemClass = `group flex flex-col items-start gap-2 p-5 hover:bg-foreground hover:text-background text-left w-full ${DESIGN_CONSTANTS.transitions.fast}`;
+  const descClass = `text-xs font-mono text-muted-foreground group-hover:text-background/60 ${DESIGN_CONSTANTS.transitions.fast}`;
+ 
   return (
     <div className="grid grid-cols-3 border-2 border-foreground divide-x-2 divide-foreground">
-      <button
-        onClick={onNewPost}
-        className={`group flex flex-col items-start gap-2 p-5 hover:bg-foreground hover:text-background ${DESIGN_CONSTANTS.transitions.fast}`}
-      >
-        <Plus className="h-5 w-5" />
+ 
+      <button onClick={onNewPost} className={itemClass}>
+        <Plus className="h-5 w-5 flex-shrink-0" />
         <div>
           <p className="font-sans font-bold text-sm uppercase tracking-wide">New Post</p>
-          <p className={`text-xs font-mono text-muted-foreground group-hover:text-background/60 ${DESIGN_CONSTANTS.transitions.fast}`}>+ start writing</p>
+          <p className={descClass}>+ start writing</p>
         </div>
       </button>
-
-      {/* View Blog — no JS needed, plain anchor */}
+ 
+      {/* View Blog — <a> with w-full so it fills grid cell like buttons do */}
       <a
         href="/"
         target="_blank"
         rel="noopener noreferrer"
-        className={`group flex flex-col items-start gap-2 p-5 hover:bg-foreground hover:text-background ${DESIGN_CONSTANTS.transitions.fast}`}
+        className={`w-full ${itemClass}`}
       >
-        <Globe className="h-5 w-5" />
+        <Globe className="h-5 w-5 flex-shrink-0" />
         <div>
           <p className="font-sans font-bold text-sm uppercase tracking-wide">View Blog</p>
-          <p className={`text-xs font-mono text-muted-foreground group-hover:text-background/60 ${DESIGN_CONSTANTS.transitions.fast}`}>→ live site</p>
+          <p className={descClass}>→ live site</p>
         </div>
       </a>
-
-      <button
-        onClick={onDrafts}
-        className={`group flex flex-col items-start gap-2 p-5 hover:bg-foreground hover:text-background ${DESIGN_CONSTANTS.transitions.fast}`}
-      >
-        <FileText className="h-5 w-5" />
+ 
+      {/* Pen icon restored */}
+      <button onClick={onDrafts} className={itemClass}>
+        <Edit3 className="h-5 w-5 flex-shrink-0" />
         <div>
           <p className="font-sans font-bold text-sm uppercase tracking-wide">Drafts</p>
-          <p className={`text-xs font-mono text-muted-foreground group-hover:text-background/60 ${DESIGN_CONSTANTS.transitions.fast}`}>edit existing</p>
+          <p className={descClass}>edit existing</p>
         </div>
       </button>
+ 
     </div>
   );
 }
+
 
 // ── PickUpDraft ───────────────────────────────────────────────
 
