@@ -1,42 +1,71 @@
 'use client';
 
-import { useRef, useCallback } from 'react';
-import { useParams } from 'next/navigation';
+import Prism from "@/lib/prism-config.js";
+import { useRef, useEffect, useCallback, memo } from 'react';
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { DESIGN_CONSTANTS } from '@/lib/design-constants';
 import AuthorBanner_New from '@/components/blog/AuthorBanner_New';
-import CommentSection_New from '@/components/blog/CommentSection';
-import RelatedBlogs_New from '@/components/blog/RelatedBlogs';
 import BlogEngagementBar_New from '@/components/blog/BlogEngagementBar';
 import { toast } from 'sonner';
-import { useBlogBySlug } from '@/hooks/api/public/useBlog';
+// BL-1: useBlogBySlug commented out — replaced by ISR prop from page.jsx
+// import { useBlogBySlug } from '@/hooks/api/public/useBlog';
 import { useEngagement, useToggleLike, useToggleBookmark } from '@/hooks/api/user/useEngagement';
-import Prism from "@/lib/prism-config.js";
 
+// BL-4: CommentSection + RelatedBlogs dynamically imported — below fold,
+// excluded from initial bundle → reduces TBT.
+const CommentSection_New = dynamic(() => import('@/components/blog/CommentSection'));
+const RelatedBlogs_New   = dynamic(() => import('@/components/blog/RelatedBlogs'));
+
+// BL-7: formatDate outside component — not recreated on every render
 function formatDate(dateString) {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric', month: 'long', day: 'numeric',
   });
 }
 
-export default function BlogDetail() {
-  const params = useParams();
-  const slug = params?.slug;
+// Outside BlogDetail — React.memo prevents re-render unless content changes
+const BlogContent = memo(function BlogContent({ content, contentRef }) {
+  return (
+    <div
+      ref={contentRef}
+      className="blog-content max-w-none mb-12"
+      suppressHydrationWarning
+      dangerouslySetInnerHTML={{ __html: content }}
+    />
+  );
+});
+
+// BL-1: blog + slug arrive as ISR props from page.jsx — no client fetch needed
+export default function BlogDetail({ blog, slug }) {
   const commentSectionRef = useRef(null);
 
-  // Data fetching — MUST come before useCallback
-  const { data: blog, isLoading } = useBlogBySlug(slug);
-  const { data: engagement } = useEngagement(blog?._id);
-  const { mutate: toggleLike } = useToggleLike(blog?._id, slug);
+  // TODO: cleanup — useBlogBySlug replaced by ISR prop
+  // const { data: blog, isLoading } = useBlogBySlug(slug);
+
+  const { data: engagement }      = useEngagement(blog?._id);
+  const { mutate: toggleLike }    = useToggleLike(blog?._id, slug);
   const { mutate: toggleBookmark } = useToggleBookmark(blog?._id);
 
-  // Prism ref callback — fires synchronously when DOM mounts.
-  // Re-runs when blog?.content changes (after async fetch).
+  // BL-2: Prism race condition fixed.
+  // Previous approach: useCallback ref with [blog?.content] dep — fired on DOM
+  // mount when content was still undefined, never re-fired when content arrived.
+  // Fix: stable useRef holds the DOM node. Separate useEffect watches blog?.content
+  // and runs Prism AFTER content is actually in the DOM.
+  const contentDomRef = useRef(null);
+
   const contentRef = useCallback((node) => {
-    if (!node) return;
+    contentDomRef.current = node;
+  }, []); // stable — never recreates
+
+  useEffect(() => {
+    const node = contentDomRef.current;
+    if (!node || !blog?.content) return;
 
     const codeBlocks = node.querySelectorAll('pre code');
     if (!codeBlocks.length) return;
 
+    // Hide until highlighted — prevents flash of unstyled code
     node.querySelectorAll('pre').forEach((block) => {
       block.style.visibility = 'hidden';
     });
@@ -45,7 +74,7 @@ export default function BlogDetail() {
       if (!code.classList.length) code.classList.add('language-javascript');
     });
 
-    if (window.Prism) window.Prism.highlightAll();
+    Prism.highlightAll();
 
     node.querySelectorAll('pre').forEach((block) => {
       block.style.visibility = 'visible';
@@ -66,36 +95,20 @@ export default function BlogDetail() {
 
       block.appendChild(button);
     });
-  }, [blog?.content]);
+  }, [blog?.content]); // fires every time content changes — reliable
 
-  const handleShare = () => {
+  const handleShare = useCallback(() => {
     if (navigator.share) {
       navigator.share({ title: blog?.title, url: window.location.href });
     } else {
       navigator.clipboard.writeText(window.location.href);
       toast.success('Link copied!');
     }
-  };
+  }, [blog?.title]);
 
-  const scrollToComments = () => {
+  const scrollToComments = useCallback(() => {
     commentSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  if (isLoading) {
-    return (
-      <div className="w-full min-h-screen">
-        <div className={`${DESIGN_CONSTANTS.containers.standard} mx-auto px-4 sm:px-6 lg:px-8 py-12`}>
-          <article className={`${DESIGN_CONSTANTS.containers.narrow} mx-auto space-y-6`}>
-            <div className="h-4 bg-muted animate-pulse rounded w-1/4" />
-            <div className="h-12 bg-muted animate-pulse rounded" />
-            <div className="h-12 bg-muted animate-pulse rounded w-3/4" />
-            <div className="h-4 bg-muted animate-pulse rounded w-1/3" />
-            <div className="aspect-video bg-muted animate-pulse rounded" />
-          </article>
-        </div>
-      </div>
-    );
-  }
+  }, []);
 
   if (!blog) {
     return (
@@ -138,19 +151,24 @@ export default function BlogDetail() {
             />
           </div>
 
+          {/* BL-3: next/image with priority on cover — LCP element, preloaded */}
           {blog.coverImage && (
-            <figure className="mb-10 -mx-4 sm:mx-0">
-              <img src={blog.coverImage} alt={blog.title} className="w-full h-auto" />
+            <figure className="mb-10 -mx-4 sm:mx-0 relative">
+              <div className="relative w-full aspect-video">
+                <Image
+                  src={blog.coverImage}
+                  alt={blog.title}
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, 800px"
+                  className="object-cover"
+                />
+              </div>
             </figure>
           )}
 
-          <div
-            ref={contentRef}
-            className="blog-content max-w-none mb-12"
-            suppressHydrationWarning
-            dangerouslySetInnerHTML={{ __html: blog.content }}
-          />
-
+<BlogContent content={blog.content} contentRef={contentRef} />
+         
           <div className="mb-10 pt-8 border-t border-border">
             <AuthorBanner_New author={blog.author} />
           </div>

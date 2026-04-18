@@ -1,5 +1,6 @@
 'use client';
 
+import Image from "next/image";
 import { useState, useEffect } from 'react';
 import { Trash2, Send, CornerDownRight } from 'lucide-react';
 import { DESIGN_CONSTANTS } from '@/lib/design-constants';
@@ -58,11 +59,16 @@ function CommentCard({ comment, blogId, onDelete, currentUserId, level = 0 }) {
       )}
 
       <div className={`group flex gap-3 py-4 border-b border-border last:border-0 ${DESIGN_CONSTANTS.transitions.fast}`}>
-        <img
-          src={authorAvatar}
-          alt={authorName}
-          className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-1 ring-border mt-0.5"
-        />
+       <div className="relative w-8 h-8 flex-shrink-0 mt-0.5">
+  <Image
+    src={authorAvatar}
+    alt={authorName}
+    fill
+    loading="lazy"
+    sizes="32px"
+    className="rounded-full object-cover ring-1 ring-border"
+  />
+</div> 
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-1.5">

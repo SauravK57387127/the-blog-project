@@ -32,30 +32,21 @@ export function useToggleLike(blogId, slug) {
     mutationFn: () => engagementService.toggleLike(blogId),
 
     onMutate: async () => {
-  await queryClient.cancelQueries({ queryKey: queryKeys.user.engagement(blogId) });
-  const prevEngagement = queryClient.getQueryData(queryKeys.user.engagement(blogId));
-  const currentlyLiked = prevEngagement?.isLiked ?? false;
+      await queryClient.cancelQueries({ queryKey: queryKeys.user.engagement(blogId) });
+      const prevEngagement = queryClient.getQueryData(queryKeys.user.engagement(blogId));
+      const currentlyLiked = prevEngagement?.isLiked ?? false;
 
-  // Only optimistically update the toggle state — NOT the count
-  queryClient.setQueryData(queryKeys.user.engagement(blogId), (old) => ({
-    ...old,
-    isLiked: !currentlyLiked,
-  }));
+      // BL-6: Only one onMutate — optimistically toggle like state only
+      queryClient.setQueryData(queryKeys.user.engagement(blogId), (old) => ({
+        ...old,
+        isLiked: !currentlyLiked,
+      }));
 
-  return { prevEngagement };
-},
+      return { prevEngagement };
+    },
 
-onError: (err, _, context) => {
-  queryClient.setQueryData(queryKeys.user.engagement(blogId), context?.prevEngagement);
-  toast.error('Failed to update like');
-},
-
-onSettled: () => {
-  // Let backend tell us the real count
-  queryClient.invalidateQueries({ queryKey: queryKeys.user.engagement(blogId) });
-  queryClient.invalidateQueries({ queryKey: queryKeys.blogs.detail(slug) });
-},
-
+    // BL-6: Removed duplicate onError + onSettled (first pair was dead code —
+    // duplicate keys in JS objects, last value wins, first was silently ignored).
     onError: (err, _, context) => {
       queryClient.setQueryData(queryKeys.user.engagement(blogId), context?.prevEngagement);
       queryClient.setQueryData(queryKeys.blogs.detail(slug), context?.prevBlog);
@@ -63,6 +54,7 @@ onSettled: () => {
     },
 
     onSettled: () => {
+      // Let backend tell us the real count
       queryClient.invalidateQueries({ queryKey: queryKeys.user.engagement(blogId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.blogs.detail(slug) });
     },
