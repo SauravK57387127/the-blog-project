@@ -445,3 +445,115 @@ html, body {
   background: rgba(255, 255, 255, 0.18);
   color: #fff;
 }
+
+
+/* ================================================
+   TIPTAP EDITOR — .ProseMirror
+   Mirrors blog-content styles so the editor looks
+   like the rendered output while writing (WYSIWYG).
+   Add this block at the END of globals.css.
+   ================================================ */
+.ProseMirror {
+  min-height: 500px;
+  padding: 1.5rem;
+  outline: none;
+  font-family: inherit;
+}
+
+/* Typography — matches .blog-content */
+.ProseMirror h1 { @apply text-4xl font-serif font-bold mt-10 mb-6 text-foreground leading-tight; }
+.ProseMirror h2 { @apply text-3xl font-serif font-bold mt-10 mb-4 text-foreground leading-tight; }
+.ProseMirror h3 { @apply text-2xl font-serif font-semibold mt-8 mb-3 text-foreground leading-snug; }
+
+.ProseMirror p {
+  @apply font-reading mb-6 text-foreground/85 leading-relaxed;
+  font-size: 1.125rem;
+  line-height: 1.85;
+}
+
+.ProseMirror strong { @apply font-bold text-foreground; }
+.ProseMirror em     { @apply italic; }
+
+/* Blockquote */
+.ProseMirror blockquote {
+  @apply border-l-4 border-foreground pl-6 py-1 my-8;
+  background: transparent;
+}
+.ProseMirror blockquote p {
+  @apply font-serif italic text-xl text-foreground/80 mb-2;
+  font-size: 1.2rem;
+  line-height: 1.7;
+}
+
+/* Links */
+.ProseMirror a {
+  @apply text-accent underline underline-offset-4 hover:text-accent/80 transition-colors duration-150;
+}
+
+/* Lists */
+.ProseMirror ul:not([data-type="taskList"]) {
+  @apply list-disc list-outside ml-6 mb-6 space-y-2;
+}
+.ProseMirror ol {
+  @apply list-decimal list-outside ml-6 mb-6 space-y-2;
+}
+.ProseMirror li {
+  @apply font-reading leading-relaxed text-foreground/85;
+  font-size: 1.0625rem;
+}
+
+/* Inline code */
+.ProseMirror :not(pre) > code {
+  font-family: 'IBM Plex Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.875em;
+  background: hsl(var(--muted));
+  color: hsl(var(--accent));
+  padding: 0.15em 0.4em;
+  border: 1px solid hsl(var(--border));
+}
+
+/* Code blocks */
+.ProseMirror pre {
+  position: relative;
+  border-radius: 0;
+  margin: 1.75rem 0;
+  overflow-x: auto;
+  box-shadow: none;
+}
+
+/* Placeholder */
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  @apply text-muted-foreground/50;
+  font-size: 1.125rem;
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+/* Images inside editor — constrained, not full-bleed */
+.ProseMirror img {
+  max-width: 100%;
+  max-height: 400px;
+  width: auto;
+  height: auto;
+  display: block;
+  margin: 1.5rem auto;
+  border: 1px solid hsl(var(--border));
+}
+
+/* Horizontal rule */
+.ProseMirror hr {
+  @apply my-10 border-border;
+}
+
+/* Tables */
+.ProseMirror table  { @apply w-full border-collapse mb-6; }
+.ProseMirror th     { @apply bg-muted font-mono font-semibold text-sm p-3 text-left border border-border uppercase tracking-wide; }
+.ProseMirror td     { @apply font-reading p-3 border border-border text-sm; }
+
+/* Highlight / mark */
+.ProseMirror mark   { @apply bg-accent/20 px-1; }
+
+/* Focus ring — subtle */
+.ProseMirror:focus  { outline: none; }

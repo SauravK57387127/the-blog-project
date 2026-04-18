@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Send, Calendar as CalendarIcon, Image as ImageIcon,
-  Tag as TagIcon, Eye, Edit3, X, Plus, Upload,
+  Tag as TagIcon, Eye, Edit3, X, Plus, Upload, LayoutGrid,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,6 +36,13 @@ function formatTimeAgo(date) {
 
 const SUGGESTED_TAGS = ['javascript', 'web-dev', 'tutorial', 'nextjs', 'react', 'node', 'dsa', 'career'];
 
+const CATEGORIES = [
+  { value: '',                    label: 'uncategorized' },
+  { value: 'tech-deep-dive',      label: 'Tech Deep Dive' },
+  { value: 'life-and-growth',     label: 'Life & Growth' },
+  { value: 'career-and-learnings',label: 'Career & Learnings' },
+];
+
 // ── Main Component ────────────────────────────────────────────
 
 export default function EditDraftPage({ draftSlug }) {
@@ -48,21 +55,21 @@ export default function EditDraftPage({ draftSlug }) {
   const [tags,         setTags]         = useState([]);
   const [scheduleDate, setScheduleDate] = useState(null);
   const [blogId,       setBlogId]       = useState(null);
-const [category, setCategory] = useState('');
+  const [category,     setCategory]     = useState('');
 
   // UI state
-  const [showPreview,      setShowPreview]      = useState(false);
-  const [saveStatus,       setSaveStatus]       = useState('saved');
-  const [lastSaved,        setLastSaved]        = useState(null);
-  const [coverModalOpen,   setCoverModalOpen]   = useState(false);
-  const [tagsModalOpen,    setTagsModalOpen]    = useState(false);
-  const [scheduleModalOpen,setScheduleModalOpen] = useState(false);
-  const [newTag,           setNewTag]           = useState('');
-  const [coverInput,       setCoverInput]       = useState('');
-  
+  const [showPreview,       setShowPreview]       = useState(false);
+  const [saveStatus,        setSaveStatus]        = useState('saved');
+  const [lastSaved,         setLastSaved]         = useState(null);
+  const [coverModalOpen,    setCoverModalOpen]    = useState(false);
+  const [tagsModalOpen,     setTagsModalOpen]     = useState(false);
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [newTag,            setNewTag]            = useState('');
+  const [coverInput,        setCoverInput]        = useState('');
 
-  const fileInputRef  = useRef(null);
-  const autosaveTimer = useRef(null);
+  const fileInputRef   = useRef(null);
+  const autosaveTimer  = useRef(null);
   const initializedRef = useRef(false);
 
   // ── Fetch draft ───────────────────────────────────────────
@@ -71,15 +78,14 @@ const [category, setCategory] = useState('');
   // Populate state once draft loads
   useEffect(() => {
     if (!draft) return;
-    console.log('draft loaded:', draft);
- console.log('draftSlug prop:', draftSlug);   setTitle(draft.title ?? '');
+    // Removed console.logs — dev artifacts
+    setTitle(draft.title ?? '');
     setContent(draft.content ?? '<p></p>');
     setCoverImage(draft.coverImage ?? '');
     setCoverInput(draft.coverImage ?? '');
     setTags(draft.tags ?? []);
     setCategory(draft.category ?? '');
     setBlogId(draft._id);
-    // For scheduled blogs — restore the scheduled date
     if (draft.scheduledAt) setScheduleDate(draft.scheduledAt);
     setLastSaved(new Date(draft.updatedAt));
     setSaveStatus('saved');
@@ -87,14 +93,13 @@ const [category, setCategory] = useState('');
   }, [draft]);
 
   // ── Hooks depend on blogId ────────────────────────────────
-  const { mutate: autosave }  = useAutosave(blogId);
-  const { mutate: publish, isPending: isPublishing }   = usePublishBlog(blogId);
-  const { mutate: schedule, isPending: isScheduling }  = useScheduleBlog(blogId);
+  const { mutate: autosave }                       = useAutosave(blogId);
+  const { mutate: publish, isPending: isPublishing } = usePublishBlog(blogId);
+  const { mutate: schedule, isPending: isScheduling } = useScheduleBlog(blogId);
 
   // ── Autosave on any change ────────────────────────────────
-  // Debounced 1.5s — fires whenever title/content/coverImage/tags change
   useEffect(() => {
-    if (!blogId || !initializedRef.current) return; // don't autosave until draft is loaded
+    if (!blogId || !initializedRef.current) return;
 
     setSaveStatus('saving');
     clearTimeout(autosaveTimer.current);
@@ -103,11 +108,8 @@ const [category, setCategory] = useState('');
       autosave(
         { title, content, coverImage, tags, category },
         {
-          onSuccess: () => {
-            setSaveStatus('saved');
-            setLastSaved(new Date());
-          },
-          onError: () => setSaveStatus('error'),
+          onSuccess: () => { setSaveStatus('saved'); setLastSaved(new Date()); },
+          onError:   () => setSaveStatus('error'),
         }
       );
     }, 1500);
@@ -115,7 +117,7 @@ const [category, setCategory] = useState('');
     return () => clearTimeout(autosaveTimer.current);
   }, [title, content, coverImage, tags, category]);
 
-  // ── Live "X ago" ticker — resets on new save ─────────────
+  // ── Live "X ago" ticker ───────────────────────────────────
   const [, setTick] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => setTick(t => t + 1), 60000);
@@ -123,45 +125,48 @@ const [category, setCategory] = useState('');
   }, []);
 
   // ── Tag handlers ──────────────────────────────────────────
-  const handleAddTag    = (tag) => { if (!tags.includes(tag)) setTags([...tags, tag]); };
-  const handleRemoveTag = (tag) => setTags(tags.filter(t => t !== tag));
-  const handleAddNewTag = () => {
+  const handleAddTag = useCallback((tag) => {
+    setTags(prev => prev.includes(tag) ? prev : [...prev, tag]);
+  }, []);
+
+  const handleRemoveTag = useCallback((tag) => {
+    setTags(prev => prev.filter(t => t !== tag));
+  }, []);
+
+  const handleAddNewTag = useCallback(() => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
-      setTags([...tags, newTag.trim()]);
+      setTags(prev => [...prev, newTag.trim()]);
       setNewTag('');
     }
-  };
+  }, [newTag, tags]);
 
   // ── Cover handlers ────────────────────────────────────────
-  const handleFileUpload = (e) => {
+  const handleFileUpload = useCallback((e) => {
     const file = e.target.files?.[0];
     if (file) setCoverInput(URL.createObjectURL(file));
-  };
+  }, []);
 
-  const handleSaveCover = () => {
+  const handleSaveCover = useCallback(() => {
     setCoverImage(coverInput);
     setCoverModalOpen(false);
-  };
+  }, [coverInput]);
 
   // ── Publish ───────────────────────────────────────────────
-  const handlePublish = () => {
+  const handlePublish = useCallback(() => {
     if (!blogId) return;
     publish(undefined, {
       onSuccess: () => router.push('/admin/blogs/new'),
     });
-  };
+  }, [blogId, publish, router]);
 
   // ── Schedule ──────────────────────────────────────────────
-  const handleSchedule = () => {
-    if (!scheduleDate) {
-      toast.error('Please select a schedule date first');
-      return;
-    }
+  const handleSchedule = useCallback(() => {
+    if (!scheduleDate) { toast.error('Please select a schedule date first'); return; }
     if (!blogId) return;
     schedule(scheduleDate, {
       onSuccess: () => router.push('/admin/blogs'),
     });
-  };
+  }, [blogId, schedule, scheduleDate, router]);
 
   // ── Redirect invalid slugs ────────────────────────────────
   useEffect(() => {
@@ -181,6 +186,8 @@ const [category, setCategory] = useState('');
     );
   }
 
+  const selectedCategoryLabel = CATEGORIES.find(c => c.value === category)?.label ?? 'uncategorized';
+
   return (
     <AdminLayout_New>
 
@@ -188,7 +195,6 @@ const [category, setCategory] = useState('');
       <div className="sticky top-16 z-30 bg-background/95 backdrop-blur border-b border-border mb-0 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex justify-between items-center">
 
-          {/* Save status — resets to 0 on new save */}
           <span className={`text-xs font-mono ${
             saveStatus === 'saving' ? 'text-muted-foreground animate-pulse' :
             saveStatus === 'error'  ? 'text-destructive' :
@@ -199,7 +205,6 @@ const [category, setCategory] = useState('');
             {saveStatus === 'error'  && 'save failed — check connection'}
           </span>
 
-          {/* Actions */}
           <div className="flex items-center gap-0 border-2 border-foreground">
             <button
               onClick={() => setScheduleModalOpen(true)}
@@ -378,20 +383,41 @@ const [category, setCategory] = useState('');
             </button>
           </div>
 
-          {/* Category */}
-<div className="px-4 py-3 flex-shrink-0">
-  <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mb-1">Category</p>
-  <select
-    value={category}
-    onChange={(e) => setCategory(e.target.value)}
-    className="text-xs font-mono bg-transparent text-muted-foreground hover:text-foreground border-0 p-0 focus:outline-none cursor-pointer"
-  >
-    <option value="">uncategorized</option>
-    <option value="tech-deep-dive">Tech Deep Dive</option>
-    <option value="life-and-growth">Life & Growth</option>
-    <option value="career-and-learnings">Career & Learnings</option>
-  </select>
-</div>
+          {/* Category — styled to match other strip items */}
+          <div className="px-4 py-3 flex-shrink-0">
+            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mb-1">Category</p>
+            <Dialog open={categoryModalOpen} onOpenChange={setCategoryModalOpen}>
+              <DialogTrigger asChild>
+                <button className={`flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-foreground ${DESIGN_CONSTANTS.transitions.fast}`}>
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                  {selectedCategoryLabel}
+                </button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle className="font-serif italic font-normal text-xl">Category</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Select one</p>
+                  <div className="flex flex-col gap-2">
+                    {CATEGORIES.map((cat) => (
+                      <button
+                        key={cat.value}
+                        onClick={() => { setCategory(cat.value); setCategoryModalOpen(false); }}
+                        className={`w-full text-left px-4 py-3 text-sm font-mono border transition-all duration-150 ${
+                          category === cat.value
+                            ? 'border-foreground bg-foreground text-background'
+                            : 'border-border hover:border-foreground/40 hover:bg-muted'
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
 
         </div>
       </div>
@@ -441,11 +467,10 @@ const [category, setCategory] = useState('');
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className={`${showPreview ? 'hidden lg:block' : 'block'}`}>
           <div className="border border-border overflow-auto custom-scroll" style={{ height: 'calc(100vh - 360px)' }}>
-            {/* Only mount TiptapEditor after content is ready */}
-      {content && (
-        <TiptapEditor content={content} onUpdate={setContent} />
-      )}
-    </div>
+            {content && (
+              <TiptapEditor content={content} onUpdate={setContent} />
+            )}
+          </div>
         </div>
         <div className={`${showPreview ? 'block' : 'hidden lg:block'}`}>
           <div className="border border-border border-l-2 border-l-foreground/20 overflow-auto custom-scroll" style={{ height: 'calc(100vh - 360px)' }}>

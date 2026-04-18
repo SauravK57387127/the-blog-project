@@ -1,11 +1,27 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, memo } from 'react';
+import Prism from '@/lib/prism-config';
+
+// BlogContent memoized — prevents dangerouslySetInnerHTML from resetting
+// on every keystroke in the editor, which would wipe Prism's DOM modifications.
+// Only re-renders when content string actually changes.
+const BlogContent = memo(function BlogContent({ content, contentRef }) {
+  return (
+    <div
+      ref={contentRef}
+      className="blog-content max-w-none"
+      suppressHydrationWarning
+      dangerouslySetInnerHTML={{ __html: content ?? '' }}
+    />
+  );
+});
 
 export function BlogPreview({ title, coverImage, content, tags }) {
   const contentRef = useRef(null);
 
-  // Re-run Prism whenever content changes — needed because preview updates live
+  // Re-run Prism whenever content changes.
+  // Uses imported Prism instance — not window.Prism which is undefined in Next.js.
   useEffect(() => {
     const node = contentRef.current;
     if (!node || !content) return;
@@ -19,7 +35,7 @@ export function BlogPreview({ title, coverImage, content, tags }) {
       if (!code.classList.length) code.classList.add('language-javascript');
     });
 
-    if (window.Prism) window.Prism.highlightAll();
+    Prism.highlightAll(); // ← imported instance, not window.Prism
 
     node.querySelectorAll('pre').forEach(block => {
       block.style.visibility = 'visible';
@@ -77,12 +93,7 @@ export function BlogPreview({ title, coverImage, content, tags }) {
         </figure>
       )}
 
-      <div
-        ref={contentRef}
-        className="blog-content max-w-none"
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: content ?? '' }}
-      />
+      <BlogContent content={content} contentRef={contentRef} />
     </article>
   );
 }
