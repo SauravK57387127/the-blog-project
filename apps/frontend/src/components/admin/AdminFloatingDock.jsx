@@ -114,7 +114,7 @@ export function AdminFloatingDock() {
             title={profile?.username ?? 'Admin'}
           >
             <div
-              className={`p-1 transition-colors duration-150 ${hoveredIndex === AVATAR_IDX ? 'ring-2 ring-accent' : 'ring-1 ring-border'}`}
+              className={`p-2 transition-colors duration-150 ${hoveredIndex === AVATAR_IDX ? 'ring-2 ring-accent' : 'ring-1 ring-border'}`}
               style={{ borderRadius: '0.5rem' }}
             >
               <img
