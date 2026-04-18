@@ -22,7 +22,7 @@ export function useCreateBlog() {
   return useMutation({
     mutationFn: (title) =>
       apiClient.post(API_ENDPOINTS.ADMIN.BLOGS.CREATE, { title }),
-    select: (r) => r?.data ?? null,
+    
   });
 }
 
