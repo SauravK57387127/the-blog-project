@@ -18,6 +18,7 @@ export const setAdminToken = (token) => {
   document.cookie = `adminToken=${token}; path=/; max-age=${15 * 60}; SameSite=Strict`;
 };
 export const getAdminToken = () => {
+if (typeof window === 'undefined') return null;
   return document.cookie.split('; ').find(r => r.startsWith('adminToken='))?.split('=')[1] ?? null;
 };
 export const clearAdminToken = () => {

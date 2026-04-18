@@ -32,7 +32,7 @@ export default function RootLayout({
           </TooltipProvider>
         </Providers>
       </body>
-    </html>;
+    </html>
     </ClerkProvider>
   );
 }
