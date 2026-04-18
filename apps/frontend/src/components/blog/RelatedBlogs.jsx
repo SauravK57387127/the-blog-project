@@ -1,27 +1,34 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { DESIGN_CONSTANTS } from '@/lib/design-constants';
 import { useRelatedBlogs } from '@/hooks/api/public/useBlog';
 
 const CATEGORY_SHORT = {
-  'tech-deep-dive':     'tech',
-  'life-and-growth':    'life',
+  'tech-deep-dive':       'tech',
+  'life-and-growth':      'life',
   'career-and-learnings': 'career',
-  Technology:           'tech',
-  'Web Development':    'web',
-  Tutorial:             'guide',
-  DevOps:               'devops',
+  Technology:             'tech',
+  'Web Development':      'web',
+  Tutorial:               'guide',
+  DevOps:                 'devops',
 };
+
+// BL-5: All <img> → next/image with lazy loading.
+// Relative containers with explicit dimensions → space reserved → no CLS.
 
 function BigCard({ blog }) {
   return (
     <Link href={`/blog/${blog.slug}`} className="group block relative overflow-hidden bg-muted h-full min-h-[280px]">
       {blog.coverImage && (
-        <img
+        <Image
           src={blog.coverImage}
           alt={blog.title}
-          className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+          fill
+          loading="lazy"
+          sizes="(max-width: 1024px) 100vw, 60vw"
+          className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
         />
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
@@ -53,11 +60,17 @@ function TextCard({ blog }) {
           {blog.title}
         </h3>
       </div>
-      <div className="w-20 h-14 flex-shrink-0 overflow-hidden bg-muted">
-        {blog.coverImage
-          ? <img src={blog.coverImage} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-          : <div className="w-full h-full bg-muted" />
-        }
+      <div className="relative w-20 h-14 flex-shrink-0 overflow-hidden bg-muted">
+        {blog.coverImage && (
+          <Image
+            src={blog.coverImage}
+            alt={blog.title}
+            fill
+            loading="lazy"
+            sizes="80px"
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        )}
       </div>
     </Link>
   );
@@ -78,8 +91,15 @@ function HorizontalCard({ blog }) {
         </p>
       </div>
       {blog.coverImage && (
-        <div className="w-20 h-16 flex-shrink-0 overflow-hidden bg-muted">
-          <img src={blog.coverImage} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+        <div className="relative w-20 h-16 flex-shrink-0 overflow-hidden bg-muted">
+          <Image
+            src={blog.coverImage}
+            alt={blog.title}
+            fill
+            loading="lazy"
+            sizes="80px"
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+          />
         </div>
       )}
     </Link>
