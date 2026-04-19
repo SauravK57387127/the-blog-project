@@ -1,5 +1,7 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+
+import Image from 'next/image';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Trash2, Eye, Edit3, Send, Star } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -42,12 +44,12 @@ function BlogRow({ blog, onView, onEdit, onPublishNow, onDelete, onEditorsPick }
   const isPick = blog.editorsPick?.isEditorsPick ?? false;
   return (
     <div className={`group flex items-center gap-4 py-4 border-b border-border hover:bg-muted/20 ${DESIGN_CONSTANTS.transitions.fast}`}>
-      <div className="w-16 h-12 flex-shrink-0 overflow-hidden bg-muted">
-        {blog.coverImage
-          ? <img src={blog.coverImage} alt={blog.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-          : <div className="w-full h-full bg-muted" />
-        }
-      </div>
+    <div className="w-16 h-12 flex-shrink-0 overflow-hidden bg-muted relative">
+  {blog.coverImage
+    ? <Image src={blog.coverImage} alt={blog.title} fill loading="lazy" sizes="64px" className="object-cover" />
+    : <div className="w-full h-full bg-muted" />
+  }
+</div> 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p className={`font-sans font-semibold text-sm line-clamp-1 group-hover:text-accent ${DESIGN_CONSTANTS.transitions.fast}`}>
@@ -63,13 +65,13 @@ function BlogRow({ blog, onView, onEdit, onPublishNow, onDelete, onEditorsPick }
         </div>
       </div>
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-        <button
-          onClick={() => onView(blog)}
+        <a
+          href={`/blog/${blog.slug}`} target="_blank" rel="noopener noreferrer"
           className={`p-2 text-muted-foreground hover:text-foreground ${DESIGN_CONSTANTS.transitions.fast}`}
           title="View"
         >
           <Eye className="h-4 w-4" />
-        </button>
+        </a>
         {blog.status === 'scheduled' && (
           <>
             <button
@@ -144,11 +146,6 @@ export default function AdminBlogsPage() {
   const [pickModal,  setPickModal]  = useState(null);
   const [annotation, setAnnotation] = useState('');
 
-  useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
-    if (!token) router.replace('/admin/login');
-  }, []);
-
   // ─── FIX: reset only page on filter change, NOT accBlogs ──────────────────
   // accBlogs reset is handled by the accumulation effect below via filterKey.
   // Resetting accBlogs here caused a race: React Query returned cached data with
@@ -157,12 +154,12 @@ export default function AdminBlogsPage() {
     setPage(1);
   }, [statusFilter, categoryFilter]);
 
-  const handleSearch = (e) => {
-    const val = e.target.value;
-    setSearchQuery(val);
-    clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => setDebouncedQuery(val), 300);
-  };
+const handleSearch = useCallback((e) => {
+  const val = e.target.value;
+  setSearchQuery(val);
+  clearTimeout(debounceRef.current);
+  debounceRef.current = setTimeout(() => setDebouncedQuery(val), 300);
+}, []);
 
   const { data, isLoading, isFetching } = usePublishedBlogs({
     status: (statusFilter === 'all' || statusFilter === 'editors-choice')
@@ -209,55 +206,55 @@ export default function AdminBlogsPage() {
     ? false
     : (data?.pagination?.hasMore ?? false);
 
-  const handleView       = (blog) => { if (blog.slug) window.open(`/blog/${blog.slug}`, '_blank'); };
-  const handleEdit       = (blog) => { router.push(`/admin/drafts/${blog.draftSlug}`); };
-  const handlePublishNow = (blog) => { publishNow(blog._id); };
+const handleView       = useCallback((blog) => { if (blog.slug) window.open(`/blog/${blog.slug}`, '_blank'); }, []);
+const handleEdit       = useCallback((blog) => { router.push(`/admin/drafts/${blog.draftSlug}`); }, [router]);
+const handlePublishNow = useCallback((blog) => { publishNow(blog._id); }, [publishNow]); 
 
-  const handleDelete = (blog) => {
-    deleteBlog(blog._id, {
-      onSuccess: () => {
-        setAccBlogs(prev => prev.filter(b => b._id !== blog._id));
-        toast.success('Blog deleted', {
-          action: { label: 'Undo', onClick: () => toast.info('Undo not available') },
-          duration: 5000,
-        });
-      },
-    });
-  };
-
-  const handleEditorsPick = (blog) => {
-    const isPick = blog.editorsPick?.isEditorsPick ?? false;
-    if (isPick) {
-      togglePick({ blogId: blog._id, isEditorsPick: false, annotation: '' }, {
-        onSuccess: () => {
-          setAccBlogs(prev => prev.map(b =>
-            b._id === blog._id ? { ...b, editorsPick: { isEditorsPick: false } } : b
-          ));
-          toast.success("Removed from editor's choice");
-        },
-        onError: () => toast.error('Failed to update'),
+const handleDelete = useCallback((blog) => {
+  deleteBlog(blog._id, {
+    onSuccess: () => {
+      setAccBlogs(prev => prev.filter(b => b._id !== blog._id));
+      toast.success('Blog deleted', {
+        action: { label: 'Undo', onClick: () => toast.info('Undo not available') },
+        duration: 5000,
       });
-    } else {
-      setAnnotation(blog.editorsPick?.annotation ?? '');
-      setPickModal({ blog });
-    }
-  };
+    },
+  });
+}, [deleteBlog]); 
 
-  const handleSavePick = () => {
-    if (!pickModal) return;
-    togglePick({ blogId: pickModal.blog._id, isEditorsPick: true, annotation }, {
+const handleEditorsPick = useCallback((blog) => {
+  const isPick = blog.editorsPick?.isEditorsPick ?? false;
+  if (isPick) {
+    togglePick({ blogId: blog._id, isEditorsPick: false, annotation: '' }, {
       onSuccess: () => {
         setAccBlogs(prev => prev.map(b =>
-          b._id === pickModal.blog._id
-            ? { ...b, editorsPick: { isEditorsPick: true, annotation } }
-            : b
+          b._id === blog._id ? { ...b, editorsPick: { isEditorsPick: false } } : b
         ));
-        toast.success("Added to editor's choice");
-        setPickModal(null);
+        toast.success("Removed from editor's choice");
       },
       onError: () => toast.error('Failed to update'),
     });
-  };
+  } else {
+    setAnnotation(blog.editorsPick?.annotation ?? '');
+    setPickModal({ blog });
+  }
+}, [togglePick]);
+
+const handleSavePick = useCallback(() => {
+  if (!pickModal) return;
+  togglePick({ blogId: pickModal.blog._id, isEditorsPick: true, annotation }, {
+    onSuccess: () => {
+      setAccBlogs(prev => prev.map(b =>
+        b._id === pickModal.blog._id
+          ? { ...b, editorsPick: { isEditorsPick: true, annotation } }
+          : b
+      ));
+      toast.success("Added to editor's choice");
+      setPickModal(null);
+    },
+    onError: () => toast.error('Failed to update'),
+  });
+}, [pickModal, togglePick, annotation]); 
 
   const handleResetFilters = () => {
     setStatusFilter('all'); setCategoryFilter('all');
