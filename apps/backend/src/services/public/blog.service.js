@@ -68,36 +68,45 @@ export default {
     };
   },
 
-  /**
- * Search blogs by title/content with filters
+/**
+ * Search blogs by query and/or tags.
+ *
+ * Ranking logic (title match → tags match → content match):
+ * - query alone:  min 3 chars enforced at controller, word-boundary regex on title+tags
+ * - tags alone:   $in match, no query needed
+ * - query + tags: both filters applied — AND logic (must match both)
+ * - sort:         title matches first, then tag matches, then rest — all by publishedAt desc within group
  */
 searchBlogs: async ({ query, tags, category, page, limit }) => {
   try {
-    const searchQuery = {
-      status: 'published',
-    };
-
-    // Text search
-    if (query && query.trim().length > 0) {
-      searchQuery.$or = [
-        { title: { $regex: query, $options: 'i' } },
-        { content: { $regex: query, $options: 'i' } },
-        { excerpt: { $regex: query, $options: 'i' } },
-      ];
-    }
-
+    const searchQuery = { status: 'published' };
+ 
     // Category filter
     if (category) {
       searchQuery.category = category;
     }
-
-    // Tags filter (OR logic - blog must have ANY of the selected tags)
+ 
+    // Tags filter — OR logic (blog must have ANY of the selected tags)
     if (tags && tags.length > 0) {
       searchQuery.tags = { $in: tags };
     }
-
+ 
+    // Text query — word boundary on title and tags, plain regex on content
+    // Title and tags get word-boundary (\b) so "the" doesn't match "together"
+    // Content is excluded — too noisy and not representative of blog intent
+    if (query && query.trim().length >= 3) {
+      const escapedQuery = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const wordBoundaryRegex = new RegExp(`\\b${escapedQuery}`, 'i');
+      const anywhereRegex     = new RegExp(escapedQuery, 'i');
+ 
+      searchQuery.$or = [
+        { title: wordBoundaryRegex },          // highest relevance — word boundary in title
+        { tags:  { $in: [anywhereRegex] } },   // tag match
+      ];
+    }
+ 
     const skip = (page - 1) * limit;
-
+ 
     const [blogs, totalCount] = await Promise.all([
       Blog.find(searchQuery)
         .select('title slug excerpt coverImage tags category readingTime publishedAt')
@@ -107,14 +116,29 @@ searchBlogs: async ({ query, tags, category, page, limit }) => {
         .lean(),
       Blog.countDocuments(searchQuery),
     ]);
-
-    logger.info('Blogs searched', { 
-      query, 
-      category, 
-      tagsCount: tags?.length, 
-      resultsCount: blogs.length 
+ 
+    // Client-side relevance sort within the returned page:
+    // title matches float to top, then tag matches, then rest
+    if (query && query.trim().length >= 3) {
+      const q = query.trim().toLowerCase();
+      blogs.sort((a, b) => {
+        const aTitle = a.title.toLowerCase().includes(q) ? 0 : 1;
+        const bTitle = b.title.toLowerCase().includes(q) ? 0 : 1;
+        if (aTitle !== bTitle) return aTitle - bTitle;
+ 
+        const aTag = a.tags?.some(t => t.toLowerCase().includes(q)) ? 0 : 1;
+        const bTag = b.tags?.some(t => t.toLowerCase().includes(q)) ? 0 : 1;
+        return aTag - bTag;
+      });
+    }
+ 
+    logger.info('Blogs searched', {
+      query,
+      tagsCount: tags?.length,
+      category,
+      resultsCount: blogs.length,
     });
-
+ 
     return {
       success: true,
       message: 'Search results',
@@ -144,7 +168,7 @@ searchBlogs: async ({ query, tags, category, page, limit }) => {
     };
   }
 },
-
+  
   /**
    * Get popular blogs (by views)
    */
