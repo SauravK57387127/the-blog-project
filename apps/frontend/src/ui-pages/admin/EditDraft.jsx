@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Send, Calendar as CalendarIcon, Image as ImageIcon,
-  Tag as TagIcon, Eye, Edit3, X, Plus, Upload, LayoutGrid,
+  Tag as TagIcon, Eye, X, Plus, Upload, LayoutGrid,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -58,7 +58,7 @@ export default function EditDraftPage({ draftSlug }) {
   const [category,     setCategory]     = useState('');
 
   // UI state
-  const [showPreview,       setShowPreview]       = useState(false);
+  const [previewModalOpen,  setPreviewModalOpen]  = useState(false);
   const [saveStatus,        setSaveStatus]        = useState('saved');
   const [lastSaved,         setLastSaved]         = useState(null);
   const [coverModalOpen,    setCoverModalOpen]    = useState(false);
@@ -205,25 +205,36 @@ export default function EditDraftPage({ draftSlug }) {
             {saveStatus === 'error'  && 'save failed — check connection'}
           </span>
 
-          <div className="flex items-center gap-0 border-2 border-foreground">
+          <div className="flex items-center gap-2">
+            {/* Preview button */}
             <button
-              onClick={() => setScheduleModalOpen(true)}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-mono font-medium uppercase tracking-wide border-r-2 border-foreground hover:bg-muted ${DESIGN_CONSTANTS.transitions.fast}`}
+              onClick={() => setPreviewModalOpen(true)}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-mono font-medium uppercase tracking-wide border-2 border-foreground hover:bg-muted ${DESIGN_CONSTANTS.transitions.fast}`}
             >
-              <CalendarIcon className="h-3.5 w-3.5" />
-              {scheduleDate
-                ? new Date(scheduleDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                : 'Schedule'
-              }
+              <Eye className="h-3.5 w-3.5" />
+              Preview
             </button>
-            <button
-              onClick={handlePublish}
-              disabled={isPublishing}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-mono font-bold uppercase tracking-wide bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40`}
-            >
-              <Send className="h-3.5 w-3.5" />
-              {isPublishing ? 'Publishing...' : 'Publish'}
-            </button>
+
+            <div className="flex items-center gap-0 border-2 border-foreground">
+              <button
+                onClick={() => setScheduleModalOpen(true)}
+                className={`flex items-center gap-2 px-4 py-2 text-xs font-mono font-medium uppercase tracking-wide border-r-2 border-foreground hover:bg-muted ${DESIGN_CONSTANTS.transitions.fast}`}
+              >
+                <CalendarIcon className="h-3.5 w-3.5" />
+                {scheduleDate
+                  ? new Date(scheduleDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                  : 'Schedule'
+                }
+              </button>
+              <button
+                onClick={handlePublish}
+                disabled={isPublishing}
+                className={`flex items-center gap-2 px-4 py-2 text-xs font-mono font-bold uppercase tracking-wide bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40`}
+              >
+                <Send className="h-3.5 w-3.5" />
+                {isPublishing ? 'Publishing...' : 'Publish'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -453,33 +464,24 @@ export default function EditDraftPage({ draftSlug }) {
         </DialogContent>
       </Dialog>
 
-      {/* ── Mobile Toggle ──────────────────────────────────── */}
-      <div className="lg:hidden mb-4">
-        <button
-          onClick={() => setShowPreview(!showPreview)}
-          className={`w-full flex items-center justify-center gap-2 py-2.5 text-xs font-mono uppercase tracking-widest border-2 border-foreground hover:bg-foreground hover:text-background ${DESIGN_CONSTANTS.transitions.fast}`}
-        >
-          {showPreview ? <><Edit3 className="h-3.5 w-3.5" />Editor</> : <><Eye className="h-3.5 w-3.5" />Preview</>}
-        </button>
+      {/* ── Full-width Editor ──────────────────────────────── */}
+      <div className="border border-border overflow-auto custom-scroll" style={{ height: 'calc(100vh - 320px)' }}>
+        {content && (
+          <TiptapEditor key={blogId} content={content} onUpdate={setContent} />
+        )}
       </div>
 
-      {/* ── Editor + Preview Split ─────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className={`${showPreview ? 'hidden lg:block' : 'block'}`}>
-          <div className="border border-border overflow-auto custom-scroll" style={{ height: 'calc(100vh - 360px)' }}>
-            {content && (
-              <TiptapEditor content={content} onUpdate={setContent} />
-            )}
+      {/* Preview Modal — blog-slug width, internally scrollable */}
+      <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
+        <DialogContent className="max-w-3xl w-full max-h-[88vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-6 py-4 border-b border-border flex-shrink-0">
+            <DialogTitle className="font-serif italic font-normal text-xl">Preview</DialogTitle>
+          </DialogHeader>
+          <div className="overflow-y-auto custom-scroll flex-1 px-8 py-10">
+            <BlogPreview title={title} coverImage={coverImage} content={content} tags={tags} />
           </div>
-        </div>
-        <div className={`${showPreview ? 'block' : 'hidden lg:block'}`}>
-          <div className="border border-border border-l-2 border-l-foreground/20 overflow-auto custom-scroll" style={{ height: 'calc(100vh - 360px)' }}>
-            <div className="p-6">
-              <BlogPreview title={title} coverImage={coverImage} content={content} tags={tags} />
-            </div>
-          </div>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
 
     </AdminLayout_New>
   );
