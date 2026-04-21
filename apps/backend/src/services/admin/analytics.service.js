@@ -449,6 +449,7 @@ export default {
           .split('\n')[0]
           .substring(0, 100),
         lastUpdated: getTimeAgo(draft.updatedAt),
+updatedAt: draft.updatedAt,
       }));
 
       logger.info('Stale drafts fetched', { count: drafts.length });
