@@ -83,30 +83,42 @@ className={`flex gap-4 p-4 border cursor-pointer ${DESIGN_CONSTANTS.transitions.
           : 'border-border hover:border-foreground/20 hover:bg-muted/30'
       }`}
     >
-     <Image
-  src={avatar}
-  alt={notification.actor?.name}
-  width={40}
-  height={40}
-  loading="lazy"
-  className="rounded-full flex-shrink-0 ring-2 ring-border"
-/> 
-      <div className="flex-1 min-w-0">
-        <p className="text-sm leading-snug mb-1.5">
-          <span className="font-sans font-semibold">{notification.actor?.name}</span>
-          <span className="text-muted-foreground">
-            {isReply ? ' replied to your comment on ' : ' liked your comment on '}
-          </span>
-          <span className="font-medium line-clamp-1">"{notification.blogTitle}"</span>
-        </p>
-        {notification.commentPreview && (
-          <p className="text-xs text-muted-foreground italic line-clamp-1 mb-1.5">
-            {notification.commentPreview}
-          </p>
-        )}
-        <p className="text-xs font-mono text-muted-foreground">{formatTimeAgo(notification.createdAt)}</p>
-      </div>
-      <div className="flex flex-col items-end justify-between flex-shrink-0">
+
+<div className="w-24 h-16 overflow-hidden flex-shrink-0 relative bg-muted">
+  <Image
+    src={avatar}
+    alt={notification.actor?.name}
+    fill
+    loading="lazy"
+    sizes="96px"
+    className="object-cover"
+  />
+</div>
+
+<div className="flex-1 min-w-0">
+  <p className="text-sm leading-snug mb-1.5">
+    <span className="font-semibold truncate inline-block max-w-full align-bottom">
+      {notification.actor?.name}
+    </span>
+    <span className="text-muted-foreground">
+      {isReply ? ' replied to your comment on ' : ' liked your comment on '}
+    </span>
+    <span className="font-medium line-clamp-1">
+      "{notification.blogTitle}"
+    </span>
+  </p>
+
+  {notification.commentPreview && (
+    <p className="text-xs text-muted-foreground italic line-clamp-1 mb-1.5">
+      {notification.commentPreview}
+    </p>
+  )}
+
+  <p className="text-xs font-mono text-muted-foreground">
+    {formatTimeAgo(notification.createdAt)}
+  </p>
+</div>
+  <div className="flex flex-col items-end justify-between flex-shrink-0">
         {!notification.isRead && <div className="w-2 h-2 rounded-full bg-accent mt-1" />}
         {!notification.isRead && (
           <button

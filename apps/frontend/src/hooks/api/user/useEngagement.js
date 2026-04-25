@@ -9,7 +9,6 @@ export function useEngagement(blogId) {
   const { isSignedIn } = useUser();
   const queryClient = useQueryClient();
 
-  // Clear engagement cache when user signs out
   useEffect(() => {
     if (!isSignedIn && blogId) {
       queryClient.removeQueries({ queryKey: queryKeys.user.engagement(blogId) });
@@ -27,34 +26,31 @@ export function useEngagement(blogId) {
 
 export function useToggleLike(blogId, slug) {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: () => engagementService.toggleLike(blogId),
-
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: queryKeys.user.engagement(blogId) });
       const prevEngagement = queryClient.getQueryData(queryKeys.user.engagement(blogId));
-      const currentlyLiked = prevEngagement?.isLiked ?? false;
 
-      // BL-6: Only one onMutate — optimistically toggle like state only
+      // FIX: cache holds the raw axios response; select: r => r.data reads .data
+      // Previous code wrote old.isLiked (top-level) which select never saw.
+      const currentlyLiked = prevEngagement?.data?.isLiked ?? false;
+
       queryClient.setQueryData(queryKeys.user.engagement(blogId), (old) => ({
         ...old,
-        isLiked: !currentlyLiked,
+        data: {
+          ...old?.data,
+          isLiked: !currentlyLiked,
+        },
       }));
 
       return { prevEngagement };
     },
-
-    // BL-6: Removed duplicate onError + onSettled (first pair was dead code —
-    // duplicate keys in JS objects, last value wins, first was silently ignored).
     onError: (err, _, context) => {
       queryClient.setQueryData(queryKeys.user.engagement(blogId), context?.prevEngagement);
-      queryClient.setQueryData(queryKeys.blogs.detail(slug), context?.prevBlog);
       toast.error('Failed to update like');
     },
-
     onSettled: () => {
-      // Let backend tell us the real count
       queryClient.invalidateQueries({ queryKey: queryKeys.user.engagement(blogId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.blogs.detail(slug) });
     },
@@ -63,27 +59,27 @@ export function useToggleLike(blogId, slug) {
 
 export function useToggleBookmark(blogId) {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: () => engagementService.toggleBookmark(blogId),
-
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: queryKeys.user.engagement(blogId) });
       const prev = queryClient.getQueryData(queryKeys.user.engagement(blogId));
 
+      // FIX: same shape fix as useToggleLike
       queryClient.setQueryData(queryKeys.user.engagement(blogId), (old) => ({
         ...old,
-        isBookmarked: !old?.isBookmarked,
+        data: {
+          ...old?.data,
+          isBookmarked: !old?.data?.isBookmarked,
+        },
       }));
 
       return { prev };
     },
-
     onError: (err, _, context) => {
       queryClient.setQueryData(queryKeys.user.engagement(blogId), context?.prev);
       toast.error('Failed to update bookmark');
     },
-
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.user.engagement(blogId) });
     },

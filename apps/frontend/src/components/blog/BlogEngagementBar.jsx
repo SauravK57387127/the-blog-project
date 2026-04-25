@@ -5,16 +5,6 @@ import { DESIGN_CONSTANTS } from '@/lib/design-constants';
 import AuthAction from '@/components/auth/AuthAction';
 import { useToast } from '@/hooks/use-toast';
 
-/**
- * BUG FIXED: actionKey was previously set to `action.label` which for the Heart
- * button is `${likeCount}` — a dynamic number (e.g. "5").  After sign-in and
- * redirect, the count may have changed to "6", so sessionStorage's stored key
- * "5" never matched, and onAuthenticated (toggleLike) was never called.
- *
- * Fix: each action now carries a stable, static `actionKey` field that is
- * used exclusively for the auth-pending sessionStorage key, keeping it
- * completely decoupled from the display label.
- */
 export default function BlogEngagementBar_New({
   likeCount,
   isLiked,
@@ -23,18 +13,15 @@ export default function BlogEngagementBar_New({
   onBookmark,
   onShare,
   onScrollToComments,
+  isEngagementReady = true,
 }) {
   const { toast } = useToast();
-
   const actions = [
     {
       icon: Heart,
       label: `${likeCount}`,
-      actionKey: 'like',           // ← static, never changes
-      onClick: () => {
-        onLike?.();
-        toast({ title: isLiked ? 'Like removed' : '❤️ Liked!' });
-      },
+      actionKey: 'like',
+      onClick: () => onLike?.(),           // ← toast removed, lives in handleLike now
       active: isLiked,
       activeClass: 'text-accent',
       fillActive: true,
@@ -43,7 +30,7 @@ export default function BlogEngagementBar_New({
     {
       icon: Bookmark,
       label: 'Save',
-      actionKey: 'bookmark',       // ← static
+      actionKey: 'bookmark',
       onClick: () => {
         onBookmark?.();
         toast({ title: isBookmarked ? 'Bookmark removed' : '🔖 Bookmarked!' });
@@ -79,7 +66,6 @@ export default function BlogEngagementBar_New({
     <div className="flex items-center justify-center gap-0 border-y border-border divide-x divide-border">
       {actions.map((action) => {
         const Icon = action.icon;
-
         const buttonContent = (
           <button
             key={action.actionKey}
@@ -102,14 +88,13 @@ export default function BlogEngagementBar_New({
         return action.requiresAuth ? (
           <AuthAction
             key={action.actionKey}
-            actionKey={action.actionKey}   // ← now always "like" / "bookmark"
+            actionKey={action.actionKey}
             onAuthenticated={action.onClick}
+            readyToReplay={isEngagementReady}  // ← keep: prevents replay before engagement loads
           >
             {buttonContent}
           </AuthAction>
         ) : (
-          // Non-auth actions: render a plain wrapper so the key lives on a DOM
-          // element rather than on the button itself (avoids key-prop warning).
           <div key={action.actionKey} className="contents">
             {buttonContent}
           </div>

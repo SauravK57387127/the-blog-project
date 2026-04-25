@@ -1,7 +1,7 @@
 'use client';
 
 import Prism from "@/lib/prism-config.js";
-import { useRef, useEffect, useCallback, memo } from 'react';
+import { useRef, useState, useEffect, useCallback, memo } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { DESIGN_CONSTANTS } from '@/lib/design-constants';
@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 // BL-1: useBlogBySlug commented out — replaced by ISR prop from page.jsx
 // import { useBlogBySlug } from '@/hooks/api/public/useBlog';
 import { useEngagement, useToggleLike, useToggleBookmark } from '@/hooks/api/user/useEngagement';
+import { useViewTracking } from '@/hooks/api/public/useViewTracking';
 
 // BL-4: CommentSection + RelatedBlogs dynamically imported — below fold,
 // excluded from initial bundle → reduces TBT.
@@ -38,14 +39,17 @@ const BlogContent = memo(function BlogContent({ content, contentRef }) {
 
 // BL-1: blog + slug arrive as ISR props from page.jsx — no client fetch needed
 export default function BlogDetail({ blog, slug }) {
+  const [likeCount, setLikeCount] = useState(blog?.totalLikes ?? 0);
+
   const commentSectionRef = useRef(null);
 
   // TODO: cleanup — useBlogBySlug replaced by ISR prop
   // const { data: blog, isLoading } = useBlogBySlug(slug);
 
-  const { data: engagement }      = useEngagement(blog?._id);
-  const { mutate: toggleLike }    = useToggleLike(blog?._id, slug);
+    const { data: engagement, isLoading: isEngagementLoading } = useEngagement(blog?._id);
+    const { mutate: toggleLike }    = useToggleLike(blog?._id, slug);
   const { mutate: toggleBookmark } = useToggleBookmark(blog?._id);
+useViewTracking(slug, blog?._id);
 
   // BL-2: Prism race condition fixed.
   // Previous approach: useCallback ref with [blog?.content] dep — fired on DOM
@@ -97,6 +101,17 @@ export default function BlogDetail({ blog, slug }) {
     });
   }, [blog?.content]); // fires every time content changes — reliable
 
+const handleLike = useCallback(() => {
+  const isCurrentlyLiked = engagement?.isLiked ?? false;
+  setLikeCount((c) => (isCurrentlyLiked ? c - 1 : c + 1));
+  toast(isCurrentlyLiked ? 'Like removed' : '❤️ Liked!');
+  toggleLike(undefined, {
+    onError: () => {
+      setLikeCount((c) => (isCurrentlyLiked ? c + 1 : c - 1));
+    },
+  });
+}, [engagement?.isLiked, toggleLike]);
+
   const handleShare = useCallback(() => {
     if (navigator.share) {
       navigator.share({ title: blog?.title, url: window.location.href });
@@ -141,13 +156,14 @@ export default function BlogDetail({ blog, slug }) {
 
           <div className="mb-8 lg:mb-10">
             <BlogEngagementBar_New
-              likeCount={blog.totalLikes ?? 0}
+              likeCount={likeCount}
               isLiked={engagement?.isLiked ?? false}
               isBookmarked={engagement?.isBookmarked ?? false}
-              onLike={toggleLike}
+              onLike={handleLike}
               onBookmark={toggleBookmark}
               onShare={handleShare}
               onScrollToComments={scrollToComments}
+    isEngagementReady={!isEngagementLoading}
             />
           </div>
 
