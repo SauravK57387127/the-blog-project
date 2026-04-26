@@ -2,19 +2,14 @@ import { v2 as cloudinary } from 'cloudinary';
 import { config } from '@theblogproj/config';
 import https from "https";
 
-const agent = new https.Agent({
-  keepAlive: true,
-  maxSockets: 100,
-});
 // Configure Cloudinary
 cloudinary.config({
   cloud_name: config.cloudinaryCloudName,
   api_key: config.cloudinaryApiKey,
   api_secret: config.cloudinaryApiSecret,
   secure: true,
-  upload_prefix: "https://api.cloudinary.com",
+  //upload_prefix: "https://api.cloudinary.com",
 });
-
 
 /**
  * Upload image to Cloudinary
@@ -97,10 +92,8 @@ console.log('Upload source type:', typeof uploadSource);
 console.log('Is Buffer:', Buffer.isBuffer(uploadSource));
 console.log('Upload source preview:', typeof uploadSource === 'string' ? uploadSource.substring(0, 50) : 'not a string');
 
-const result =await cloudinary.uploader.upload(
-  "data:" + mimetype + ";base64," + file.toString("base64"),
-  options
-); 
+const result = await cloudinary.uploader.upload(uploadSource, options);
+
 
     return {
       success: true,

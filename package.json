@@ -17,7 +17,7 @@
     "start:backend": "pnpm --filter ./apps/backend start",
     "start:worker": "pnpm --filter ./apps/worker start",
     "dev:frontend": "pnpm --filter ./apps/frontend dev",
-    "dev:backend": "NODE_ENV=development pnpm --filter ./apps/backend start",
+   "dev:backend": "NODE_ENV=development NODE_OPTIONS='--dns-result-order=ipv4first' pnpm --filter ./apps/backend start", 
     "dev:app": "concurrently --kill-others -n frontend,backend -c blue,green \"pnpm start:frontend\" \"pnpm start:backend\"",
     "dev:worker": "pnpm start:worker",
     "dev:all": "concurrently --kill-others -n frontend,backend,worker -c blue,green,yellow \"pnpm start:frontend\" \"pnpm start:backend\" \"pnpm start:worker\"",

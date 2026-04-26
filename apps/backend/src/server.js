@@ -1,3 +1,5 @@
+import { setDefaultResultOrder } from 'dns';
+setDefaultResultOrder('ipv4first');
 
 import { config } from "@theblogproj/config";
 import { logger } from '../../../packages/logger/index.js';

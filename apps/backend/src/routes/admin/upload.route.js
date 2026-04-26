@@ -4,6 +4,28 @@ import UploadController from '../../controllers/admin/upload.controller.js';
 
 const router = Router();
 
+router.get('/test-cloudinary', async (req, res) => {
+  try {
+    const { cloudinary } = await import('../../../../../packages/cloudinary/index.js');
+    const result = await cloudinary.uploader.upload(
+      'https://res.cloudinary.com/demo/image/upload/sample.jpg',
+      { folder: 'blog-covers-dev' }
+    );
+    res.json({ success: true, url: result.secure_url });
+  } catch (error) {
+    console.error('FULL CLOUDINARY ERROR:', error); // ← add this
+    res.json({ 
+      success: false, 
+      error: error.message,
+      code: error.http_code,
+      name: error.name,
+      full: JSON.stringify(error)
+    });
+  }
+});
+
+
+
 /**
  * POST /api/admin/upload/cover-image
  * Upload cover image

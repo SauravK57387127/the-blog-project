@@ -141,11 +141,29 @@ export default function EditDraftPage({ draftSlug }) {
   }, [newTag, tags]);
 
   // ── Cover handlers ────────────────────────────────────────
-  const handleFileUpload = useCallback((e) => {
-    const file = e.target.files?.[0];
-    if (file) setCoverInput(URL.createObjectURL(file));
-  }, []);
-
+ const handleFileUpload = useCallback(async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  
+  // Show immediate preview while uploading
+  setCoverInput(URL.createObjectURL(file));
+  
+  // Actually upload to Cloudinary via backend
+  const formData = new FormData();
+  formData.append('image', file);
+  
+  try {
+    const result = await apiClient.post(
+      API_ENDPOINTS.ADMIN.UPLOAD.COVER_IMAGE,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+    setCoverInput(result.data.url); // replace blob with real Cloudinary URL
+  } catch (err) {
+    toast.error('Upload failed');
+  }
+}, []);
+  
   const handleSaveCover = useCallback(() => {
     setCoverImage(coverInput);
     setCoverModalOpen(false);

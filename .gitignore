@@ -66,3 +66,4 @@ index.e2e.js
 
 # Docker
 docker-compose.override.yml
+.claudeignore
