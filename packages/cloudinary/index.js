@@ -1,6 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { config } from '@theblogproj/config';
-import https from "https";
 
 // Configure Cloudinary
 cloudinary.config({
@@ -27,15 +26,16 @@ const folderMap = {
 
 export async function uploadImage(file, folder = folderMap[config.nodeEnv] || 'blog-covers-dev', publicId = null) {
   try {
-    const options = {
-      folder,
-      resource_type: 'image',
-     transformation: [
-  { width: 1200, height: 630, crop: 'limit' },
-  { quality: 'auto:good' },
-  { fetch_format: 'auto' },
-], 
-    };
+   const options = {
+  folder,
+  resource_type: 'image',
+  ...(publicId && { public_id: publicId }), // ← add this line
+  transformation: [
+    { width: 1200, height: 630, crop: 'limit' },
+    { quality: 'auto:good' },
+    { fetch_format: 'auto' },
+  ],
+}; 
 
     let uploadSource = file;
 
@@ -87,10 +87,6 @@ if (Buffer.isBuffer(file)) {
     stream.end(file);
   });
 }
-
-console.log('Upload source type:', typeof uploadSource);
-console.log('Is Buffer:', Buffer.isBuffer(uploadSource));
-console.log('Upload source preview:', typeof uploadSource === 'string' ? uploadSource.substring(0, 50) : 'not a string');
 
 const result = await cloudinary.uploader.upload(uploadSource, options);
 
