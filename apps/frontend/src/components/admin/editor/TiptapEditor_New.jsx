@@ -5,7 +5,7 @@ import { useTiptapEditor } from "@/hooks/useTiptapEditor";
 import { EditorToolbar } from "./EditorToolbar";
 import { EditorProvider } from "@/context/EditorContext";
 
-export function TiptapEditor({ content, onUpdate, showToolbar = true }) {
+export function TiptapEditor({ content, onUpdate, showToolbar = true, draftSlug }) {
   const editor = useTiptapEditor({ content, onUpdate });
 
   if (!editor) {
@@ -17,12 +17,11 @@ export function TiptapEditor({ content, onUpdate, showToolbar = true }) {
   }
 
   return (
-    <EditorProvider editor={editor}>
-      {/* FIXED: Removed overflow-hidden - was cutting the floating menu */}
+   <EditorProvider editor={editor}>
       <div className="relative border rounded-lg bg-background">
-        {showToolbar && <EditorToolbar editor={editor} />}
+        {showToolbar && <EditorToolbar editor={editor} draftSlug={draftSlug} />}
         <EditorContent editor={editor} />
       </div>
-    </EditorProvider>
+    </EditorProvider> 
   );
 }
