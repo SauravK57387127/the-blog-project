@@ -102,6 +102,7 @@ export const API_ENDPOINTS = {
 
     UPLOAD: {
       COVER_IMAGE: '/api/admin/upload/cover-image',
+      CONTENT_IMAGE: '/api/admin/upload/content-image',
     },
 
     DASHBOARD: {

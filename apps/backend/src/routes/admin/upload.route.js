@@ -41,6 +41,8 @@ router.post(
   UploadController.uploadCoverImage
 );
 
+router.post('/content-image', upload.single('image'), UploadController.uploadContentImage);
+
 /**
  * DELETE /api/admin/upload/cover-image
  * Delete cover image from Cloudinary

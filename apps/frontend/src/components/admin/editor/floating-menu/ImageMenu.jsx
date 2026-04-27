@@ -35,7 +35,7 @@ export function ImageMenu({ editor, draftSlug }) {
       toast.loading('Uploading image...', { id: 'img-upload' });
 
       const result = await apiClient.post(
-        API_ENDPOINTS.ADMIN.UPLOAD.COVER_IMAGE, // reuses same upload endpoint
+        API_ENDPOINTS.ADMIN.UPLOAD.CONTENT_IMAGE, 
         formData,
         { headers: { 'Content-Type': 'multipart/form-data' } }
       );
