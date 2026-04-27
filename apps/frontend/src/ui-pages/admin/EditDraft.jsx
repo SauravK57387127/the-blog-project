@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Send, Calendar as CalendarIcon, Image as ImageIcon,
-  Tag as TagIcon, Eye, X, Plus, Upload, LayoutGrid,
+  Tag as TagIcon, Eye, X, Plus, Upload, LayoutGrid, Star,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,14 +15,14 @@ import { TiptapEditor } from '@/components/admin/editor/TiptapEditor_New';
 import { BlogPreview } from '@/components/admin/editor/BlogPreview';
 import { DateTimePicker } from '@/components/admin/editor/DateTimePicker_New';
 import { DESIGN_CONSTANTS } from '@/lib/design-constants';
+import { apiClient } from '@/lib/axios';
+import { API_ENDPOINTS } from '@/api/endpoints';
 import {
   useDraftBySlug,
   useAutosave,
   usePublishBlog,
   useScheduleBlog,
 } from '@/hooks/api/admin/useAdminEditor';
-
-// ── Helpers ───────────────────────────────────────────────────
 
 function formatTimeAgo(date) {
   if (!date) return '';
@@ -37,18 +37,15 @@ function formatTimeAgo(date) {
 const SUGGESTED_TAGS = ['javascript', 'web-dev', 'tutorial', 'nextjs', 'react', 'node', 'dsa', 'career'];
 
 const CATEGORIES = [
-  { value: '',                    label: 'uncategorized' },
-  { value: 'tech-deep-dive',      label: 'Tech Deep Dive' },
-  { value: 'life-and-growth',     label: 'Life & Growth' },
-  { value: 'career-and-learnings',label: 'Career & Learnings' },
+  { value: '',                     label: 'uncategorized' },
+  { value: 'tech-deep-dive',       label: 'Tech Deep Dive' },
+  { value: 'life-and-growth',      label: 'Life & Growth' },
+  { value: 'career-and-learnings', label: 'Career & Learnings' },
 ];
-
-// ── Main Component ────────────────────────────────────────────
 
 export default function EditDraftPage({ draftSlug }) {
   const router = useRouter();
 
-  // Local editor state
   const [title,        setTitle]        = useState('');
   const [content,      setContent]      = useState(null);
   const [coverImage,   setCoverImage]   = useState('');
@@ -56,6 +53,12 @@ export default function EditDraftPage({ draftSlug }) {
   const [scheduleDate, setScheduleDate] = useState(null);
   const [blogId,       setBlogId]       = useState(null);
   const [category,     setCategory]     = useState('');
+
+  // Editor's pick state
+  const [isEditorsPick,       setIsEditorsPick]       = useState(false);
+  const [pickAnnotation,      setPickAnnotation]      = useState('');
+  const [pickModalOpen,       setPickModalOpen]       = useState(false);
+  const [pickAnnotationDraft, setPickAnnotationDraft] = useState('');
 
   // UI state
   const [previewModalOpen,  setPreviewModalOpen]  = useState(false);
@@ -67,18 +70,16 @@ export default function EditDraftPage({ draftSlug }) {
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [newTag,            setNewTag]            = useState('');
   const [coverInput,        setCoverInput]        = useState('');
+  const [isUploadingCover,  setIsUploadingCover]  = useState(false);
 
   const fileInputRef   = useRef(null);
   const autosaveTimer  = useRef(null);
   const initializedRef = useRef(false);
 
-  // ── Fetch draft ───────────────────────────────────────────
   const { data: draft, isLoading } = useDraftBySlug(draftSlug);
 
-  // Populate state once draft loads
   useEffect(() => {
     if (!draft) return;
-    // Removed console.logs — dev artifacts
     setTitle(draft.title ?? '');
     setContent(draft.content ?? '<p></p>');
     setCoverImage(draft.coverImage ?? '');
@@ -87,44 +88,44 @@ export default function EditDraftPage({ draftSlug }) {
     setCategory(draft.category ?? '');
     setBlogId(draft._id);
     if (draft.scheduledAt) setScheduleDate(draft.scheduledAt);
+    // Restore editor's pick from draft
+    setIsEditorsPick(draft.editorsPick?.isEditorsPick ?? false);
+    setPickAnnotation(draft.editorsPick?.annotation ?? '');
     setLastSaved(new Date(draft.updatedAt));
     setSaveStatus('saved');
     setTimeout(() => { initializedRef.current = true; }, 100);
   }, [draft]);
 
-  // ── Hooks depend on blogId ────────────────────────────────
-  const { mutate: autosave }                       = useAutosave(blogId);
+  const { mutate: autosave }                         = useAutosave(blogId);
   const { mutate: publish, isPending: isPublishing } = usePublishBlog(blogId);
   const { mutate: schedule, isPending: isScheduling } = useScheduleBlog(blogId);
 
-  // ── Autosave on any change ────────────────────────────────
+  // Autosave — includes editorsPick
   useEffect(() => {
     if (!blogId || !initializedRef.current) return;
-
     setSaveStatus('saving');
     clearTimeout(autosaveTimer.current);
-
     autosaveTimer.current = setTimeout(() => {
       autosave(
-        { title, content, coverImage, tags, category },
+        {
+          title, content, coverImage, tags, category,
+          editorsPick: { isEditorsPick, annotation: pickAnnotation },
+        },
         {
           onSuccess: () => { setSaveStatus('saved'); setLastSaved(new Date()); },
           onError:   () => setSaveStatus('error'),
         }
       );
     }, 1500);
-
     return () => clearTimeout(autosaveTimer.current);
-  }, [title, content, coverImage, tags, category]);
+  }, [title, content, coverImage, tags, category, isEditorsPick, pickAnnotation]);
 
-  // ── Live "X ago" ticker ───────────────────────────────────
   const [, setTick] = useState(0);
   useEffect(() => {
     const interval = setInterval(() => setTick(t => t + 1), 60000);
     return () => clearInterval(interval);
   }, []);
 
-  // ── Tag handlers ──────────────────────────────────────────
   const handleAddTag = useCallback((tag) => {
     setTags(prev => prev.includes(tag) ? prev : [...prev, tag]);
   }, []);
@@ -140,53 +141,70 @@ export default function EditDraftPage({ draftSlug }) {
     }
   }, [newTag, tags]);
 
-  // ── Cover handlers ────────────────────────────────────────
- const handleFileUpload = useCallback(async (e) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-  
-  // Show immediate preview while uploading
-  setCoverInput(URL.createObjectURL(file));
-  
-  // Actually upload to Cloudinary via backend
-  const formData = new FormData();
-  formData.append('image', file);
-  
-  try {
-    const result = await apiClient.post(
-      API_ENDPOINTS.ADMIN.UPLOAD.COVER_IMAGE,
-      formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } }
-    );
-    setCoverInput(result.data.url); // replace blob with real Cloudinary URL
-  } catch (err) {
-    toast.error('Upload failed');
-  }
-}, []);
-  
+  // Cover file upload → Cloudinary via backend
+  const handleFileUpload = useCallback(async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const localPreview = URL.createObjectURL(file);
+    setCoverInput(localPreview);
+    setIsUploadingCover(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('draftSlug', draftSlug);
+
+      const result = await apiClient.post(
+        API_ENDPOINTS.ADMIN.UPLOAD.COVER_IMAGE,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+
+      setCoverInput(result.data.url);
+      toast.success('Cover image uploaded');
+    } catch {
+      setCoverInput(coverImage);
+      toast.error('Upload failed — try again');
+    } finally {
+      setIsUploadingCover(false);
+      URL.revokeObjectURL(localPreview);
+    }
+  }, [draftSlug, coverImage]);
+
   const handleSaveCover = useCallback(() => {
     setCoverImage(coverInput);
     setCoverModalOpen(false);
   }, [coverInput]);
 
-  // ── Publish ───────────────────────────────────────────────
+  // Editor's pick toggle
+  const handleToggleEditorsPick = useCallback(() => {
+    if (isEditorsPick) {
+      setIsEditorsPick(false);
+      setPickAnnotation('');
+    } else {
+      setPickAnnotationDraft(pickAnnotation);
+      setPickModalOpen(true);
+    }
+  }, [isEditorsPick, pickAnnotation]);
+
+  const handleSaveEditorsPick = useCallback(() => {
+    setIsEditorsPick(true);
+    setPickAnnotation(pickAnnotationDraft);
+    setPickModalOpen(false);
+  }, [pickAnnotationDraft]);
+
   const handlePublish = useCallback(() => {
     if (!blogId) return;
-    publish(undefined, {
-      onSuccess: () => router.push('/admin/blogs/new'),
-    });
+    publish(undefined, { onSuccess: () => router.push('/admin/blogs') });
   }, [blogId, publish, router]);
 
-  // ── Schedule ──────────────────────────────────────────────
   const handleSchedule = useCallback(() => {
     if (!scheduleDate) { toast.error('Please select a schedule date first'); return; }
     if (!blogId) return;
-    schedule(scheduleDate, {
-      onSuccess: () => router.push('/admin/blogs'),
-    });
+    schedule(scheduleDate, { onSuccess: () => router.push('/admin/blogs') });
   }, [blogId, schedule, scheduleDate, router]);
 
-  // ── Redirect invalid slugs ────────────────────────────────
   useEffect(() => {
     if (!isLoading && !draft && draftSlug) {
       toast.error('Draft not found');
@@ -209,14 +227,12 @@ export default function EditDraftPage({ draftSlug }) {
   return (
     <AdminLayout_New>
 
-      {/* ── Sticky Top Bar ─────────────────────────────────── */}
+      {/* Sticky Top Bar */}
       <div className="sticky top-16 z-30 bg-background/95 backdrop-blur border-b border-border mb-0 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex justify-between items-center">
-
           <span className={`text-xs font-mono ${
             saveStatus === 'saving' ? 'text-muted-foreground animate-pulse' :
-            saveStatus === 'error'  ? 'text-destructive' :
-            'text-muted-foreground'
+            saveStatus === 'error'  ? 'text-destructive' : 'text-muted-foreground'
           }`}>
             {saveStatus === 'saving' && 'saving...'}
             {saveStatus === 'saved'  && lastSaved && `saved ${formatTimeAgo(lastSaved)}`}
@@ -224,31 +240,18 @@ export default function EditDraftPage({ draftSlug }) {
           </span>
 
           <div className="flex items-center gap-2">
-            {/* Preview button */}
-            <button
-              onClick={() => setPreviewModalOpen(true)}
-              className={`flex items-center gap-2 px-4 py-2 text-xs font-mono font-medium uppercase tracking-wide border-2 border-foreground hover:bg-muted ${DESIGN_CONSTANTS.transitions.fast}`}
-            >
-              <Eye className="h-3.5 w-3.5" />
-              Preview
+            <button onClick={() => setPreviewModalOpen(true)}
+              className={`flex items-center gap-2 px-4 py-2 text-xs font-mono font-medium uppercase tracking-wide border-2 border-foreground hover:bg-muted ${DESIGN_CONSTANTS.transitions.fast}`}>
+              <Eye className="h-3.5 w-3.5" /> Preview
             </button>
-
             <div className="flex items-center gap-0 border-2 border-foreground">
-              <button
-                onClick={() => setScheduleModalOpen(true)}
-                className={`flex items-center gap-2 px-4 py-2 text-xs font-mono font-medium uppercase tracking-wide border-r-2 border-foreground hover:bg-muted ${DESIGN_CONSTANTS.transitions.fast}`}
-              >
+              <button onClick={() => setScheduleModalOpen(true)}
+                className={`flex items-center gap-2 px-4 py-2 text-xs font-mono font-medium uppercase tracking-wide border-r-2 border-foreground hover:bg-muted ${DESIGN_CONSTANTS.transitions.fast}`}>
                 <CalendarIcon className="h-3.5 w-3.5" />
-                {scheduleDate
-                  ? new Date(scheduleDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                  : 'Schedule'
-                }
+                {scheduleDate ? new Date(scheduleDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Schedule'}
               </button>
-              <button
-                onClick={handlePublish}
-                disabled={isPublishing}
-                className={`flex items-center gap-2 px-4 py-2 text-xs font-mono font-bold uppercase tracking-wide bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40`}
-              >
+              <button onClick={handlePublish} disabled={isPublishing}
+                className={`flex items-center gap-2 px-4 py-2 text-xs font-mono font-bold uppercase tracking-wide bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40`}>
                 <Send className="h-3.5 w-3.5" />
                 {isPublishing ? 'Publishing...' : 'Publish'}
               </button>
@@ -257,19 +260,16 @@ export default function EditDraftPage({ draftSlug }) {
         </div>
       </div>
 
-      {/* ── Metadata Strip ─────────────────────────────────── */}
+      {/* Metadata Strip */}
       <div className="border-b border-border -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 mb-6">
         <div className="flex items-stretch divide-x divide-border overflow-x-auto">
 
           {/* Title */}
           <div className="flex-1 min-w-[200px] py-3 pr-4">
             <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mb-1">Title</p>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+            <Input value={title} onChange={(e) => setTitle(e.target.value)}
               placeholder="Post title..."
-              className="border-0 p-0 h-auto text-sm font-sans font-semibold focus-visible:ring-0 bg-transparent"
-            />
+              className="border-0 p-0 h-auto text-sm font-sans font-semibold focus-visible:ring-0 bg-transparent" />
           </div>
 
           {/* Cover */}
@@ -278,10 +278,7 @@ export default function EditDraftPage({ draftSlug }) {
             <Dialog open={coverModalOpen} onOpenChange={setCoverModalOpen}>
               <DialogTrigger asChild>
                 <button className={`flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground ${DESIGN_CONSTANTS.transitions.fast}`}>
-                  {coverImage
-                    ? <img src={coverImage} alt="Cover" className="w-12 h-7 object-cover border border-border" />
-                    : <ImageIcon className="h-4 w-4" />
-                  }
+                  {coverImage ? <img src={coverImage} alt="Cover" className="w-12 h-7 object-cover border border-border" /> : <ImageIcon className="h-4 w-4" />}
                   <span>{coverImage ? 'change' : 'add image'}</span>
                 </button>
               </DialogTrigger>
@@ -291,20 +288,15 @@ export default function EditDraftPage({ draftSlug }) {
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <Label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Image URL or Upload</Label>
+                    <Label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Image URL or Upload from device</Label>
                     <div className="flex gap-2 mt-2">
-                      <Input
-                        value={coverInput}
-                        onChange={(e) => setCoverInput(e.target.value)}
-                        placeholder="https://..."
-                        className="flex-1 font-reading border-foreground/20"
-                      />
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        type="button"
-                        className={`px-3 border-2 border-foreground hover:bg-foreground hover:text-background ${DESIGN_CONSTANTS.transitions.fast}`}
-                      >
-                        <Upload className="h-4 w-4" />
+                      <Input value={coverInput} onChange={(e) => setCoverInput(e.target.value)}
+                        placeholder="https://..." className="flex-1 font-reading border-foreground/20"
+                        disabled={isUploadingCover} />
+                      <button onClick={() => fileInputRef.current?.click()} type="button"
+                        disabled={isUploadingCover}
+                        className={`px-3 border-2 border-foreground hover:bg-foreground hover:text-background ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40`}>
+                        {isUploadingCover ? <span className="text-xs font-mono px-1">uploading...</span> : <Upload className="h-4 w-4" />}
                       </button>
                     </div>
                     <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
@@ -320,8 +312,8 @@ export default function EditDraftPage({ draftSlug }) {
                       className={`px-4 py-2 text-xs font-mono uppercase tracking-wide border border-border hover:bg-muted ${DESIGN_CONSTANTS.transitions.fast}`}>
                       Cancel
                     </button>
-                    <button onClick={handleSaveCover}
-                      className={`px-4 py-2 text-xs font-mono font-bold uppercase tracking-wide border-2 border-foreground bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast}`}>
+                    <button onClick={handleSaveCover} disabled={isUploadingCover}
+                      className={`px-4 py-2 text-xs font-mono font-bold uppercase tracking-wide border-2 border-foreground bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40`}>
                       Save
                     </button>
                   </div>
@@ -337,16 +329,11 @@ export default function EditDraftPage({ draftSlug }) {
               <DialogTrigger asChild>
                 <button className={`flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-foreground ${DESIGN_CONSTANTS.transitions.fast}`}>
                   <TagIcon className="h-3.5 w-3.5" />
-                  {tags.length > 0
-                    ? tags.slice(0, 2).join(', ') + (tags.length > 2 ? ` +${tags.length - 2}` : '')
-                    : 'add tags'
-                  }
+                  {tags.length > 0 ? tags.slice(0, 2).join(', ') + (tags.length > 2 ? ` +${tags.length - 2}` : '') : 'add tags'}
                 </button>
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader>
-                  <DialogTitle className="font-serif italic font-normal text-xl">Tags</DialogTitle>
-                </DialogHeader>
+                <DialogHeader><DialogTitle className="font-serif italic font-normal text-xl">Tags</DialogTitle></DialogHeader>
                 <div className="space-y-5">
                   <div>
                     <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Current tags</p>
@@ -354,9 +341,7 @@ export default function EditDraftPage({ draftSlug }) {
                       {tags.map((tag) => (
                         <span key={tag} className="inline-flex items-center gap-1 px-2 py-1 text-xs font-mono border border-border">
                           {tag}
-                          <button onClick={() => handleRemoveTag(tag)} className={`hover:text-destructive ${DESIGN_CONSTANTS.transitions.fast}`}>
-                            <X className="h-3 w-3" />
-                          </button>
+                          <button onClick={() => handleRemoveTag(tag)} className={`hover:text-destructive ${DESIGN_CONSTANTS.transitions.fast}`}><X className="h-3 w-3" /></button>
                         </span>
                       ))}
                       {tags.length === 0 && <p className="text-xs font-reading text-muted-foreground italic">No tags yet</p>}
@@ -365,15 +350,10 @@ export default function EditDraftPage({ draftSlug }) {
                   <div>
                     <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-2">Add tag</p>
                     <div className="flex gap-2">
-                      <Input
-                        value={newTag}
-                        onChange={(e) => setNewTag(e.target.value)}
-                        placeholder="Enter tag..."
-                        className="flex-1 font-reading border-foreground/20"
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddNewTag(); } }}
-                      />
-                      <button onClick={handleAddNewTag}
-                        className={`px-3 border-2 border-foreground hover:bg-foreground hover:text-background ${DESIGN_CONSTANTS.transitions.fast}`}>
+                      <Input value={newTag} onChange={(e) => setNewTag(e.target.value)}
+                        placeholder="Enter tag..." className="flex-1 font-reading border-foreground/20"
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddNewTag(); } }} />
+                      <button onClick={handleAddNewTag} className={`px-3 border-2 border-foreground hover:bg-foreground hover:text-background ${DESIGN_CONSTANTS.transitions.fast}`}>
                         <Plus className="h-4 w-4" />
                       </button>
                     </div>
@@ -403,42 +383,32 @@ export default function EditDraftPage({ draftSlug }) {
           {/* Schedule */}
           <div className="px-4 py-3 flex-shrink-0">
             <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mb-1">Schedule</p>
-            <button
-              onClick={() => setScheduleModalOpen(true)}
-              className={`flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground ${DESIGN_CONSTANTS.transitions.fast}`}
-            >
+            <button onClick={() => setScheduleModalOpen(true)}
+              className={`flex items-center gap-2 text-xs font-mono text-muted-foreground hover:text-foreground ${DESIGN_CONSTANTS.transitions.fast}`}>
               <CalendarIcon className="h-3.5 w-3.5" />
               {scheduleDate ? new Date(scheduleDate).toLocaleDateString() : 'set date'}
             </button>
           </div>
 
-          {/* Category — styled to match other strip items */}
+          {/* Category */}
           <div className="px-4 py-3 flex-shrink-0">
             <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mb-1">Category</p>
             <Dialog open={categoryModalOpen} onOpenChange={setCategoryModalOpen}>
               <DialogTrigger asChild>
                 <button className={`flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-foreground ${DESIGN_CONSTANTS.transitions.fast}`}>
-                  <LayoutGrid className="h-3.5 w-3.5" />
-                  {selectedCategoryLabel}
+                  <LayoutGrid className="h-3.5 w-3.5" /> {selectedCategoryLabel}
                 </button>
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader>
-                  <DialogTitle className="font-serif italic font-normal text-xl">Category</DialogTitle>
-                </DialogHeader>
+                <DialogHeader><DialogTitle className="font-serif italic font-normal text-xl">Category</DialogTitle></DialogHeader>
                 <div className="space-y-3">
                   <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Select one</p>
                   <div className="flex flex-col gap-2">
                     {CATEGORIES.map((cat) => (
-                      <button
-                        key={cat.value}
-                        onClick={() => { setCategory(cat.value); setCategoryModalOpen(false); }}
+                      <button key={cat.value} onClick={() => { setCategory(cat.value); setCategoryModalOpen(false); }}
                         className={`w-full text-left px-4 py-3 text-sm font-mono border transition-all duration-150 ${
-                          category === cat.value
-                            ? 'border-foreground bg-foreground text-background'
-                            : 'border-border hover:border-foreground/40 hover:bg-muted'
-                        }`}
-                      >
+                          category === cat.value ? 'border-foreground bg-foreground text-background' : 'border-border hover:border-foreground/40 hover:bg-muted'
+                        }`}>
                         {cat.label}
                       </button>
                     ))}
@@ -448,23 +418,30 @@ export default function EditDraftPage({ draftSlug }) {
             </Dialog>
           </div>
 
+          {/* Editor's Pick */}
+          <div className="px-4 py-3 flex-shrink-0">
+            <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mb-1">Editor's Pick</p>
+            <button onClick={handleToggleEditorsPick}
+              className={`flex items-center gap-1.5 text-xs font-mono ${DESIGN_CONSTANTS.transitions.fast} ${
+                isEditorsPick ? 'text-accent hover:text-muted-foreground' : 'text-muted-foreground hover:text-accent'
+              }`}>
+              <Star className={`h-3.5 w-3.5 ${isEditorsPick ? 'fill-accent' : ''}`} />
+              {isEditorsPick ? 'picked' : 'not picked'}
+            </button>
+          </div>
+
         </div>
       </div>
 
       {/* Schedule modal */}
       <Dialog open={scheduleModalOpen} onOpenChange={setScheduleModalOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="font-serif italic font-normal text-xl">Schedule Post</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle className="font-serif italic font-normal text-xl">Schedule Post</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <DateTimePicker value={scheduleDate} onChange={setScheduleDate} />
             <div className="flex justify-between gap-2">
-              <button
-                onClick={handleSchedule}
-                disabled={!scheduleDate || isScheduling}
-                className={`px-4 py-2 text-xs font-mono font-bold uppercase tracking-wide border-2 border-foreground bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40`}
-              >
+              <button onClick={handleSchedule} disabled={!scheduleDate || isScheduling}
+                className={`px-4 py-2 text-xs font-mono font-bold uppercase tracking-wide border-2 border-foreground bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast} disabled:opacity-40`}>
                 {isScheduling ? 'Scheduling...' : 'Schedule & Save'}
               </button>
               <div className="flex gap-2">
@@ -482,14 +459,43 @@ export default function EditDraftPage({ draftSlug }) {
         </DialogContent>
       </Dialog>
 
-      {/* ── Full-width Editor ──────────────────────────────── */}
+      {/* Editor's Pick annotation modal */}
+      <Dialog open={pickModalOpen} onOpenChange={setPickModalOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle className="font-serif italic font-normal text-xl">Editor's Pick</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <p className="text-xs font-reading text-muted-foreground">
+              Write a short thought about why this post is worth reading. Shows on the homepage.
+            </p>
+            <textarea
+              value={pickAnnotationDraft}
+              onChange={(e) => setPickAnnotationDraft(e.target.value)}
+              placeholder="e.g. wrote this at 2am and it still holds true..."
+              rows={3}
+              maxLength={200}
+              className="w-full text-sm font-reading bg-background border border-foreground/20 focus:border-foreground/50 outline-none px-4 py-3 resize-none placeholder:text-muted-foreground"
+            />
+            <p className="text-[10px] font-mono text-muted-foreground">{pickAnnotationDraft.length}/200</p>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setPickModalOpen(false)}
+                className={`px-4 py-2 text-xs font-mono uppercase tracking-wide border border-border hover:bg-muted ${DESIGN_CONSTANTS.transitions.fast}`}>
+                Cancel
+              </button>
+              <button onClick={handleSaveEditorsPick}
+                className={`flex items-center gap-2 px-4 py-2 text-xs font-mono font-bold uppercase tracking-wide border-2 border-foreground bg-foreground text-background hover:bg-foreground/80 ${DESIGN_CONSTANTS.transitions.fast}`}>
+                <Star className="h-3.5 w-3.5" /> Mark as Pick
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Full-width Editor */}
       <div className="border border-border overflow-auto custom-scroll" style={{ height: 'calc(100vh - 320px)' }}>
-        {content && (
-          <TiptapEditor key={blogId} content={content} onUpdate={setContent} />
-        )}
+        {content && <TiptapEditor key={blogId} content={content} onUpdate={setContent} />}
       </div>
 
-      {/* Preview Modal — blog-slug width, internally scrollable */}
+      {/* Preview Modal */}
       <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
         <DialogContent className="max-w-3xl w-full max-h-[88vh] flex flex-col p-0 gap-0">
           <DialogHeader className="px-6 py-4 border-b border-border flex-shrink-0">
