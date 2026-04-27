@@ -55,12 +55,12 @@ const BlogSchema = new mongoose.Schema({
     trim: true,
   }],
   
- category: {
+category: {
   type: String,
-  enum: ['tech', 'life', 'Web Development', 'experiments', 'Technology', 'Tutorial', 'DevOps', 'webdev', 'Best Practices'],
-  default: 'tech',
+  enum: ['tech-deep-dive', 'life-and-growth', 'career-and-learnings', 'experiments', ''],
+  default: '',
   index: true,
-}, 
+},
   
 readingTime: {
   type: Number,  // minutes
