@@ -491,7 +491,7 @@ export default function EditDraftPage({ draftSlug }) {
       </Dialog>
 
       {/* Full-width Editor */}
-      <div className="border border-border overflow-auto custom-scroll" style={{ height: 'calc(100vh - 320px)' }}>
+      <div className="border border-border">
         {content && <TiptapEditor key={blogId} content={content} onUpdate={setContent} draftSlug={draftSlug} />}
       </div>
 

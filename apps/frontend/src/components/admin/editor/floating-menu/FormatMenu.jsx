@@ -14,13 +14,6 @@ export function FormatMenu({
   </MenubarTrigger>
   
       <MenubarContent>
-        <MenubarItem onMouseDown={withEditorCommand(editor, editor => editor.chain().focus().toggleSubscript(), editor => !editor.isActive("codeBlock") && editor.can().chain().focus().toggleSubscript().run())}>
-          Subscript
-        </MenubarItem>
-        <MenubarItem onMouseDown={withEditorCommand(editor, editor => editor.chain().focus().toggleSuperscript(), editor => !editor.isActive("codeBlock") && editor.can().chain().focus().toggleSuperscript().run())}>
-          Superscript
-        </MenubarItem>
-        <MenubarSeparator />
         <MenubarItem onMouseDown={withEditorCommand(editor, editor => editor.chain().focus().setTextAlign("left"))}>
           Align Left
         </MenubarItem>

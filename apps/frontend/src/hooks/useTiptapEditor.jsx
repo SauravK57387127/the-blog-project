@@ -7,8 +7,8 @@ import { TextAlign } from "@tiptap/extension-text-align";
 import { Highlight } from "@tiptap/extension-highlight";
 import { Image } from "@tiptap/extension-image";
 import { Link } from "@tiptap/extension-link";
-import { Subscript } from "@tiptap/extension-subscript";
-import { Superscript } from "@tiptap/extension-superscript";
+//import { Subscript } from "@tiptap/extension-subscript";
+//import { Superscript } from "@tiptap/extension-superscript";
 import { TaskList } from "@tiptap/extension-task-list";
 import { TaskItem } from "@tiptap/extension-task-item";
 
@@ -27,8 +27,8 @@ export const useTiptapEditor = ({ content = "", onUpdate } = {}) => {
       Highlight.configure({ multicolor: true }),
       Image.configure({ allowBase64: true }),
       Link.configure({ openOnClick: false }),
-      Subscript,
-      Superscript,
+      //Subscript,
+      //Superscript,
       TaskList,
       TaskItem.configure({ nested: true }),
     ],
