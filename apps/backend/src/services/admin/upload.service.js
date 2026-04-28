@@ -2,19 +2,17 @@ import { uploadImage, deleteImage } from '../../../../../packages/cloudinary/ind
 import { logger } from '../../../../../packages/logger/index.js';
 import { config } from '@theblogproj/config';
 
-const coverFolderMap = {
-  development: 'blog-covers-dev',
-  staging:     'blog-covers-staging',
-  production:  'blog-covers-production',
-};
-
-const contentFolderMap = {
-  development: 'blog-content-dev',
-  staging:     'blog-content-staging',
-  production:  'blog-content-production',
-};
+// Environment prefix — top-level folder in Cloudinary
+const envPrefix = config.nodeEnv === 'production' ? 'production'
+                : config.nodeEnv === 'staging'    ? 'staging'
+                : 'dev';
 
 export default {
+  /**
+   * Upload cover image
+   * Stored at: {env}/{draftSlug}/cover/cover
+   * Same publicId always — Cloudinary overwrites on re-upload, no orphans
+   */
   uploadCoverImage: async ({ file, base64, url, draftSlug }) => {
     try {
       let uploadSource;
@@ -23,8 +21,7 @@ export default {
       else if (url)    uploadSource = url;
       else return { success: false, message: 'No image provided', data: null };
 
-      const base     = coverFolderMap[config.nodeEnv] || 'blog-covers-dev';
-      const folder   = `${base}/${draftSlug || 'uncategorized'}`;
+      const folder   = `${envPrefix}/${draftSlug || 'uncategorized'}/cover`;
       const publicId = 'cover';
 
       const result = await uploadImage(uploadSource, folder, publicId);
@@ -44,12 +41,15 @@ export default {
     }
   },
 
+  /**
+   * Upload content image
+   * Stored at: {env}/{draftSlug}/content/img-{timestamp}
+   */
   uploadContentImage: async ({ file, draftSlug }) => {
     try {
       if (!file) return { success: false, message: 'No image provided', data: null };
 
-      const base     = contentFolderMap[config.nodeEnv] || 'blog-content-dev';
-      const folder   = `${base}/${draftSlug || 'uncategorized'}`;
+      const folder   = `${envPrefix}/${draftSlug || 'uncategorized'}/content`;
       const publicId = `img-${Date.now()}`;
 
       const result = await uploadImage(file.buffer, folder, publicId);
@@ -69,6 +69,9 @@ export default {
     }
   },
 
+  /**
+   * Delete image from Cloudinary
+   */
   deleteCoverImage: async (publicId) => {
     try {
       const result = await deleteImage(publicId);
