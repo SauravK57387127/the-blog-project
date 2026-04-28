@@ -16,7 +16,8 @@ import { FloatingMenu } from '@tiptap/react/menus'
 
 
 export function EditorToolbar({
-  editor
+  editor,
+  draftSlug
 }) {
     // console.log("FloatingMenu type:", typeof FloatingMenu, FloatingMenu);
 
@@ -47,7 +48,7 @@ export function EditorToolbar({
         <SizeMenu editor={editor} />
         <BlockquoteMenu editor={editor} />
         <CodeBlockMenu editor={editor} />
-        <ImageMenu editor={editor} />
+        <ImageMenu editor={editor} draftSlug={draftSlug} />
         <LinkMenu editor={editor} />
         <HighlightMenu editor={editor} />
         <FormatMenu editor={editor} />
