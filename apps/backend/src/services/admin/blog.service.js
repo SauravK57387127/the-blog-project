@@ -496,7 +496,8 @@ createBlog: async (blogData) => {
    * Schedule blog for future publication
    */
  scheduleBlog: async (blogId, scheduledAt, { blogQueue }) => {
-  try {
+    console.log('scheduledAt received:', scheduledAt, 'server now:', new Date().toISOString());
+   try {
     const blog = await Blog.findById(blogId).lean();
     if (!blog) return { success: false, message: 'Blog not found', data: null };
 

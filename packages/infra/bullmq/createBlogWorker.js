@@ -122,7 +122,11 @@ async function handlePublishBlog(job, Blog, jobLogger) {
     }     
     blog.status = 'published';
     blog.publishedAt = new Date();
-    await blog.save();
+    await Blog.findByIdAndUpdate(
+  blogId,
+  { status: 'published', publishedAt: new Date() },
+  { runValidators: false }
+);
     return {status: 'published', blogId, title: blog.title};
     
   } catch (error) {
@@ -163,8 +167,11 @@ async function handleReconcileBlogs(Blog, jobLogger){
         continue;
       }
 
-      blog.status = 'published';
-      blog.publishedAt = now;
+      await Blog.findByIdAndUpdate(
+    blog._id,
+    { status: 'published', publishedAt: new Date() },
+    { runValidators: false }
+  );
       publishedCount++;
 
       jobLogger.info('Reconcile overdue blog', {

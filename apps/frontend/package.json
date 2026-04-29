@@ -41,6 +41,7 @@
         "@radix-ui/react-tooltip": "^1.2.8",
         "@tanstack/react-query": "^5.87.4",
         "@tiptap/extension-floating-menu": "^3.20.0",
+        "@tiptap/extension-font-family": "^3.22.5",
         "@tiptap/extension-highlight": "^3.20.0",
         "@tiptap/extension-image": "^3.20.0",
         "@tiptap/extension-link": "^3.20.0",

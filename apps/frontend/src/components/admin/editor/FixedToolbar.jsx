@@ -86,16 +86,25 @@ export function FixedToolbar({ editor, draftSlug }) {
     editor.chain().focus().setImage({ src: url }).run();
   };
 
-  const handleLink = () => {
-    const prev = editor.getAttributes('link').href ?? '';
-    const url  = window.prompt('Enter URL', prev);
-    if (url === null) return;
-    if (!url) {
-      editor.chain().focus().unsetLink().run();
-      return;
-    }
-    editor.chain().focus().setLink({ href: url, target: '_blank' }).run();
-  };
+const handleLink = () => {
+  const previousUrl = editor.getAttributes('link').href ?? '';
+  const url = window.prompt('URL', previousUrl);
+
+  if (url === null) return; // cancelled
+
+  if (url === '') {
+    // Remove link
+    editor.chain().focus().extendMarkRange('link').unsetLink().run();
+    return;
+  }
+
+  // Set link — extendMarkRange ensures full word is linked
+  try {
+    editor.chain().focus().extendMarkRange('link').setLink({ href: url, target: '_blank' }).run();
+  } catch (e) {
+    toast.error(e.message);
+  }
+};
 
   return (
     <div className="flex items-center gap-0.5 px-3 py-1.5 border-b border-border bg-background/80 backdrop-blur flex-wrap">
@@ -148,11 +157,18 @@ export function FixedToolbar({ editor, draftSlug }) {
       <Divider />
 
       {/* Link */}
-      <ToolBtn onClick={handleLink} active={editor.isActive('link')} title="Link"><LinkIcon /></ToolBtn>
+<ToolBtn onClick={handleLink} active={editor.isActive('link')} title="Link"><LinkIcon /></ToolBtn>
+      
+    <Divider />
 
-      <Divider />
+    {/* Font family */}
+<ToolBtn onClick={() => editor.chain().focus().setFontFamily('Inter').run()}         active={editor.isActive('textStyle', { fontFamily: 'Inter' })}     title="Sans"><span className="text-[11px]">Aa</span></ToolBtn>
+<ToolBtn onClick={() => editor.chain().focus().setFontFamily('serif').run()}          active={editor.isActive('textStyle', { fontFamily: 'serif' })}      title="Serif"><span className="text-[11px] font-serif">Aa</span></ToolBtn>
+<ToolBtn onClick={() => editor.chain().focus().setFontFamily('monospace').run()}      active={editor.isActive('textStyle', { fontFamily: 'monospace' })}  title="Mono"><span className="text-[11px] font-mono">Aa</span></ToolBtn>
 
-      {/* Image — URL */}
+    <Divider />
+    
+    {/* Image — URL */}
       <ToolBtn onClick={handleImageUrl} active={false} title="Insert image URL"><ImageIcon /></ToolBtn>
 
       {/* Image — Upload */}

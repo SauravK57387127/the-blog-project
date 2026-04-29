@@ -201,6 +201,7 @@ export default function EditDraftPage({ draftSlug }) {
 
   const handleSchedule = useCallback(() => {
     if (!scheduleDate) { toast.error('Please select a schedule date first'); return; }
+    console.log('Sending scheduleDate:', scheduleDate, new Date(scheduleDate).toISOString())
     if (!blogId) return;
     schedule(scheduleDate, { onSuccess: () => router.push('/admin/blogs') });
   }, [blogId, schedule, scheduleDate, router]);
@@ -464,9 +465,7 @@ export default function EditDraftPage({ draftSlug }) {
         <DialogContent>
           <DialogHeader><DialogTitle className="font-serif italic font-normal text-xl">Editor's Pick</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <p className="text-xs font-reading text-muted-foreground">
-              Write a short thought about why this post is worth reading. Shows on the homepage.
-            </p>
+
             <textarea
               value={pickAnnotationDraft}
               onChange={(e) => setPickAnnotationDraft(e.target.value)}

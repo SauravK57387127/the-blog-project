@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LayoutDashboard, BarChart3, Newspaper, NotebookPen, FilePlus2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
@@ -24,8 +24,13 @@ const SunIcon  = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height
 const MoonIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>;
 
 export function AdminFloatingDock() {
+  const [mounted, setMounted] = useState(false);
+
   const [hoveredIndex, setHoveredIndex]       = useState(null);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
 
@@ -99,7 +104,7 @@ export function AdminFloatingDock() {
               className={`p-3 transition-colors duration-150 ${hoveredIndex === THEME_IDX ? 'bg-white/20 dark:bg-white/10' : ''}`}
               style={{ borderRadius: '0.5rem' }}
             >
-              {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
+              {mounted ? (theme === 'dark' ? <SunIcon /> : <MoonIcon />) : <SunIcon/>}
             </div>
           </button>
 

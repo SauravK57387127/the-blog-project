@@ -11,6 +11,7 @@ import { Link } from "@tiptap/extension-link";
 //import { Superscript } from "@tiptap/extension-superscript";
 import { TaskList } from "@tiptap/extension-task-list";
 import { TaskItem } from "@tiptap/extension-task-item";
+import { FontFamily } from '@tiptap/extension-font-family';
 
 export const useTiptapEditor = ({ content = "", onUpdate } = {}) => {
   // Tracks the last HTML string the editor itself emitted via onUpdate.
@@ -21,16 +22,17 @@ export const useTiptapEditor = ({ content = "", onUpdate } = {}) => {
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+      StarterKit.configure({ heading: { levels: [1, 2, 3] }, bold: false, italic: false, strike: false, code: false, }),
       TextStyle,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
       Highlight.configure({ multicolor: true }),
       Image.configure({ allowBase64: true }),
-      Link.configure({ openOnClick: false }),
+      Link.configure({ openOnClick: false, autolink: false, defaultProtocol: 'https' }),
       //Subscript,
       //Superscript,
       TaskList,
       TaskItem.configure({ nested: true }),
+      FontFamily,
     ],
     content,
     editorProps: {
