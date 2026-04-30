@@ -57,7 +57,7 @@ export function AdminFloatingDock() {
 
   return (
     <>
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50" style={{ paddingRight: 'var(--removed-body-scroll-bar-size, 0px)' }}>
         <div
           className="floating-dock flex items-end gap-2 px-4 py-3 backdrop-blur-xl border border-border/40 shadow-2xl"
           style={{ borderRadius: '1rem', background: 'rgba(255, 255, 255, 0.15)' }}

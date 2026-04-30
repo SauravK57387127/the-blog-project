@@ -84,7 +84,7 @@ const navItems = [
   const isHovered = (index) => hoveredIndex === index;
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+    <div className="fixed bottom-6 z-50" style={{ left: '50%', transform: 'translateX(-50%)', paddingRight: 'var(--removed-body-scroll-bar-size, 0px)' }}>
       <div
         className="floating-dock flex items-end gap-1 sm:gap-2 px-2 sm:px-4 py-3 backdrop-blur-xl border border-white/20 shadow-2xl"
         style={{
