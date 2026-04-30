@@ -1,0 +1,46 @@
+version: '3.8'
+services:
+  mongodb-test:
+    image: mongo:7
+    container_name: theblogproj-mongo-test
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_DATABASE: theblogproj-test
+    tmpfs:
+      - /data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/theblogproj-test --quiet
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: theblogproj-postgres-test
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: theblogproj-test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test-password
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis-test:
+    image: redis:7-alpine
+    container_name: theblogproj-redis-test
+    ports:
+      - "6380:6379"
+    tmpfs:
+      - /data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
