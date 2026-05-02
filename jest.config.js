@@ -11,6 +11,7 @@ export default {
   moduleNameMapper: {
    '^@theblogproj/config$': '<rootDir>/packages/config/index.js',
   '^.*packages/logger/index\\.js$': '<rootDir>/tests/__mocks__/logger.js',
+    '^@clerk/express$': '<rootDir>/tests/__mocks__/@clerk/express.js',
   '^.*packages/logger/httpLogger\\.js$': '<rootDir>/tests/__mocks__/httpLogger.js', 
   },
 
