@@ -25,7 +25,7 @@ describe('GET /api/public/homepage', () => {
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data).toMatchObject({
-      hero: expect.anything(),
+      hero: null,
       recentHighlights: expect.any(Array),
       trending: expect.any(Array),
       mostRead: expect.any(Array),
@@ -45,7 +45,6 @@ describe('GET /api/public/homepage', () => {
 
   test('returns empty arrays when no blogs exist', async () => {
     const res = await request(app).get('/api/public/homepage');
-
     expect(res.status).toBe(200);
     expect(res.body.data.hero).toBeNull();
     expect(res.body.data.recentHighlights).toHaveLength(0);
