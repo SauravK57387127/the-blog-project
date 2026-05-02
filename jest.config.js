@@ -9,7 +9,9 @@ export default {
 
   // Package aliases — only real packages need mapping
   moduleNameMapper: {
-    '^@theblogproj/config$': '<rootDir>/packages/config/index.js',
+   '^@theblogproj/config$': '<rootDir>/packages/config/index.js',
+  '^.*packages/logger/index\\.js$': '<rootDir>/tests/__mocks__/logger.js',
+  '^.*packages/logger/httpLogger\\.js$': '<rootDir>/tests/__mocks__/httpLogger.js', 
   },
 
   // __mocks__ folder location — tells Jest where to find auto-mocks
