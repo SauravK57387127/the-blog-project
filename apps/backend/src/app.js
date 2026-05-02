@@ -60,16 +60,8 @@ if (config.nodeEnv !== 'test') {
    // app.use(httpLogger);
   }
 
-
-if (config.nodeEnv === 'test') {
-  app.use((req, res, next) => {
-    const testUserId = req.get('x-test-user-id');
-    req.auth = testUserId ? { userId: testUserId } : null;
-    next();
-  });
-} else {
   app.use(clerkMiddleware());
-}
+
 
     app.use((req, res, next) => {
   console.log('🔴 After Clerk:', req.path);

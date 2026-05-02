@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { config } from '../../packages/config/index.js';
 
 // Enforce test environment — hard stop if wrong
