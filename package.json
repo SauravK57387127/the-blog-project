@@ -11,6 +11,7 @@
     "migrate:views": "NODE_ENV=development node scripts/migrations/addViewsAndReadTime.js",
     "db:generate": "pnpm --filter database prisma:generate",
     "db:migrate": "pnpm --filter database prisma:migrate",
+    "db:migrate:test": "NODE_ENV=test pnpm --filter database prisma:migrate:deploy",
     "test": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest",
     "test:unit": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest tests/unit",
     "start:frontend": "pnpm --filter ./apps/frontend start",
