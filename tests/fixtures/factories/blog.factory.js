@@ -10,7 +10,7 @@ export async function createBlog(overrides = {}) {
     content: '<p>Test content</p>',
     coverImage: 'https://example.com/image.jpg',
     tags: ['test'],
-    category: 'tech',
+    category: 'tech-deep-dive',
     status: 'published',
     readingTime: 5,
     publishedAt: new Date(),
