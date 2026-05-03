@@ -29,7 +29,7 @@ afterEach(async () => {
 });
 
 afterAll(async () => {
-  await teardownTestDB();
+  await teardownTestDB();  
 });
 
 describe('POST /api/admin/blogs — create', () => {
