@@ -26,12 +26,7 @@ const prisma = getPrisma();
 export const requireAdmin = async (req, res, next) => {
   console.log('\n🛡️  Admin Auth Middleware - START');
   console.log(`📍 Route: ${req.method} ${req.path}`);
-  if (process.env.NODE_ENV === 'test') {
-  req.admin = { id: 'test-admin', username: 'test', role: 'admin' };
-  req.adminId = 'test-admin';
-  return next();
-}
-
+  
   try {
     // STEP 1: Extract token from Authorization header or cookie
     const authHeader = req.headers.authorization;
