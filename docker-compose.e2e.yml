@@ -1,0 +1,45 @@
+services:
+  mongodb-e2e:
+    image: mongo:7
+    container_name: theblogproj-mongo-e2e
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_DATABASE: theblogproj-e2e
+    tmpfs:
+      - /data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/theblogproj-e2e --quiet
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  postgres-e2e:
+    image: postgres:16-alpine
+    container_name: theblogproj-postgres-e2e
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: theblogproj-e2e
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: e2e-password
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis-e2e:
+    image: redis:7-alpine
+    container_name: theblogproj-redis-e2e
+    ports:
+      - "6381:6379"
+    tmpfs:
+      - /data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5

@@ -25,7 +25,7 @@ export default async function globalSetup() {
   console.log('✅ Test containers ready');
 
   console.log('🔄 Running Prisma migrations...');
-  execSync('pnpm db:migrate:test', {
+  execSync('pnpm db:migrate:e2e', {
     stdio: 'inherit',
     env: { ...process.env, NODE_ENV: 'test' },
   });
