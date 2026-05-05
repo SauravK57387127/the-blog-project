@@ -24,15 +24,13 @@ export function useAdminLogin() {
 
 export function useAdminGuard() {
   const router = useRouter();
-
   const [isAuthed] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return !!localStorage.getItem('adminToken');
+    // Read from cookie, not localStorage — matches where setAdminToken stores it
+    return !!document.cookie.split('; ').find(r => r.startsWith('adminToken='));
   });
-
   useEffect(() => {
     if (!isAuthed) router.replace('/admin/login');
   }, []);
-
   return isAuthed;
 }

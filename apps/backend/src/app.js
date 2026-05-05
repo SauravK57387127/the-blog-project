@@ -60,15 +60,7 @@ if (config.nodeEnv !== 'test') {
    // app.use(httpLogger);
   }
 
-  app.use(clerkMiddleware());
-
-
-    app.use((req, res, next) => {
-  console.log('🔴 After Clerk:', req.path);
-  next();
-})
-    
-    // Health-check routes
+  // Health-check routes
     app.get('/', asyncHandler(async (req, res) => {
             sendResponse({res, message: '🚀 Backend is alive and running!',});
         })
@@ -79,6 +71,16 @@ if (config.nodeEnv !== 'test') {
                 sendResponse({res, message: 'Service is healthy', data: { timestamp: new Date() } })
         })
     );
+
+  app.use(clerkMiddleware());
+
+
+    app.use((req, res, next) => {
+  console.log('🔴 After Clerk:', req.path);
+  next();
+})
+    
+  
                                 
                     
     // API routes

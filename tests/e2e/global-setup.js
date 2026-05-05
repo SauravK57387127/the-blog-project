@@ -54,22 +54,47 @@ export default async function globalSetup() {
   await new Promise((resolve, reject) => {
     const timeout = setTimeout(() => reject(new Error('Backend start timeout')), 30000);
     
-    backend.stdout.on('data', (data) => {
-      const output = data.toString();
-      if (output.includes('Server running')) {
-        clearTimeout(timeout);
-        resolve();
-      }
-    });
+backend.stdout.on('data', (data) => {
+  const output = data.toString();
+  console.log('🟦 Backend stdout:', output);  // ← add this
+  if (output.includes('Server running')) {
+    clearTimeout(timeout);
+    resolve();
+  }
+}); 
 
-    backend.stderr.on('data', (data) => {
-      console.error('Backend error:', data.toString());
-    });
+   backend.stderr.on('data', (data) => {
+  console.error('🔴 Backend stderr:', data.toString());
+});
+
+
+
 
     backend.on('error', reject);
   });
 
   // Store backend process for teardown
   process.env.E2E_BACKEND_PID = backend.pid.toString();
-  console.log('✅ Backend ready');
+console.log('🔍 Waiting for backend to accept connections...');
+await new Promise((resolve, reject) => {
+  const maxWait = 30000; // 30s max
+  const start = Date.now();
+
+  const checkHealth = async () => {
+    if (Date.now() - start > maxWait) {
+      return reject(new Error('Backend health check timed out after 30s'));
+    }
+    try {
+      const res = await fetch('http://localhost:7000/health');
+      if (res.ok) return resolve();
+    } catch {
+      // not ready yet
+    }
+    setTimeout(checkHealth, 500);
+  };
+
+  checkHealth();
+});
+console.log('✅ Backend ready');
+
 }
