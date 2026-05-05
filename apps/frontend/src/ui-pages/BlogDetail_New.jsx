@@ -10,11 +10,12 @@ import { toast } from "@/hooks/use-toast";
 import Prism from "@/lib/prism-config.js";
 
 const demoBlog = {
-  _id: "1",
-  title: "The Future of Web Development: Trends to Watch in 2025",
-  slug: "future-web-development-2025",
-  coverImage: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200&h=600&fit=crop",
-  content: `
+    _id: "1",
+    title: "The Future of Web Development: Trends to Watch in 2025",
+    slug: "future-web-development-2025",
+    coverImage:
+        "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200&h=600&fit=crop",
+    content: `
     <p>Web development continues to evolve at a rapid pace, with new technologies and methodologies emerging constantly. As we look ahead to 2025, several key trends are shaping the future of how we build for the web.</p>
     
     <h2>The Rise of AI-Assisted Development</h2>
@@ -54,188 +55,219 @@ async function BlogPost({ id }) {
     
     <p>These trends represent just the beginning of an exciting new chapter in web development. As developers, staying informed and adaptable will be key to success in this rapidly changing landscape.</p>
   `,
-  tags: ["Web Development", "React", "AI", "Performance"],
-  publishedAt: "2025-01-10T00:00:00.000Z",
-  readingTime: 5,
-  author: {
-    _id: "author1",
-    name: "Saurav Kumar",
-    bio: "Full-stack developer passionate about modern web technologies and sharing knowledge through writing.",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Saurav",
-    socialLinks: {
-      twitter: "https://twitter.com/example",
-      linkedin: "https://linkedin.com/in/example",
-    }
-  },
-  likes: 42,
-  isLikedByUser: false,
-  isBookmarkedByUser: false,
+    tags: ["Web Development", "React", "AI", "Performance"],
+    publishedAt: "2025-01-10T00:00:00.000Z",
+    readingTime: 5,
+    author: {
+        _id: "author1",
+        name: "Saurav Kumar",
+        bio: "Full-stack developer passionate about modern web technologies and sharing knowledge through writing.",
+        avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Saurav",
+        socialLinks: {
+            twitter: "https://twitter.com/example",
+            linkedin: "https://linkedin.com/in/example",
+        },
+    },
+    likes: 42,
+    isLikedByUser: false,
+    isBookmarkedByUser: false,
 };
 
 function formatDate(dateString) {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric", month: "long", day: "numeric",
-  });
+    return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    });
 }
 
 export default function BlogDetail() {
-  const commentSectionRef = useRef(null);
-  const [likeCount, setLikeCount] = useState(42);
-  const [isLiked, setIsLiked] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const contentRef = useRef(null);
+    const commentSectionRef = useRef(null);
+    const [likeCount, setLikeCount] = useState(42);
+    const [isLiked, setIsLiked] = useState(false);
+    const [isBookmarked, setIsBookmarked] = useState(false);
+    const contentRef = useRef(null);
 
-  const blog = demoBlog; // TODO: Replace with React Query
+    const blog = demoBlog; // TODO: Replace with React Query
 
-  // Prism.js highlighting + copy buttons
- // Prism.js highlighting + copy buttons
-useEffect(() => {
-  if (!contentRef.current) return;
+    // Prism.js highlighting + copy buttons
+    // Prism.js highlighting + copy buttons
+    useEffect(() => {
+        if (!contentRef.current) return;
 
-  let raf1;
-  let raf2;
+        let raf1;
+        let raf2;
 
-  // Hide pre blocks immediately so the blue flash never shows
-  const preBlocksEarly = contentRef.current?.querySelectorAll("pre");
-  preBlocksEarly?.forEach((block) => {
-    block.style.visibility = "hidden";
-  });
-
-  raf1 = requestAnimationFrame(() => {
-    raf2 = requestAnimationFrame(() => {
-      const codeBlocks = contentRef.current?.querySelectorAll("pre code");
-      if (!codeBlocks?.length) return;
-
-      codeBlocks.forEach((code) => {
-        if (!code.classList.length) code.classList.add("language-javascript");
-      });
-
-      if (window.Prism) window.Prism.highlightAll();
-
-      const preBlocks = contentRef.current?.querySelectorAll("pre");
-      preBlocks?.forEach((block) => {
-        block.style.visibility = "visible"; // reveal after Prism is done
-        if (block.querySelector(".copy-button")) return;
-
-        const button = document.createElement("button");
-        button.className = "copy-button";
-        button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
-
-        button.addEventListener("click", async () => {
-          const code = block.querySelector("code")?.textContent || "";
-          await navigator.clipboard.writeText(code);
-          button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>';
-          setTimeout(() => {
-            button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
-          }, 2000);
+        // Hide pre blocks immediately so the blue flash never shows
+        const preBlocksEarly = contentRef.current?.querySelectorAll("pre");
+        preBlocksEarly?.forEach((block) => {
+            block.style.visibility = "hidden";
         });
 
-        block.appendChild(button);
-      });
-    });
-  });
+        raf1 = requestAnimationFrame(() => {
+            raf2 = requestAnimationFrame(() => {
+                const codeBlocks =
+                    contentRef.current?.querySelectorAll("pre code");
+                if (!codeBlocks?.length) return;
 
-  return () => {
-    cancelAnimationFrame(raf1);
-    cancelAnimationFrame(raf2);
-  };
-}, [blog.content]);
+                codeBlocks.forEach((code) => {
+                    if (!code.classList.length)
+                        code.classList.add("language-javascript");
+                });
 
-  const handleLike = () => {
-    if (isLiked) { setLikeCount((p) => p - 1); setIsLiked(false); }
-    else         { setLikeCount((p) => p + 1); setIsLiked(true);  }
-  };
+                if (window.Prism) window.Prism.highlightAll();
 
-  const handleBookmark = () => setIsBookmarked(!isBookmarked);
+                const preBlocks = contentRef.current?.querySelectorAll("pre");
+                preBlocks?.forEach((block) => {
+                    block.style.visibility = "visible"; // reveal after Prism is done
+                    if (block.querySelector(".copy-button")) return;
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({ title: blog.title, url: window.location.href });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      toast({ title: "Link copied!", description: "Blog link copied to clipboard" });
-    }
-  };
+                    const button = document.createElement("button");
+                    button.className = "copy-button";
+                    button.innerHTML =
+                        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
 
-  const scrollToComments = () => {
-    commentSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+                    button.addEventListener("click", async () => {
+                        const code =
+                            block.querySelector("code")?.textContent || "";
+                        await navigator.clipboard.writeText(code);
+                        button.innerHTML =
+                            '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>';
+                        setTimeout(() => {
+                            button.innerHTML =
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+                        }, 2000);
+                    });
 
-  return (
-    <div className="w-full min-h-screen">
-      <div className={`${DESIGN_CONSTANTS.containers.standard} mx-auto px-4 sm:px-6 lg:px-8 py-12`}>
-        <article className={`${DESIGN_CONSTANTS.containers.narrow} mx-auto`}>
+                    block.appendChild(button);
+                });
+            });
+        });
 
-          {/* ── Header ─────────────────────────────────── */}
-          <header className="mb-8 lg:mb-10">
-            <div className="flex flex-wrap gap-2 mb-5">
-              {blog.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-xs font-mono px-2 py-1 border border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground transition-colors duration-150"
+        return () => {
+            cancelAnimationFrame(raf1);
+            cancelAnimationFrame(raf2);
+        };
+    }, [blog.content]);
+
+    const handleLike = () => {
+        if (isLiked) {
+            setLikeCount((p) => p - 1);
+            setIsLiked(false);
+        } else {
+            setLikeCount((p) => p + 1);
+            setIsLiked(true);
+        }
+    };
+
+    const handleBookmark = () => setIsBookmarked(!isBookmarked);
+
+    const handleShare = () => {
+        if (navigator.share) {
+            navigator.share({ title: blog.title, url: window.location.href });
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            toast({
+                title: "Link copied!",
+                description: "Blog link copied to clipboard",
+            });
+        }
+    };
+
+    const scrollToComments = () => {
+        commentSectionRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+        });
+    };
+
+    return (
+        <div className="w-full min-h-screen">
+            <div
+                className={`${DESIGN_CONSTANTS.containers.standard} mx-auto px-4 sm:px-6 lg:px-8 py-12`}
+            >
+                <article
+                    className={`${DESIGN_CONSTANTS.containers.narrow} mx-auto`}
                 >
-                  {tag}
-                </span>
-              ))}
+                    {/* ── Header ─────────────────────────────────── */}
+                    <header className="mb-8 lg:mb-10">
+                        <div className="flex flex-wrap gap-2 mb-5">
+                            {blog.tags.map((tag) => (
+                                <span
+                                    key={tag}
+                                    className="text-xs font-mono px-2 py-1 border border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground transition-colors duration-150"
+                                >
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
+
+                        <h1
+                            className={`${DESIGN_CONSTANTS.typography.heroTitle} mb-5`}
+                        >
+                            {blog.title}
+                        </h1>
+
+                        <div className="flex items-center gap-3 font-mono text-xs text-muted-foreground">
+                            <time>{formatDate(blog.publishedAt)}</time>
+                            <span className="text-muted-foreground/30">·</span>
+                            <span>{blog.readingTime} min read</span>
+                        </div>
+                    </header>
+
+                    {/* ── Engagement Bar ──────────────────────────── */}
+                    <div className="mb-8 lg:mb-10">
+                        <BlogEngagementBar_New
+                            likeCount={likeCount}
+                            isLiked={isLiked}
+                            isBookmarked={isBookmarked}
+                            onLike={handleLike}
+                            onBookmark={handleBookmark}
+                            onShare={handleShare}
+                            onScrollToComments={scrollToComments}
+                        />
+                    </div>
+
+                    {/* ── Cover Image ─────────────────────────────── */}
+                    {blog.coverImage && (
+                        <figure className="mb-10 -mx-4 sm:mx-0">
+                            <img
+                                src={blog.coverImage}
+                                alt={blog.title}
+                                className="w-full h-auto"
+                            />
+                        </figure>
+                    )}
+
+                    {/* ── Blog Content ────────────────────────────── */}
+                    <div
+                        ref={contentRef}
+                        className="blog-content max-w-none mb-12"
+                        suppressHydrationWarning
+                        dangerouslySetInnerHTML={{ __html: blog.content }}
+                    />
+
+                    {/* ── Author Banner ───────────────────────────── */}
+                    <div className="mb-10 pt-8 border-t border-border">
+                        <AuthorBanner_New author={blog.author} />
+                    </div>
+
+                    {/* ── Comments ────────────────────────────────── */}
+                    <div ref={commentSectionRef} className="mb-12">
+                        <CommentSection_New blogId={blog._id} />
+                    </div>
+                </article>
+
+                {/* ── Related Blogs ───────────────────────────── */}
+                <div
+                    className={`${DESIGN_CONSTANTS.containers.narrow} mx-auto`}
+                >
+                    <RelatedBlogs_New
+                        currentBlogId={blog._id}
+                        tags={blog.tags}
+                    />
+                </div>
             </div>
-
-            <h1 className={`${DESIGN_CONSTANTS.typography.heroTitle} mb-5`}>
-              {blog.title}
-            </h1>
-
-            <div className="flex items-center gap-3 font-mono text-xs text-muted-foreground">
-              <time>{formatDate(blog.publishedAt)}</time>
-              <span className="text-muted-foreground/30">·</span>
-              <span>{blog.readingTime} min read</span>
-            </div>
-          </header>
-
-          {/* ── Engagement Bar ──────────────────────────── */}
-          <div className="mb-8 lg:mb-10">
-            <BlogEngagementBar_New
-              likeCount={likeCount}
-              isLiked={isLiked}
-              isBookmarked={isBookmarked}
-              onLike={handleLike}
-              onBookmark={handleBookmark}
-              onShare={handleShare}
-              onScrollToComments={scrollToComments}
-            />
-          </div>
-
-          {/* ── Cover Image ─────────────────────────────── */}
-          {blog.coverImage && (
-            <figure className="mb-10 -mx-4 sm:mx-0">
-              <img src={blog.coverImage} alt={blog.title} className="w-full h-auto" />
-            </figure>
-          )}
-
-          {/* ── Blog Content ────────────────────────────── */}
-          <div
-            ref={contentRef}
-            className="blog-content max-w-none mb-12"
-            suppressHydrationWarning
-            dangerouslySetInnerHTML={{ __html: blog.content }}
-          />
-
-          {/* ── Author Banner ───────────────────────────── */}
-          <div className="mb-10 pt-8 border-t border-border">
-            <AuthorBanner_New author={blog.author} />
-          </div>
-
-          {/* ── Comments ────────────────────────────────── */}
-          <div ref={commentSectionRef} className="mb-12">
-            <CommentSection_New blogId={blog._id} />
-          </div>
-
-        </article>
-
-        {/* ── Related Blogs ───────────────────────────── */}
-        <div className={`${DESIGN_CONSTANTS.containers.narrow} mx-auto`}>
-          <RelatedBlogs_New currentBlogId={blog._id} tags={blog.tags} />
         </div>
-
-      </div>
-    </div>
-  );
+    );
 }

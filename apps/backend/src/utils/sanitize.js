@@ -9,21 +9,43 @@ const DOMPurify = createDOMPurify(window);
  * Removes dangerous tags but keeps safe formatting
  */
 export function sanitizeHTML(dirty) {
-  if (!dirty || typeof dirty !== 'string') {
-    return '';
-  }
+    if (!dirty || typeof dirty !== 'string') {
+        return '';
+    }
 
-  return DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS: [
-      'p', 'br', 'strong', 'em', 'u', 's', 'a', 'ul', 'ol', 'li',
-      'blockquote', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td',
-    ],
-    ALLOWED_ATTR: [
-      'href', 'target', 'rel', 'src', 'alt', 'title', 'class',
-    ],
-    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
-  });
+    return DOMPurify.sanitize(dirty, {
+        ALLOWED_TAGS: [
+            'p',
+            'br',
+            'strong',
+            'em',
+            'u',
+            's',
+            'a',
+            'ul',
+            'ol',
+            'li',
+            'blockquote',
+            'code',
+            'pre',
+            'h1',
+            'h2',
+            'h3',
+            'h4',
+            'h5',
+            'h6',
+            'img',
+            'table',
+            'thead',
+            'tbody',
+            'tr',
+            'th',
+            'td',
+        ],
+        ALLOWED_ATTR: ['href', 'target', 'rel', 'src', 'alt', 'title', 'class'],
+        ALLOWED_URI_REGEXP:
+            /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+    });
 }
 
 /**
@@ -31,25 +53,25 @@ export function sanitizeHTML(dirty) {
  * Removes ALL HTML
  */
 export function sanitizePlainText(dirty) {
-  if (!dirty || typeof dirty !== 'string') {
-    return '';
-  }
+    if (!dirty || typeof dirty !== 'string') {
+        return '';
+    }
 
-  return DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS: [],  // No HTML allowed
-    ALLOWED_ATTR: [],
-  });
+    return DOMPurify.sanitize(dirty, {
+        ALLOWED_TAGS: [], // No HTML allowed
+        ALLOWED_ATTR: [],
+    });
 }
 
 /**
  * Sanitize array of strings
  */
 export function sanitizeArray(array) {
-  if (!Array.isArray(array)) {
-    return [];
-  }
+    if (!Array.isArray(array)) {
+        return [];
+    }
 
-  return array
-    .filter(item => typeof item === 'string')
-    .map(item => sanitizePlainText(item));
+    return array
+        .filter((item) => typeof item === 'string')
+        .map((item) => sanitizePlainText(item));
 }

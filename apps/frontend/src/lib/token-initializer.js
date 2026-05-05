@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useAuth } from '@clerk/nextjs';
-import { setTokenGetter } from '@/lib/auth-token';
+import { useEffect } from "react";
+import { useAuth } from "@clerk/nextjs";
+import { setTokenGetter } from "@/lib/auth-token";
 
 /**
  * Registers Clerk's getToken with the axios interceptor.
@@ -15,11 +15,11 @@ import { setTokenGetter } from '@/lib/auth-token';
  *   </ClerkProvider>
  */
 export function TokenInitializer() {
-  const { getToken } = useAuth();
+    const { getToken } = useAuth();
 
-  useEffect(() => {
-    setTokenGetter(() => getToken());
-  }, [getToken]);
+    useEffect(() => {
+        setTokenGetter(() => getToken());
+    }, [getToken]);
 
-  return null;
+    return null;
 }

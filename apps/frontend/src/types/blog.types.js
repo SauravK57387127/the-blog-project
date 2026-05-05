@@ -1,6 +1,6 @@
 /**
  * Blog Type Definitions
- * 
+ *
  * Type structure for blog posts across the application.
  * Ready for React Query integration.
  */

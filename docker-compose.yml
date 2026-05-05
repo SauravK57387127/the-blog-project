@@ -1,117 +1,115 @@
 services:
+    mongodb:
+        image: mongo:7
+        command: ['mongod', '--quiet']
+        container_name: theblogproj-mongo-doc
+        environment:
+            MONGO_INITDB_DATABASE: theblogproj-dev
+        volumes:
+            - mongodb_data:/data/db
+        restart: unless-stopped
 
-  mongodb:
-    image: mongo:7
-    command: ["mongod", "--quiet"]
-    container_name: theblogproj-mongo-doc
-    environment:
-      MONGO_INITDB_DATABASE: theblogproj-dev
-    volumes:
-      - mongodb_data:/data/db
-    restart: unless-stopped
+    postgres:
+        image: postgres:16-alpine
+        container_name: theblogproj-postgres-doc
+        environment:
+            POSTGRES_DB: theblogproj-dev
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: dev-password
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        restart: unless-stopped
 
-  postgres:
-    image: postgres:16-alpine
-    container_name: theblogproj-postgres-doc
-    environment:
-      POSTGRES_DB: theblogproj-dev
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: dev-password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
+    redis:
+        image: redis:7-alpine
+        container_name: theblogproj-redis-doc
+        volumes:
+            - redis_data:/data
+        restart: unless-stopped
 
-  redis:
-    image: redis:7-alpine
-    container_name: theblogproj-redis-doc
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
+    backend:
+        build:
+            context: .
+            dockerfile: apps/backend/Dockerfile
+            target: production
+        container_name: theblogproj-backend
+        depends_on:
+            - mongodb
+            - postgres
+            - redis
 
-  backend:
-    build:
-      context: .
-      dockerfile: apps/backend/Dockerfile
-      target: production
-    container_name: theblogproj-backend
-    depends_on:
-      - mongodb
-      - postgres
-      - redis
+        ports:
+            - '7000:7000'
 
-    ports:
-      - "7000:7000"
+        env_file:
+            - .env.development
 
-    env_file:
-      - .env.development
+        environment:
+            IN_DOCKER: 'true'
+            MONGO_URI: mongodb://mongodb:27017/theblogproj-dev
+            POSTGRES_DATABASE_URL: postgresql://postgres:dev-password@postgres:5432/theblogproj-dev?schema=public
+            REDIS_URL: redis://redis:6379
 
-    environment:
-      IN_DOCKER: "true"
-      MONGO_URI: mongodb://mongodb:27017/theblogproj-dev
-      POSTGRES_DATABASE_URL: postgresql://postgres:dev-password@postgres:5432/theblogproj-dev?schema=public
-      REDIS_URL: redis://redis:6379
+        volumes:
+            - .:/app
+            - /app/node_modules
 
-    volumes:
-      - .:/app
-      - /app/node_modules
+        command: node --watch apps/backend/src/server.js
 
-    command: node --watch apps/backend/src/server.js
+        restart: unless-stopped
 
-    restart: unless-stopped
+    frontend:
+        build:
+            context: .
+            dockerfile: apps/frontend/Dockerfile
+            args:
+                NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+            target: production
+        container_name: theblogproj-frontend
+        ports:
+            - '3000:3000'
+        environment:
+            NEXT_PUBLIC_API_URL: http://backend:7000
 
-  frontend:
-    build:
-      context: .
-      dockerfile: apps/frontend/Dockerfile
-      args:
-        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-      target: production
-    container_name: theblogproj-frontend 
-    ports:
-      - "3000:3000"
-    environment:
-      NEXT_PUBLIC_API_URL: http://backend:7000
+        # For Dockerized development (hot reload)
 
-    # For Dockerized development (hot reload)
+        # Uncomment for Dockerized development
+        #volumes:
+        #  - ./apps/frontend:/app/apps/frontend
+        #  - /app/apps/frontend/node_modules
+        #  - /app/apps/frontend/.next
 
-    # Uncomment for Dockerized development
-    #volumes:
-    #  - ./apps/frontend:/app/apps/frontend
-    #  - /app/apps/frontend/node_modules
-    #  - /app/apps/frontend/.next
+        # For production container
+        # command: node server.js
 
-    # For production container
-    # command: node server.js
+        restart: unless-stopped
 
-    restart: unless-stopped  
-  
-  worker:
-    build:
-      context: .
-      dockerfile: apps/worker/Dockerfile
-      target: production
-    container_name: theblogproj-worker
-    depends_on:
-      - mongodb
-      - postgres
-      - redis
-    ports:
-    - "4001:4001"
-    env_file:
-      - .env.development
-    environment:
-      IN_DOCKER: "true"
-      MONGO_URI: mongodb://mongodb:27017/theblogproj-dev
-      POSTGRES_DATABASE_URL: postgresql://postgres:dev-password@postgres:5432/theblogproj-dev?schema=public
-      REDIS_URL: redis://redis:6379
-    volumes:
-      - .:/app
-      - /app/node_modules
-    command: node --watch apps/worker/index.js
-    restart: unless-stopped  
-
+    worker:
+        build:
+            context: .
+            dockerfile: apps/worker/Dockerfile
+            target: production
+        container_name: theblogproj-worker
+        depends_on:
+            - mongodb
+            - postgres
+            - redis
+        ports:
+            - '4001:4001'
+        env_file:
+            - .env.development
+        environment:
+            IN_DOCKER: 'true'
+            MONGO_URI: mongodb://mongodb:27017/theblogproj-dev
+            POSTGRES_DATABASE_URL: postgresql://postgres:dev-password@postgres:5432/theblogproj-dev?schema=public
+            REDIS_URL: redis://redis:6379
+        volumes:
+            - .:/app
+            - /app/node_modules
+        command: node --watch apps/worker/index.js
+        restart: unless-stopped
 
 volumes:
-  mongodb_data:
-  postgres_data:
-  redis_data:
+    mongodb_data:
+    postgres_data:
+    redis_data:

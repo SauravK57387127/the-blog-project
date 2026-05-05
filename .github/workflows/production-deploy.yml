@@ -1,16 +1,16 @@
 name: Production Deployment
 
 on:
-  push:
-    branches: [main]
+    push:
+        branches: [main]
 
 jobs:
-  deploy-production:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Production Deployment
-        run: |
-          echo "🚀 Deploying to production"
-          echo "This only runs after PR is approved and merged"
+    deploy-production:
+        name: Deploy to Production
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Production Deployment
+              run: |
+                  echo "🚀 Deploying to production"
+                  echo "This only runs after PR is approved and merged"

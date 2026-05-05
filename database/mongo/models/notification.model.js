@@ -1,70 +1,73 @@
 import mongoose from 'mongoose';
 
-const NotificationSchema = new mongoose.Schema({
-  // Who receives the notification
-  recipientId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-    index: true,
-  },
-  
-  // Who triggered it
-  actorId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  
-  // Related blog
-  blogId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Blog',
-    required: true,
-  },
-  
-  // Type
-  type: {
-    type: String,
-    enum: ['reply', 'like_comment'],
-    required: true,
-    index: true,
-  },
-  
-  // For reply notifications
-  commentId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Comment',
-  },
-  
-  replyId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Comment',
-  },
-  
-  // Preview text
-  commentPreview: {
-    type: String,
-    maxlength: 200,
-  },
-  
-  // Status
-  isRead: {
-    type: Boolean,
-    default: false,
-    index: true,
-  },
-  
-  readAt: Date,
-  
-  createdAt: {
-    type: Date,
-    default: Date.now,
-    index: true,
-  },
-}, {
-  timestamps: false,
-});
+const NotificationSchema = new mongoose.Schema(
+    {
+        // Who receives the notification
+        recipientId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+            index: true,
+        },
+
+        // Who triggered it
+        actorId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+        },
+
+        // Related blog
+        blogId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Blog',
+            required: true,
+        },
+
+        // Type
+        type: {
+            type: String,
+            enum: ['reply', 'like_comment'],
+            required: true,
+            index: true,
+        },
+
+        // For reply notifications
+        commentId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Comment',
+        },
+
+        replyId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Comment',
+        },
+
+        // Preview text
+        commentPreview: {
+            type: String,
+            maxlength: 200,
+        },
+
+        // Status
+        isRead: {
+            type: Boolean,
+            default: false,
+            index: true,
+        },
+
+        readAt: Date,
+
+        createdAt: {
+            type: Date,
+            default: Date.now,
+            index: true,
+        },
+    },
+    {
+        timestamps: false,
+    },
+);
 
 // Compound indexes
 NotificationSchema.index({ recipientId: 1, isRead: 1, createdAt: -1 });

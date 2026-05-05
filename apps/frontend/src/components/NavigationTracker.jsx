@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, Suspense } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
-import { pageview } from '@/lib/analytics';
+import { useEffect, Suspense } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { pageview } from "@/lib/analytics";
 
 /**
  * NavigationTracker
@@ -18,21 +18,23 @@ import { pageview } from '@/lib/analytics';
  * Must be wrapped in Suspense because useSearchParams() requires it in App Router.
  */
 function NavigationTrackerInner() {
-  const pathname     = usePathname();
-  const searchParams = useSearchParams();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
 
-  useEffect(() => {
-    const url = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
-    pageview(url);
-  }, [pathname, searchParams]);
+    useEffect(() => {
+        const url =
+            pathname +
+            (searchParams.toString() ? `?${searchParams.toString()}` : "");
+        pageview(url);
+    }, [pathname, searchParams]);
 
-  return null; // renders nothing — side-effect only
+    return null; // renders nothing — side-effect only
 }
 
 export function NavigationTracker() {
-  return (
-    <Suspense fallback={null}>
-      <NavigationTrackerInner />
-    </Suspense>
-  );
+    return (
+        <Suspense fallback={null}>
+            <NavigationTrackerInner />
+        </Suspense>
+    );
 }

@@ -15,8 +15,9 @@ export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
  * Called automatically by NavigationTracker on every route change.
  */
 export function pageview(url) {
-  if (!GA_MEASUREMENT_ID || typeof window === 'undefined' || !window.gtag) return;
-  window.gtag('config', GA_MEASUREMENT_ID, { page_path: url });
+    if (!GA_MEASUREMENT_ID || typeof window === "undefined" || !window.gtag)
+        return;
+    window.gtag("config", GA_MEASUREMENT_ID, { page_path: url });
 }
 
 /**
@@ -31,6 +32,7 @@ export function pageview(url) {
  *   event('comment_posted', { blog_slug: 'my-post' })
  */
 export function event(action, params = {}) {
-  if (!GA_MEASUREMENT_ID || typeof window === 'undefined' || !window.gtag) return;
-  window.gtag('event', action, params);
+    if (!GA_MEASUREMENT_ID || typeof window === "undefined" || !window.gtag)
+        return;
+    window.gtag("event", action, params);
 }

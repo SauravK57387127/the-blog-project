@@ -5,52 +5,56 @@ import mongoose from 'mongoose';
 const { Like, Bookmark, User } = models;
 
 export default {
-  /**
-   * Check if user has liked/bookmarked a blog
-   */
-  getEngagementStatus: async ({ userId, blogId }) => {
-    try {
-      // Find user by Clerk ID
-      const user = await User.findOne({ clerkUserId: userId });
-      
-      if (!user) {
-        return {
-          success: false,
-          message: 'User not found',
-          data: { isLiked: false, isBookmarked: false },
-        };
-      }
+    /**
+     * Check if user has liked/bookmarked a blog
+     */
+    getEngagementStatus: async ({ userId, blogId }) => {
+        try {
+            // Find user by Clerk ID
+            const user = await User.findOne({ clerkUserId: userId });
 
-      // Check both like and bookmark in parallel
-      const [like, bookmark] = await Promise.all([
-        Like.findOne({ 
-          userId: user._id, 
-          blogId: new mongoose.Types.ObjectId(blogId) 
-        }).lean(),
-        Bookmark.findOne({ 
-          userId: user._id, 
-          blogId: new mongoose.Types.ObjectId(blogId) 
-        }).lean(),
-      ]);
+            if (!user) {
+                return {
+                    success: false,
+                    message: 'User not found',
+                    data: { isLiked: false, isBookmarked: false },
+                };
+            }
 
-      logger.debug('Engagement status checked', { userId, blogId });
+            // Check both like and bookmark in parallel
+            const [like, bookmark] = await Promise.all([
+                Like.findOne({
+                    userId: user._id,
+                    blogId: new mongoose.Types.ObjectId(blogId),
+                }).lean(),
+                Bookmark.findOne({
+                    userId: user._id,
+                    blogId: new mongoose.Types.ObjectId(blogId),
+                }).lean(),
+            ]);
 
-      return {
-        success: true,
-        message: 'Engagement status fetched',
-        data: {
-          isLiked: !!like,
-          isBookmarked: !!bookmark,
-        },
-      };
-    } catch (error) {
-      logger.error('Get engagement status failed', { error: error.message, userId, blogId });
-      return {
-        success: false,
-        message: 'Failed to get engagement status',
-        data: { isLiked: false, isBookmarked: false },
-        error: error.message,
-      };
-    }
-  },
+            logger.debug('Engagement status checked', { userId, blogId });
+
+            return {
+                success: true,
+                message: 'Engagement status fetched',
+                data: {
+                    isLiked: !!like,
+                    isBookmarked: !!bookmark,
+                },
+            };
+        } catch (error) {
+            logger.error('Get engagement status failed', {
+                error: error.message,
+                userId,
+                blogId,
+            });
+            return {
+                success: false,
+                message: 'Failed to get engagement status',
+                data: { isLiked: false, isBookmarked: false },
+                error: error.message,
+            };
+        }
+    },
 };

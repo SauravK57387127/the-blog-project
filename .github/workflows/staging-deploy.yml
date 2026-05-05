@@ -1,18 +1,18 @@
 name: Staging Deployment
 
 on:
-  push:
-    branches: [dev]
+    push:
+        branches: [dev]
 
 jobs:
-  notify-staging:
-    name: Staging Auto-Deploy
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Deployment Info
-        run: |
-          echo "🚀 Push to dev detected"
-          echo "📦 Render auto-deploys backend + worker"
-          echo "🎨 Vercel auto-deploys frontend"
-          echo "⏳ Check dashboards for deployment status"
+    notify-staging:
+        name: Staging Auto-Deploy
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Deployment Info
+              run: |
+                  echo "🚀 Push to dev detected"
+                  echo "📦 Render auto-deploys backend + worker"
+                  echo "🎨 Vercel auto-deploys frontend"
+                  echo "⏳ Check dashboards for deployment status"

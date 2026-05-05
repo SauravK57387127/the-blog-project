@@ -9,9 +9,9 @@ const router = Router();
  * Get initial search page data (categories, tags, popular reads)
  */
 router.get(
-  '/initial',
-  cacheMiddleware(300),  // 5 min cache
-  SearchController.getInitialData
+    '/initial',
+    cacheMiddleware(300), // 5 min cache
+    SearchController.getInitialData,
 );
 
 export default router;
