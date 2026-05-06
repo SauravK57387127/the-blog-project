@@ -67,3 +67,7 @@ index.e2e.js
 # Docker
 docker-compose.override.yml
 .claudeignore
+
+# Playwright generated test artifacts
+/test-results/
+/tests/e2e/reports/
