@@ -54,3 +54,19 @@ project_analysis.md
 BEST_PRACTICES.md
 *_context.txt
 modified_files.txt
+
+# Scripts (not needed in container)
+scripts/
+
+# Unused/old files
+new-unused-files/
+tests-old/
+
+# Text files
+**/*.txt
+
+# Test artifacts
+test-results/
+tests/e2e/reports/
+playwright.config.js
+tests/

@@ -1,115 +1,142 @@
 services:
-    mongodb:
-        image: mongo:7
-        command: ['mongod', '--quiet']
-        container_name: theblogproj-mongo-doc
-        environment:
-            MONGO_INITDB_DATABASE: theblogproj-dev
-        volumes:
-            - mongodb_data:/data/db
-        restart: unless-stopped
+  mongodb:
+    image: mongo:7
+    command: ['mongod', '--quiet']
+    container_name: theblogproj-mongo
+    environment:
+      MONGO_INITDB_DATABASE: theblogproj
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/theblogproj --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-    postgres:
-        image: postgres:16-alpine
-        container_name: theblogproj-postgres-doc
-        environment:
-            POSTGRES_DB: theblogproj-dev
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: dev-password
-        volumes:
-            - postgres_data:/var/lib/postgresql/data
-        restart: unless-stopped
+  postgres:
+    image: postgres:16-alpine
+    container_name: theblogproj-postgres
+    environment:
+      POSTGRES_DB: theblogproj
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-    redis:
-        image: redis:7-alpine
-        container_name: theblogproj-redis-doc
-        volumes:
-            - redis_data:/data
-        restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    container_name: theblogproj-redis
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-    backend:
-        build:
-            context: .
-            dockerfile: apps/backend/Dockerfile
-            target: production
-        container_name: theblogproj-backend
-        depends_on:
-            - mongodb
-            - postgres
-            - redis
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+      target: production
+    container_name: theblogproj-backend
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - '7000:7000'
+    environment:
+      IN_DOCKER: 'true'
+      NODE_ENV: production
+      PORT: 7000
+      MONGO_URI: mongodb://mongodb:27017
+      DB_NAME: theblogproj
+      POSTGRES_DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/theblogproj?schema=public
+      REDIS_URL: redis://redis:6379
+      ENABLE_MONGO: 'true'
+      ENABLE_PRISMA: 'true'
+      ENABLE_REDIS: 'true'
+      ENABLE_CACHE: 'true'
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET}
+      ADMIN_JWT_REFRESH_SECRET: ${ADMIN_JWT_REFRESH_SECRET}
+      ADMIN_ACCESS_TOKEN_EXPIRY: 15m
+      ADMIN_REFRESH_TOKEN_EXPIRY: 7d
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY}
+      CLERK_WEBHOOK_SECRET: ${CLERK_WEBHOOK_SECRET}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN}
+      RATE_LIMIT_ADMIN_LOGIN: 10
+      RATE_LIMIT_ADMIN: 100
+      RATE_LIMIT_PUBLIC: 300
+      RATE_LIMIT_USER: 200
+    restart: unless-stopped
 
-        ports:
-            - '7000:7000'
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      target: production
+      args:
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}    
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:7000}
+        NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID}
+        NEXT_PUBLIC_CLERK_SIGN_IN_URL: /login
+        NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: /
+        NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL: /
+    container_name: theblogproj-frontend
+    depends_on:
+      - backend
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: production
+    restart: unless-stopped
 
-        env_file:
-            - .env.development
-
-        environment:
-            IN_DOCKER: 'true'
-            MONGO_URI: mongodb://mongodb:27017/theblogproj-dev
-            POSTGRES_DATABASE_URL: postgresql://postgres:dev-password@postgres:5432/theblogproj-dev?schema=public
-            REDIS_URL: redis://redis:6379
-
-        volumes:
-            - .:/app
-            - /app/node_modules
-
-        command: node --watch apps/backend/src/server.js
-
-        restart: unless-stopped
-
-    frontend:
-        build:
-            context: .
-            dockerfile: apps/frontend/Dockerfile
-            args:
-                NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
-            target: production
-        container_name: theblogproj-frontend
-        ports:
-            - '3000:3000'
-        environment:
-            NEXT_PUBLIC_API_URL: http://backend:7000
-
-        # For Dockerized development (hot reload)
-
-        # Uncomment for Dockerized development
-        #volumes:
-        #  - ./apps/frontend:/app/apps/frontend
-        #  - /app/apps/frontend/node_modules
-        #  - /app/apps/frontend/.next
-
-        # For production container
-        # command: node server.js
-
-        restart: unless-stopped
-
-    worker:
-        build:
-            context: .
-            dockerfile: apps/worker/Dockerfile
-            target: production
-        container_name: theblogproj-worker
-        depends_on:
-            - mongodb
-            - postgres
-            - redis
-        ports:
-            - '4001:4001'
-        env_file:
-            - .env.development
-        environment:
-            IN_DOCKER: 'true'
-            MONGO_URI: mongodb://mongodb:27017/theblogproj-dev
-            POSTGRES_DATABASE_URL: postgresql://postgres:dev-password@postgres:5432/theblogproj-dev?schema=public
-            REDIS_URL: redis://redis:6379
-        volumes:
-            - .:/app
-            - /app/node_modules
-        command: node --watch apps/worker/index.js
-        restart: unless-stopped
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+      target: production
+    container_name: theblogproj-worker
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - '4001:4001'
+    environment:
+      IN_DOCKER: 'true'
+      NODE_ENV: production
+      WORKER_PORT: 4001
+      MONGO_URI: mongodb://mongodb:27017
+      DB_NAME: theblogproj
+      REDIS_URL: redis://redis:6379
+      ENABLE_MONGO: 'true'
+      ENABLE_REDIS: 'true'
+      ENABLE_PRISMA: 'false'
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+    restart: unless-stopped
 
 volumes:
-    mongodb_data:
-    postgres_data:
-    redis_data:
+  mongodb_data:
+  postgres_data:
+  redis_data:
