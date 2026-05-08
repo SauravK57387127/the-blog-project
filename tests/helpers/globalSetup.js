@@ -15,7 +15,9 @@ function loadEnvFile(envPath) {
 }
 
 export default async function globalSetup() {
-    loadEnvFile(resolve(process.cwd(), '.env.test'));
+  // Skip Docker compose in CI — GitHub Actions provides services directly
+  if (!process.env.CI) {  
+  loadEnvFile(resolve(process.cwd(), '.env.test'));
 
     console.log('\n🐳 Starting test containers...');
     execSync('docker compose -f docker-compose.test.yml up -d --wait', {
@@ -28,5 +30,7 @@ export default async function globalSetup() {
         stdio: 'inherit',
         env: { ...process.env, NODE_ENV: 'test' },
     });
+  
     console.log('✅ Migrations done');
+  }
 }

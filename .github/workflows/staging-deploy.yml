@@ -1,18 +1,30 @@
-name: Staging Deployment
+name: Deploy to Staging
 
 on:
-    push:
-        branches: [dev]
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [dev]
 
 jobs:
-    notify-staging:
-        name: Staging Auto-Deploy
-        runs-on: ubuntu-latest
+  deploy-staging:
+    name: Deploy Staging
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
-        steps:
-            - name: Deployment Info
-              run: |
-                  echo "🚀 Push to dev detected"
-                  echo "📦 Render auto-deploys backend + worker"
-                  echo "🎨 Vercel auto-deploys frontend"
-                  echo "⏳ Check dashboards for deployment status"
+    steps:
+      - name: Deploy Backend to Staging
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND_STAGING }}"
+
+      - name: Wait for deployment
+        run: sleep 60
+
+      - name: Smoke test staging backend
+        run: |
+          curl -f https://theblogproj-backend-staging.onrender.com/health || exit 1
+          curl -f https://theblogproj-backend-staging.onrender.com/api/public/homepage || exit 1
+
+      - name: Smoke test staging frontend
+        run: |
+          curl -f https://theblogproj-frontend-staging.vercel.app || exit 1
