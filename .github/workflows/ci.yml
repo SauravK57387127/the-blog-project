@@ -91,6 +91,11 @@ jobs:
         env:
           NODE_ENV: test
           POSTGRES_DATABASE_URL: postgresql://postgres:test-password@localhost:5432/theblogproj-test?schema=public
+      
+      - name: Generate Prisma client
+        run: pnpm db:generate
+        env:
+          POSTGRES_DATABASE_URL: postgresql://postgres:test-password@localhost:5432/theblogproj-test?schema=public    
 
       - run: pnpm test
         env:
