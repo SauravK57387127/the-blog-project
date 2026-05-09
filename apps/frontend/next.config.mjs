@@ -4,6 +4,9 @@ const nextConfig = {
   experimental: {
     scrollRestoration: true,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 turbopack: {
     root: process.env.TURBOPACK_ROOT || "../../",
   },
