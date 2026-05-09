@@ -16,9 +16,9 @@ router.get('/my', CommentController.getMyComments);
  * Add comment to blog
  */
 router.post(
-  '/:blogId',
-  sanitizeFields({ content: sanitizeHTML }),
-  CommentController.addComment
+    '/:blogId',
+    sanitizeFields({ content: sanitizeHTML, parentId: (val) => val || null }),
+    CommentController.addComment,
 );
 
 /**
@@ -26,9 +26,9 @@ router.post(
  * Update my comment
  */
 router.put(
-  '/:commentId',
-  sanitizeFields({ content: sanitizeHTML }),
-  CommentController.updateComment
+    '/:commentId',
+    sanitizeFields({ content: sanitizeHTML }),
+    CommentController.updateComment,
 );
 
 /**

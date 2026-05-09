@@ -1,13 +1,8 @@
 "use client";
-import EditDraftPage from "@/ui-pages/admin/EditDraft_New";
+import { use } from "react";
+import EditDraftPage from "@/ui-pages/admin/EditDraft";
 
-export default function Page() {
-//   const { id } = params;
-  return <EditDraftPage />;
+export default function Page({ params }) {
+    const { id } = use(params);
+    return <EditDraftPage draftSlug={id} />;
 }
-
-// import EditDraftPage from "@/ui-pages/admin/EditDraft";
-
-// export default function EditorsPage() {
-//     return <EditDraftPage />
-// }

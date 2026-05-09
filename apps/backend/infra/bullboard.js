@@ -4,27 +4,26 @@ import { ExpressAdapter } from '@bull-board/express';
 import { config } from '@theblogproj/config';
 
 export function setupBullBoard(app, { blogQueue, deadLetterQueue }) {
-  // ⚠️ Only enable in development
-  if (config.nodeEnv === 'production') {
-    console.log('⚠️  BullBoard disabled in production');
-    return;
-  }
+    // ⚠️ Only enable in development
+    if (config.nodeEnv === 'production') {
+        console.log('⚠️  BullBoard disabled in production');
+        return;
+    }
 
-  const serverAdapter = new ExpressAdapter();
-  serverAdapter.setBasePath("/ops/queues");
-  
-  const queues = [new BullMQAdapter(blogQueue)]
+    const serverAdapter = new ExpressAdapter();
+    serverAdapter.setBasePath('/ops/queues');
 
-  if (deadLetterQueue){
-    queues.push(new BullMQAdapter(deadLetterQueue))
-  }
+    const queues = [new BullMQAdapter(blogQueue)];
 
-  createBullBoard({
-    queues,
-    serverAdapter,
-  });
+    if (deadLetterQueue) {
+        queues.push(new BullMQAdapter(deadLetterQueue));
+    }
 
-  app.use("/ops/queues", serverAdapter.getRouter());
-  console.log('📊 BullBoard available at /ops/queues (dev only)');
+    createBullBoard({
+        queues,
+        serverAdapter,
+    });
+
+    app.use('/ops/queues', serverAdapter.getRouter());
+    console.log('📊 BullBoard available at /ops/queues (dev only)');
 }
-

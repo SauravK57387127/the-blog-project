@@ -1,0 +1,30 @@
+name: Deploy to Staging
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [dev]
+
+jobs:
+  deploy-staging:
+    name: Deploy Staging
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Deploy Backend to Staging
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND_STAGING }}"
+
+      - name: Wait for deployment
+        run: sleep 60
+
+      - name: Smoke test staging backend
+        run: |
+          curl -f https://theblogproj-backend-staging.onrender.com/health || exit 1
+          curl -f https://theblogproj-backend-staging.onrender.com/api/public/homepage || exit 1
+
+      - name: Smoke test staging frontend
+        run: |
+          curl -f https://theblogproj-frontend-staging.vercel.app || exit 1

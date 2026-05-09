@@ -3,137 +3,148 @@ import { sendResponse } from '../../utils/sendResponse.js';
 import PublicBlogService from '../../services/public/blog.service.js';
 
 export default {
-  /**
-   * GET /api/public/blogs
-   * List all published blogs
-   */
-  listBlogs: asyncHandler(async (req, res) => {
-    const {
-      page = 1,
-      limit = 20,
-      tags,
-      category,
-      sort = 'latest',  // latest, popular, trending
-    } = req.query;
+    /**
+     * GET /api/public/blogs
+     * List all published blogs
+     */
+    listBlogs: asyncHandler(async (req, res) => {
+        const {
+            page = 1,
+            limit = 20,
+            tags,
+            category,
+            sort = 'latest',
+        } = req.query;
 
-    const result = await PublicBlogService.listBlogs({
-      page: parseInt(page),
-      limit: parseInt(limit),
-      tags: tags ? tags.split(',') : undefined,
-      category,
-      sort,
-    });
+        const result = await PublicBlogService.listBlogs({
+            page: parseInt(page),
+            limit: parseInt(limit),
+            tags: tags ? tags.split(',') : undefined,
+            category,
+            sort,
+        });
 
-     return sendResponse({
-        res,
-        statusCode: 400,
-        success: false,
-        message: 'Search query required',
-        data: null,
-      });
-  }),
+        return sendResponse({
+            res,
+            statusCode: result.success ? 200 : 400,
+            success: result.success,
+            message: result.message,
+            data: result.data,
+        });
+    }),
 
-  /**
-   * GET /api/public/blogs/search
-   * Search blogs
-   */
-  searchBlogs: asyncHandler(async (req, res) => {
-    const { q, tags, category, page = 1, limit = 20 } = req.query;
+    /**
+     * GET /api/public/blogs/search
+     * Search blogs by query and/or tags.
+     *
+     * Rules:
+     * - query alone: min 3 chars, searches title first then tags then content
+     * - tags alone: valid, returns blogs matching any selected tag
+     * - query + tags: both applied together
+     * - neither: return empty early
+     */
+    searchBlogs: asyncHandler(async (req, res) => {
+        const { q, tags, category, page = 1, limit = 9 } = req.query;
 
-    if (!q || q.trim().length === 0) {
-     sendResponse({
-      res,
-      statusCode: 200,
-      success: true,
-      message: 'Search results',
-      data: result,
-    });
-    }
+        const hasQuery = q && q.trim().length >= 3; // min 3 chars — prevents noise from 'e', 'th' etc.
+        const hasTags = tags && tags.trim().length > 0;
 
-    const result = await PublicBlogService.searchBlogs({
-      query: q,
-      tags: tags ? tags.split(',') : undefined,
-      category,
-      page: parseInt(page),
-      limit: parseInt(limit),
-    });
+        // FIX: return empty only when BOTH query and tags are absent/invalid
+        // Previously returned empty when q was missing — blocked tags-only search
+        if (!hasQuery && !hasTags) {
+            return sendResponse({
+                res,
+                statusCode: 200,
+                success: true,
+                message: 'Search results',
+                data: {
+                    blogs: [],
+                    pagination: { hasMore: false, totalBlogs: 0 },
+                },
+            });
+        }
 
-    sendResponse({
-  res,
-  statusCode: result.success ? 200 : 400,
-  success: result.success,
-  message: result.message,
-  data: result.data,
-});
-  }),
+        const result = await PublicBlogService.searchBlogs({
+            query: hasQuery ? q.trim() : undefined, // only pass query if 3+ chars
+            tags: hasTags ? tags.split(',') : undefined,
+            category,
+            page: parseInt(page),
+            limit: parseInt(limit),
+        });
 
-  /**
-   * GET /api/public/blogs/popular
-   * Get popular blogs
-   */
-  getPopularBlogs: asyncHandler(async (req, res) => {
-    const { limit = 10, period = 'month' } = req.query;  // week, month, all-time
+        return sendResponse({
+            res,
+            statusCode: result.success ? 200 : 400,
+            success: result.success,
+            message: result.message,
+            data: result.data,
+        });
+    }),
 
-    const result = await PublicBlogService.getPopularBlogs({
-      limit: parseInt(limit),
-      period,
-    });
+    /**
+     * GET /api/public/blogs/popular
+     */
+    getPopularBlogs: asyncHandler(async (req, res) => {
+        const { limit = 10, period = 'month' } = req.query;
 
-    sendResponse({
-  res,
-  statusCode: result.success ? 200 : 400,
-  success: result.success,
-  message: result.message,
-  data: result.data,
-});
-}),
-  /**
-   * GET /api/public/blogs/:slug
-   * Get single blog
-   */
-  getBlogBySlug: asyncHandler(async (req, res) => {
-    const { slug } = req.params;
+        const result = await PublicBlogService.getPopularBlogs({
+            limit: parseInt(limit),
+            period,
+        });
 
-    const result = await PublicBlogService.getBlogBySlug(slug);
+        return sendResponse({
+            res,
+            statusCode: result.success ? 200 : 400,
+            success: result.success,
+            message: result.message,
+            data: result.data,
+        });
+    }),
 
-    if (!result.success) {
-      return sendResponse({
-        res,
-        statusCode: 404,
-        success: false,
-        message: result.message,
-        data: null,
-      });
-    }
+    /**
+     * GET /api/public/blogs/:slug
+     */
+    getBlogBySlug: asyncHandler(async (req, res) => {
+        const { slug } = req.params;
+        const result = await PublicBlogService.getBlogBySlug(slug);
 
-    sendResponse({
-  res,
-  statusCode: result.success ? 200 : 400,
-  success: result.success,
-  message: result.message,
-  data: result.data,
-});
-}),
+        if (!result.success) {
+            return sendResponse({
+                res,
+                statusCode: 404,
+                success: false,
+                message: result.message,
+                data: null,
+            });
+        }
 
-  /**
-   * GET /api/public/blogs/:slug/related
-   * Get related blogs
-   */
-  getRelatedBlogs: asyncHandler(async (req, res) => {
-    const { slug } = req.params;
-    const { limit = 4 } = req.query;
+        return sendResponse({
+            res,
+            statusCode: 200,
+            success: result.success,
+            message: result.message,
+            data: result.data,
+        });
+    }),
 
-    const result = await PublicBlogService.getRelatedBlogs({
-      slug,
-      limit: parseInt(limit),
-    });
+    /**
+     * GET /api/public/blogs/:slug/related
+     */
+    getRelatedBlogs: asyncHandler(async (req, res) => {
+        const { slug } = req.params;
+        const { limit = 4 } = req.query;
 
-    sendResponse({
-  res,
-  statusCode: result.success ? 200 : 400,
-  success: result.success,
-  message: result.message,
-  data: result.data,
-});
-}),
+        const result = await PublicBlogService.getRelatedBlogs({
+            slug,
+            limit: parseInt(limit),
+        });
+
+        return sendResponse({
+            res,
+            statusCode: result.success ? 200 : 400,
+            success: result.success,
+            message: result.message,
+            data: result.data,
+        });
+    }),
 };

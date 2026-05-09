@@ -1,6 +1,4 @@
-"use client";
-import AnalyticsPage from "@/ui-pages/admin/Analytics_New";
-
+import AnalyticsPage from "@/ui-pages/admin/Analytics";
 export default function AdminAnalyticsPage() {
-    return <AnalyticsPage />
+    return <AnalyticsPage />;
 }

@@ -10,9 +10,9 @@ const router = Router();
  * Returns: hero, recentHighlights, latestStories, popularMonthly, featuredTags
  */
 router.get(
-  '/',
-  cacheMiddleware(300),  // 5 min cache
-  HomepageController.getHomepageData
+    '/',
+    cacheMiddleware(300), // 5 min cache
+    HomepageController.getHomepageData,
 );
 
 export default router;

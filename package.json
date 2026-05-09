@@ -1,43 +1,44 @@
 {
-  "name": "the-blog-project",
-  "private": true,
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "seed:author": "NODE_ENV=development node scripts/seed/seedAuthor.js",
-    "migrate:views": "NODE_ENV=development node scripts/migrations/addViewsAndReadTime.js",
-    "db:generate": "pnpm --filter database prisma:generate",
-    "db:migrate": "pnpm --filter database prisma:migrate",
-    "test": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest",
-    "test:unit": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest tests/unit",
-    "start:frontend": "pnpm --filter ./apps/frontend start",
-    "start:backend": "pnpm --filter ./apps/backend start",
-    "start:worker": "pnpm --filter ./apps/worker start",
-    "dev:frontend": "pnpm --filter ./apps/frontend dev",
-    "dev:backend": "NODE_ENV=development pnpm --filter ./apps/backend start",
-    "dev:app": "concurrently --kill-others -n frontend,backend -c blue,green \"pnpm start:frontend\" \"pnpm start:backend\"",
-    "dev:worker": "pnpm start:worker",
-    "dev:all": "concurrently --kill-others -n frontend,backend,worker -c blue,green,yellow \"pnpm start:frontend\" \"pnpm start:backend\" \"pnpm start:worker\"",
-    "format": "prettier --write ."
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.17.1",
-  "devDependencies": {
-    "@jest/globals": "^30.3.0",
-    "@testing-library/jest-dom": "^6.8.0",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^14.6.1",
-    "cloudinary": "^2.9.0",
-    "jest": "^30.3.0",
-    "prettier": "3.6.2",
-    "prisma": "^6.19.0",
-    "supertest": "^7.1.4"
-  },
-  "dependencies": {
-    "bullmq": "^5.56.9"
-  }
+    "name": "the-blog-project",
+    "private": true,
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "seed:all": "NODE_ENV=development node scripts/seed/seedAll.js",
+        "db:generate": "pnpm --filter database prisma:generate",
+        "db:migrate": "pnpm --filter database prisma:migrate",
+        "db:migrate:test": "NODE_ENV=test pnpm --filter database prisma:migrate:deploy",
+        "test": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest",
+        "test:unit": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest tests/unit",
+        "test:e2e": "NODE_ENV=e2e playwright test",
+        "db:migrate:e2e": "NODE_ENV=e2e pnpm --filter database prisma:migrate:deploy",
+        "start:frontend": "pnpm --filter ./apps/frontend start",
+        "start:backend": "pnpm --filter ./apps/backend start",
+        "start:worker": "pnpm --filter ./apps/worker start",
+        "dev:frontend": "pnpm --filter ./apps/frontend dev",
+        "dev:backend": "NODE_ENV=development pnpm --filter ./apps/backend dev",
+        "dev:worker": "pnpm start:worker",
+        "format": "prettier --write ."
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "packageManager": "pnpm@10.17.1",
+    "devDependencies": {
+        "@jest/globals": "^30.3.0",
+        "@playwright/test": "^1.59.1",
+        "@testing-library/jest-dom": "^6.8.0",
+        "@testing-library/react": "^16.3.0",
+        "@testing-library/user-event": "^14.6.1",
+        "cloudinary": "^2.9.0",
+        "jest": "^30.3.0",
+        "prettier": "3.6.2",
+        "prisma": "^6.19.0",
+        "supertest": "^7.1.4"
+    },
+    "dependencies": {
+        "bullmq": "^5.56.9"
+    }
 }

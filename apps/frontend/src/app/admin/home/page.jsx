@@ -1,6 +1,4 @@
-"use client";
-
-import AdminHomePage from "@/ui-pages/admin/AdminHome_New";
+import AdminHomePage from "@/ui-pages/admin/AdminHome";
 export default function AdminHome() {
-  return <AdminHomePage />;
+    return <AdminHomePage />;
 }

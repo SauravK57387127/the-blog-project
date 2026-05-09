@@ -14,9 +14,7 @@ import "prismjs/components/prism-markdown";
 import "@/styles/prism-vsc-dark-plus.css";
 // import "prismjs/themes/prism-okaidia.css";
 
-
 export default Prism;
-
 
 // import Prism from "prismjs";
 

@@ -10,4 +10,3 @@ export { default as Tag } from './tag.model.js';
 export { default as BlogMetadata } from './blogMetadata.model.js';
 export { default as Notification } from './notification.model.js';
 export { default as Subscriber } from './subscriber.model.js';
-

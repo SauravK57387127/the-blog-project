@@ -1,0 +1,35 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-production:
+    name: Deploy Production
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy Backend to Production
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND_PROD }}"
+
+      - name: Deploy Worker to Production
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_WORKER_PROD }}"
+
+      - name: Wait for deployment
+        run: sleep 90
+
+      - name: Smoke test production backend
+        run: |
+          curl -f https://theblogproj-backend-production.onrender.com/health || exit 1
+          curl -f https://theblogproj-backend-production.onrender.com/api/public/homepage || exit 1
+
+      - name: Create Sentry release
+        run: |
+          curl https://sentry.io/api/0/organizations/${{ secrets.SENTRY_ORG }}/releases/ \
+            -X POST \
+            -H "Authorization: Bearer ${{ secrets.SENTRY_AUTH_TOKEN }}" \
+            -H 'Content-Type: application/json' \
+            -d "{\"version\":\"${{ github.sha }}\",\"projects\":[\"${{ secrets.SENTRY_PROJECT }}\"]}"

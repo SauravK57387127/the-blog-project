@@ -1,7 +1,6 @@
-// COMMMAND : pnpm exec prisma migrate dev --schema=database/postgres/prisma/schema.prisma --name add_admin_authentication
-
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {

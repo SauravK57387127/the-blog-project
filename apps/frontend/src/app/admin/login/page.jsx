@@ -1,6 +1,4 @@
-"use client";
-
-import AdminLoginPage from "@/ui-pages/AdminLogin_New";
+import AdminLoginPage from "@/ui-pages/AdminLogin";
 export default function AdminLogin() {
-  return <AdminLoginPage />;
+    return <AdminLoginPage />;
 }

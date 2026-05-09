@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { cacheMiddleware } from '../../middlewares/cache.middleware.js';
 import PublicBlogController from '../../controllers/public/blog.controller.js';
+import ViewTrackingController from '../../controllers/public/viewTracking.controller.js'; // ADD
 
 const router = Router();
 
@@ -10,9 +11,9 @@ const router = Router();
  * Query params: page, limit, tags, category, sort
  */
 router.get(
-  '/',
-  cacheMiddleware(300),  // 5 min cache
-  PublicBlogController.listBlogs
+    '/',
+    cacheMiddleware(300), // 5 min cache
+    PublicBlogController.listBlogs,
 );
 
 /**
@@ -20,30 +21,29 @@ router.get(
  * Search blogs by title/content
  * Query params: q (search term), tags, category
  */
-router.get(
-  '/search',
-  cacheMiddleware(300),
-  PublicBlogController.searchBlogs
-);
+router.get('/search', cacheMiddleware(300), PublicBlogController.searchBlogs);
 
 /**
  * GET /api/public/blogs/popular
  * Get popular blogs (most viewed)
  */
 router.get(
-  '/popular',
-  cacheMiddleware(600),  // 10 min cache
-  PublicBlogController.getPopularBlogs
+    '/popular',
+    cacheMiddleware(600), // 10 min cache
+    PublicBlogController.getPopularBlogs,
 );
+
+// ADD THIS — before /:slug to be safe
+router.post('/:slug/view', ViewTrackingController.trackViewBySlug);
 
 /**
  * GET /api/public/blogs/:slug
  * Get single blog by slug
  */
 router.get(
-  '/:slug',
-  cacheMiddleware(3600),  // 1 hour cache
-  PublicBlogController.getBlogBySlug
+    '/:slug',
+    cacheMiddleware(3600), // 1 hour cache
+    PublicBlogController.getBlogBySlug,
 );
 
 /**
@@ -51,9 +51,9 @@ router.get(
  * Get related blogs (same tags)
  */
 router.get(
-  '/:slug/related',
-  cacheMiddleware(3600),
-  PublicBlogController.getRelatedBlogs
+    '/:slug/related',
+    cacheMiddleware(3600),
+    PublicBlogController.getRelatedBlogs,
 );
 
 export default router;

@@ -3,29 +3,31 @@ import { sendResponse } from '../../utils/sendResponse.js';
 import DashboardService from '../../services/admin/dashboard.service.js';
 
 export default {
-  getStats: asyncHandler(async (req, res) => {
-    const result = await DashboardService.getStats();
+    getStats: asyncHandler(async (req, res) => {
+        const result = await DashboardService.getStats();
 
-    sendResponse({
-      res,
-      statusCode: result.success ? 200 : 500,
-      success: result.success,
-      message: result.message,
-      data: result.data,
-    });
-  }),
+        sendResponse({
+            res,
+            statusCode: result.success ? 200 : 500,
+            success: result.success,
+            message: result.message,
+            data: result.data,
+        });
+    }),
 
-  getRecentActivity: asyncHandler(async (req, res) => {
-    const { limit = 10 } = req.query;
+    getRecentActivity: asyncHandler(async (req, res) => {
+        const { limit = 10 } = req.query;
 
-    const result = await DashboardService.getRecentActivity(parseInt(limit));
+        const result = await DashboardService.getRecentActivity(
+            parseInt(limit),
+        );
 
-    sendResponse({
-      res,
-      statusCode: result.success ? 200 : 500,
-      success: result.success,
-      message: result.message,
-      data: result.data,
-    });
-  }),
+        sendResponse({
+            res,
+            statusCode: result.success ? 200 : 500,
+            success: result.success,
+            message: result.message,
+            data: result.data,
+        });
+    }),
 };

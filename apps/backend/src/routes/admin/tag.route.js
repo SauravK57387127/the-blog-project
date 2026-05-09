@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import TagController from '../../controllers/admin/tag.controller.js';
 
-
 const router = Router();
 
 // /api/admin/tags

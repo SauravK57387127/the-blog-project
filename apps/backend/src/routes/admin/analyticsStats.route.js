@@ -1,4 +1,7 @@
+import { Router } from 'express';
 import AnalyticsStatsController from '../../controllers/admin/analyticsStats.controller.js';
+
+const router = Router();
 
 // ... existing routes
 
@@ -28,10 +31,15 @@ router.get('/top-posts', AnalyticsStatsController.getTopPerformingPosts);
  * GET /api/admin/analytics/category-breakdown
  * Views by category
  */
-router.get('/category-breakdown', AnalyticsStatsController.getCategoryBreakdown);
+router.get(
+    '/category-breakdown',
+    AnalyticsStatsController.getCategoryBreakdown,
+);
 
 /**
  * GET /api/admin/analytics/personal-best
  * Best day + best month
  */
 router.get('/personal-best', AnalyticsStatsController.getPersonalBest);
+
+export default router;

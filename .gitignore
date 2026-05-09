@@ -52,6 +52,10 @@ new-unused-files/
 e2e-old/
 tests-old/
 project_analysis.md
+BEST_PRACTICES.md
+ai-notes.md
+babel.config.js
+archive/
 
 # Backup files
 *.backup
@@ -62,3 +66,8 @@ index.e2e.js
 
 # Docker
 docker-compose.override.yml
+.claudeignore
+
+# Playwright generated test artifacts
+/test-results/
+/tests/e2e/reports/
