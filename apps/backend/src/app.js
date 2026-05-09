@@ -35,8 +35,13 @@ export const createApp = ({ blogQueue, deadLetterQueue } = {}) => {
 
     app.use(
         cors({
-            origin: 'http://localhost:3000', // Your frontend URL
-            credentials: true, // Allow credentials
+            origin: (origin, callback) => {
+    if (!origin || config.allowedOrigins.includes(origin)) {
+        callback(null, true);
+    } else {
+        callback(new Error('Not allowed by CORS'));
+    }
+},            credentials: true, // Allow credentials
             methods: ['GET', 'POST', 'PUT', 'DELETE'],
             allowedHeaders: ['Content-Type', 'Authorization', 'x-test-user-id'],
         }),
