@@ -184,27 +184,6 @@ The `/health` endpoint is intentionally placed before authentication middleware 
 
 These decisions cover data modeling, authentication, async execution, rendering strategy, code organization, and operational reliability without overstating the scope of the project.
 
-## Screenshots
-
-Add screenshots here to show the product in action.
-
-Suggested order:
-
-* homepage
-* post editor
-* article page
-* admin dashboard
-* scheduling interface
-* analytics or engagement views
-
-Example:
-
-```md
-![Homepage](./assets/screenshots/homepage.png)
-![Editor](./assets/screenshots/editor.png)
-![Admin Dashboard](./assets/screenshots/admin-dashboard.png)
-```
-
 ---
 
 ## Getting Started
