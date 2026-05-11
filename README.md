@@ -22,7 +22,6 @@ A full-stack personal publishing platform built for writing and sharing content 
 * [Background Jobs](#background-jobs)
 * [CI/CD Pipeline](#cicd-pipeline)
 * [Engineering Decisions](#engineering-decisions)
-* [Screenshots](#screenshots)
 * [Getting Started](#getting-started)
 * [Environment Variables](#environment-variables)
 * [Testing](#testing)
