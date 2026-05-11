@@ -71,3 +71,6 @@ docker-compose.override.yml
 # Playwright generated test artifacts
 /test-results/
 /tests/e2e/reports/
+
+# Example .env
+!.env.example
