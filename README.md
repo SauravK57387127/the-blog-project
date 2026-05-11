@@ -22,7 +22,6 @@ A full-stack personal publishing platform built for writing and sharing content 
 * [Background Jobs](#background-jobs)
 * [CI/CD Pipeline](#cicd-pipeline)
 * [Engineering Decisions](#engineering-decisions)
-* [Screenshots](#screenshots)
 * [Getting Started](#getting-started)
 * [Environment Variables](#environment-variables)
 * [Testing](#testing)
@@ -183,27 +182,6 @@ The frontend, backend, and worker share packages for config, logging, and databa
 The `/health` endpoint is intentionally placed before authentication middleware so infrastructure checks can reach it without a token. Load balancers, container health checks, and smoke tests should not depend on app login state. This is a small implementation detail, but it matters operationally because middleware order determines request flow.
 
 These decisions cover data modeling, authentication, async execution, rendering strategy, code organization, and operational reliability without overstating the scope of the project.
-
-## Screenshots
-
-Add screenshots here to show the product in action.
-
-Suggested order:
-
-* homepage
-* post editor
-* article page
-* admin dashboard
-* scheduling interface
-* analytics or engagement views
-
-Example:
-
-```md
-![Homepage](./assets/screenshots/homepage.png)
-![Editor](./assets/screenshots/editor.png)
-![Admin Dashboard](./assets/screenshots/admin-dashboard.png)
-```
 
 ---
 
