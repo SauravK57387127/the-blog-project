@@ -94,8 +94,9 @@ export default function EditDraftPage({ draftSlug }) {
     const [newTag, setNewTag] = useState("");
     const [coverInput, setCoverInput] = useState("");
     const [isUploadingCover, setIsUploadingCover] = useState(false);
-
-    const fileInputRef = useRef(null);
+const [excerpt, setExcerpt] = useState("");
+    
+  const fileInputRef = useRef(null);
     const autosaveTimer = useRef(null);
     const initializedRef = useRef(false);
 
@@ -110,6 +111,7 @@ export default function EditDraftPage({ draftSlug }) {
         setTags(draft.tags ?? []);
         setCategory(draft.category ?? "");
         setBlogId(draft._id);
+      setExcerpt(draft.excerpt ?? "");
         if (draft.scheduledAt) setScheduleDate(draft.scheduledAt);
         // Restore editor's pick from draft
         setIsEditorsPick(draft.editorsPick?.isEditorsPick ?? false);
@@ -136,6 +138,7 @@ export default function EditDraftPage({ draftSlug }) {
                 {
                     title,
                     content,
+                  excerpt,
                     coverImage,
                     tags,
                     category,
@@ -154,6 +157,7 @@ export default function EditDraftPage({ draftSlug }) {
     }, [
         title,
         content,
+      excerpt,
         coverImage,
         tags,
         category,
@@ -351,6 +355,24 @@ export default function EditDraftPage({ draftSlug }) {
                             className="border-0 p-0 h-auto text-sm font-sans font-semibold focus-visible:ring-0 bg-transparent"
                         />
                     </div>
+
+      {/* Excerpt */}
+<div className="px-4 py-3 flex-shrink-0 max-w-xs">
+    <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest mb-1">
+        Excerpt
+    </p>
+    <textarea
+        value={excerpt}
+        onChange={(e) => setExcerpt(e.target.value.slice(0, 180))}
+        placeholder="Brief summary..."
+        rows={1}
+        maxLength={180}
+        className="text-xs font-reading bg-transparent border-0 outline-none resize-none w-full placeholder:text-muted-foreground text-foreground/80"
+    />
+    <p className="text-[9px] font-mono text-muted-foreground/50 mt-0.5">
+        {excerpt.length}/180
+    </p>
+</div>
 
                     {/* Cover */}
                     <div className="px-4 py-3 flex-shrink-0">
