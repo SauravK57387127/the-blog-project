@@ -11,7 +11,14 @@ function slugify(text) {
 
 function calculateReadingTime(content) {
     const wordsPerMinute = 200;
-    const wordCount = content.trim().split(/\s+/).length;
+    const plainText = content
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/&[a-z]+;/gi, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    const wordCount = plainText.length > 0 
+        ? plainText.split(' ').filter(w => w.length > 0).length 
+        : 0;
     return Math.ceil(wordCount / wordsPerMinute);
 }
 
@@ -170,8 +177,15 @@ BlogSchema.methods.publish = function () {
 };
 
 BlogSchema.methods.updateWordCount = function () {
-    const words = this.content.trim().split(/\s+/).length;
-    this.wordCount = words;
+    const plainText = this.content
+        .replace(/<[^>]*>/g, ' ')  // strip HTML tags
+        .replace(/&[a-z]+;/gi, ' ')  // strip HTML entities like &amp;
+        .replace(/\s+/g, ' ')  // normalize whitespace
+        .trim();
+    
+    this.wordCount = plainText.length > 0 
+        ? plainText.split(' ').filter(w => w.length > 0).length 
+        : 0;
     return this;
 };
 
