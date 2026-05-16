@@ -9,18 +9,10 @@ export function useEngagement(blogId) {
     const { isSignedIn } = useUser();
     const queryClient = useQueryClient();
 
-    useEffect(() => {
-        if (!isSignedIn && blogId) {
-            queryClient.removeQueries({
-                queryKey: queryKeys.user.engagement(blogId),
-            });
-        }
-    }, [isSignedIn, blogId]);
-
-    return useQuery({
+  return useQuery({
         queryKey: queryKeys.user.engagement(blogId),
         queryFn: () => engagementService.getStatus(blogId),
-        enabled: !!blogId && !!isSignedIn,
+        enabled: !!blogId,
         staleTime: 0,
         select: (response) => response.data,
     });
