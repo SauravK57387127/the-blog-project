@@ -72,7 +72,7 @@ export default function HeroSection({ blog, isLoading, onBlogClick }) {
 
                         {/* Excerpt */}
                         <p className="text-lg text-foreground/75 leading-relaxed font-reading">
-                            {blog.excerpt || blog.content?.substring(0, 180)}...
+                            {blog.excerpt || blog.content?.substring(0, 180)}.
                         </p>
 
                         {/* CTA */}
