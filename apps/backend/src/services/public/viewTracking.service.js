@@ -163,6 +163,23 @@ const ViewTrackingService = {
                 );
             }
 
+// Calculate avgReadTime from all views with timeSpent > 0
+const readViews = await BlogView.find({ 
+    blogId, 
+    timeSpent: { $gt: 0 } 
+}).select('timeSpent').lean();
+
+if (readViews.length > 0) {
+    const avgTime = Math.round(
+        readViews.reduce((sum, v) => sum + v.timeSpent, 0) / readViews.length
+    );
+    await BlogAnalytics.findOneAndUpdate(
+        { blogId },
+        { $set: { avgReadTime: avgTime } },
+        { upsert: true }
+    );
+}
+
             logger.info('View updated', {
                 blogId,
                 sessionId,
