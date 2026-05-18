@@ -9,54 +9,34 @@ function slugify(text) {
         .replace(/^-+|-+$/g, '');
 }
 
-function calculateReadingTime(content) {
-    const wordsPerMinute = 200;
-    const plainText = content
-        .replace(/<[^>]*>/g, ' ')
-        .replace(/&[a-z]+;/gi, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-    const wordCount = plainText.length > 0 
-        ? plainText.split(' ').filter(w => w.length > 0).length 
-        : 0;
-    return Math.ceil(wordCount / wordsPerMinute);
-}
-
 const BlogSchema = new mongoose.Schema(
     {
-        // ========== CONTENT ==========
         title: {
             type: String,
             required: true,
             trim: true,
             maxlength: 200,
         },
-
         slug: {
             type: String,
             unique: true,
-            sparse: true, // Only required for published blogs
+            sparse: true,
         },
-
         draftSlug: {
             type: String,
             unique: true,
             sparse: true,
             index: true,
         },
-
         content: {
             type: String,
             required: true,
         },
-
         coverImage: String,
-
         excerpt: {
             type: String,
             maxlength: 300,
         },
-
         tags: [
             {
                 type: String,
@@ -64,7 +44,6 @@ const BlogSchema = new mongoose.Schema(
                 trim: true,
             },
         ],
-
         category: {
             type: String,
             enum: [
@@ -77,36 +56,28 @@ const BlogSchema = new mongoose.Schema(
             default: '',
             index: true,
         },
-
         readingTime: {
-            type: Number, // minutes
+            type: Number,
             default: 5,
         },
-
-        // ========== AUTHOR ==========
         authorId: {
             type: String,
             required: true,
             default: 'single-author',
         },
-
-        // ========== STATUS ==========
         status: {
             type: String,
             enum: ['draft', 'scheduled', 'published'],
             default: 'draft',
             index: true,
         },
-
         publishedAt: Date,
         scheduledAt: Date,
-        autosaveAt: Date, // For drafts
-
+        autosaveAt: Date,
         wordCount: {
             type: Number,
             default: 0,
         },
-
         editorsPick: {
             isEditorsPick: {
                 type: Boolean,
@@ -132,68 +103,24 @@ const BlogSchema = new mongoose.Schema(
     },
 );
 
-// Text search index for fast searching
 BlogSchema.index(
+    { title: 'text', content: 'text', excerpt: 'text' },
     {
-        title: 'text',
-        content: 'text',
-        excerpt: 'text',
-    },
-    {
-        weights: {
-            title: 10, // Title matches are most important
-            excerpt: 5, // Excerpt matches are medium importance
-            content: 1, // Content matches are least important
-        },
+        weights: { title: 10, excerpt: 5, content: 1 },
         name: 'blog_text_search',
     },
 );
 
-// Compound indexes for filtering
 BlogSchema.index({ status: 1, category: 1, publishedAt: -1 });
 BlogSchema.index({ status: 1, tags: 1, publishedAt: -1 });
-
-// Indexes
 BlogSchema.index({ status: 1, publishedAt: -1 });
 
-// Virtuals
 BlogSchema.virtual('isDraft').get(function () {
     return this.status === 'draft';
 });
 
 BlogSchema.virtual('isPublished').get(function () {
     return this.status === 'published';
-});
-
-// ========== METHODS ========== ← ADD HERE
-BlogSchema.methods.publish = function () {
-    this.status = 'published';
-    this.publishedAt = new Date();
-    if (!this.slug) {
-        this.slug = slugify(this.title);
-    }
-    this.readingTime = calculateReadingTime(this.content);
-    return this.save();
-};
-
-BlogSchema.methods.updateWordCount = function () {
-    const plainText = this.content
-        .replace(/<[^>]*>/g, ' ')  // strip HTML tags
-        .replace(/&[a-z]+;/gi, ' ')  // strip HTML entities like &amp;
-        .replace(/\s+/g, ' ')  // normalize whitespace
-        .trim();
-    
-    this.wordCount = plainText.length > 0 
-        ? plainText.split(' ').filter(w => w.length > 0).length 
-        : 0;
-    return this;
-};
-
-BlogSchema.pre('save', function (next) {
-    if (this.isModified('content')) {
-        this.updateWordCount();
-    }
-    next();
 });
 
 export default mongoose.model('Blog', BlogSchema);
