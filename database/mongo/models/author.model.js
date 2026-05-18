@@ -41,6 +41,8 @@ const AuthorSchema = new mongoose.Schema({
 
     isActive: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now },
+
+  clerkUserId: { type: String, sparse: true, index: true },
 });
 
 export default mongoose.model('Author', AuthorSchema);
