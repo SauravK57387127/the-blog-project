@@ -100,36 +100,42 @@ async function getTopTags() {
  */
 async function getPopularReads() {
     const analytics = await BlogAnalytics.find({
-        views180d: { $gte: 10 }, // At least 10 views (low threshold for start)
-        completionRate: { $gte: 30 }, // At least 30% completion
+        views180d: { $gte: 1 },
+        completionRate: { $gte: 0 },
     })
         .sort({ views180d: -1 })
         .limit(6)
-        .select('blogId views180d completionRate');
+        .select('blogId views180d completionRate totalViews');
 
     if (analytics.length === 0) {
-        // Fallback: return recent if no analytics
-        return Blog.find({ status: 'published' })
+        const recentBlogs = await Blog.find({ status: 'published' })
             .sort({ publishedAt: -1 })
             .limit(6)
-            .select(
-                'title slug excerpt coverImage tags category readingTime publishedAt',
-            )
+            .select('title slug excerpt coverImage tags category readingTime publishedAt')
             .lean();
+
+        const blogIds = recentBlogs.map(b => b._id);
+        const recentAnalytics = await BlogAnalytics.find({ blogId: { $in: blogIds } })
+            .select('blogId totalViews')
+            .lean();
+        const analyticsMap = new Map(
+            recentAnalytics.map(a => [a.blogId.toString(), a.totalViews])
+        );
+
+        return recentBlogs.map(blog => ({
+            ...blog,
+            views: analyticsMap.get(blog._id.toString()) ?? 0,
+        }));
     }
 
     const blogIds = analytics.map((a) => a.blogId);
-
     const blogs = await Blog.find({
         _id: { $in: blogIds },
         status: 'published',
     })
-        .select(
-            'title slug excerpt coverImage tags category readingTime publishedAt',
-        )
+        .select('title slug excerpt coverImage tags category readingTime publishedAt')
         .lean();
 
-    // Sort by analytics order and add view count
     const blogsMap = new Map(blogs.map((b) => [b._id.toString(), b]));
     const sortedBlogs = analytics
         .map((a) => {

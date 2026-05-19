@@ -16,6 +16,23 @@ function slugify(text) {
         .replace(/^-+|-+$/g, '');
 }
 
+function calculateWordCount(content) {
+    if (!content) return 0;
+    const plainText = content
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/&[a-z]+;/gi, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    return plainText.length > 0
+        ? plainText.split(' ').filter(w => w.length > 0).length
+        : 0;
+}
+
+function calculateReadingTime(content) {
+    const wordCount = calculateWordCount(content);
+    return Math.ceil(wordCount / 200);
+}
+
 export default {
     /**
      * Get all published/scheduled blogs with pagination & filters
@@ -447,43 +464,48 @@ export default {
     /**
      * Auto-save blog (debounced from frontend)
      */
-    autosaveBlog: async (blogId, updates) => {
-        try {
-            const blog = await Blog.findByIdAndUpdate(
-                blogId,
-                {
-                    ...updates,
-                    autosaveAt: new Date(),
-                    updatedAt: new Date(),
-                },
-                { new: true },
-            );
+ autosaveBlog: async (blogId, updates) => {
+    try {
+        const blog = await Blog.findByIdAndUpdate(
+            blogId,
+            {
+                ...updates,
+                autosaveAt: new Date(),
+                updatedAt: new Date(),
+                ...(updates.content && {
+                    wordCount: calculateWordCount(updates.content),
+                    readingTime: calculateReadingTime(updates.content),
+                }),
+            },
+            { new: true },
+        );
 
-            if (!blog) {
-                return {
-                    success: false,
-                    message: 'Blog not found',
-                    data: null,
-                };
-            }
-
-            logger.debug('Blog autosaved', { blogId });
-
-            return {
-                success: true,
-                message: 'Blog autosaved',
-                data: blog,
-            };
-        } catch (error) {
-            logger.error('Autosave failed', { error: error.message, blogId });
+        if (!blog) {
             return {
                 success: false,
-                message: 'Failed to autosave',
+                message: 'Blog not found',
                 data: null,
-                error: error.message,
             };
         }
-    },
+
+        logger.debug('Blog autosaved', { blogId });
+
+        return {
+            success: true,
+            message: 'Blog autosaved',
+            data: blog,
+        };
+    } catch (error) {
+        logger.error('Autosave failed', { error: error.message, blogId });
+        return {
+            success: false,
+            message: 'Failed to autosave',
+            data: null,
+            error: error.message,
+        };
+    }
+},
+
 
     /**
      * Publish blog immediately
@@ -514,6 +536,8 @@ export default {
                     publishedAt: new Date(),
                     scheduledAt: null,
                     updatedAt: new Date(),
+                  wordCount: calculateWordCount(blog.content),
+readingTime: calculateReadingTime(blog.content),
                     ...(!blog.slug && { slug: slugify(blog.title) }),
                 },
                 { new: true, runValidators: false },
