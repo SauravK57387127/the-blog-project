@@ -88,6 +88,11 @@ function CommentCard({ comment, blogId, onDelete, currentUserId, level = 0 }) {
                             <span className="font-sans font-semibold text-sm">
                                 {authorName}
                             </span>
+      {comment.isAuthor && (
+    <span className="text-[10px] font-mono px-1.5 py-0.5 border border-accent text-accent uppercase tracking-widest">
+        author
+    </span>
+)}
                             <span
                                 suppressHydrationWarning
                                 className="text-xs font-mono text-muted-foreground"
