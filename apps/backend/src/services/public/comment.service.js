@@ -59,8 +59,7 @@ export default {
                         totalPages: Math.ceil(totalTopLevelComments / limit),
                         totalComments: totalTopLevelComments,
                         hasMore:
-                            skip + topLevelComments.length 
-                            totalTopLevelComments,
+                            skip + topLevelComments.length < totalTopLevelComments,
                     },
                 },
             };
