@@ -9,22 +9,6 @@ function slugify(text) {
         .replace(/^-+|-+$/g, '');
 }
 
-<<<<<<< HEAD
-=======
-function calculateReadingTime(content) {
-    const wordsPerMinute = 200;
-    const plainText = content
-        .replace(/<[^>]*>/g, ' ')
-        .replace(/&[a-z]+;/gi, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-    const wordCount = plainText.length > 0 
-        ? plainText.split(' ').filter(w => w.length > 0).length 
-        : 0;
-    return Math.ceil(wordCount / wordsPerMinute);
-}
-
->>>>>>> main
 const BlogSchema = new mongoose.Schema(
     {
         title: {
@@ -139,38 +123,4 @@ BlogSchema.virtual('isPublished').get(function () {
     return this.status === 'published';
 });
 
-<<<<<<< HEAD
-=======
-// ========== METHODS ========== ← ADD HERE
-BlogSchema.methods.publish = function () {
-    this.status = 'published';
-    this.publishedAt = new Date();
-    if (!this.slug) {
-        this.slug = slugify(this.title);
-    }
-    this.readingTime = calculateReadingTime(this.content);
-    return this.save();
-};
-
-BlogSchema.methods.updateWordCount = function () {
-    const plainText = this.content
-        .replace(/<[^>]*>/g, ' ')  // strip HTML tags
-        .replace(/&[a-z]+;/gi, ' ')  // strip HTML entities like &amp;
-        .replace(/\s+/g, ' ')  // normalize whitespace
-        .trim();
-    
-    this.wordCount = plainText.length > 0 
-        ? plainText.split(' ').filter(w => w.length > 0).length 
-        : 0;
-    return this;
-};
-
-BlogSchema.pre('save', function (next) {
-    if (this.isModified('content')) {
-        this.updateWordCount();
-    }
-    next();
-});
-
->>>>>>> main
 export default mongoose.model('Blog', BlogSchema);
