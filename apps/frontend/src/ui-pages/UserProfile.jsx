@@ -100,9 +100,9 @@ function BlogRow({ blog, meta, onNavigate }) {
 }
 
 function NotificationItem({ notification, onMarkRead, onNavigate }) {
-    const isReply = notification.type === "reply";
-    const avatar =
-        notification.actor?.profileImage ??
+   const isReply = notification.type === "reply";
+const isComment = notification.type === "comment";
+  const avatar = notification.actor?.profileImage ??
         `https://api.dicebear.com/7.x/avataaars/svg?seed=${notification.actor?.name}`;
 
     return (
@@ -134,11 +134,13 @@ function NotificationItem({ notification, onMarkRead, onNavigate }) {
                         {notification.actor?.name}
                     </span>
                     <span className="text-muted-foreground">
-                        {isReply
-                            ? " replied to your comment on "
-                            : " liked your comment on "}
-                    </span>
-                    <span className="font-medium line-clamp-1">
+    {isComment
+        ? " commented on your blog "
+        : isReply
+        ? " replied to your comment on "
+        : " liked your comment on "}
+</span>  
+      <span className="font-medium line-clamp-1">
                         "{notification.blogTitle}"
                     </span>
                 </p>

@@ -2,7 +2,7 @@ import { models } from '../../../../../database/index.js';
 import { logger } from '../../../../../packages/logger/index.js';
 import mongoose from 'mongoose';
 
-const { Comment, Blog, User, BlogAnalytics } = models;
+const { Comment, Blog, User, BlogAnalytics, Notification } = models;
 
 export default {
     /**
@@ -126,6 +126,35 @@ export default {
                 blogId,
                 commentId: comment._id,
             });
+
+try {
+    const { Author, Notification } = models;
+    const author = await Author.findOne({ isActive: true })
+        .select('clerkUserId')
+        .lean();
+    
+    if (author?.clerkUserId && author.clerkUserId !== userId) {
+        const authorUser = await User.findOne({ 
+            clerkUserId: author.clerkUserId 
+        }).select('_id').lean();
+
+        if (authorUser) {
+            await Notification.create({
+                recipientId: authorUser._id,
+                actorId: user._id,
+                blogId: new mongoose.Types.ObjectId(blogId),
+                type: 'comment',
+                commentId: comment._id,
+                commentPreview: content.slice(0, 200),
+            });
+        }
+    }
+} catch (notifError) {
+    // Never block comment creation if notification fails
+    logger.warn('Failed to create comment notification', {
+        error: notifError.message,
+    });
+}
 
             return {
                 success: true,
