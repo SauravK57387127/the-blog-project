@@ -194,6 +194,7 @@ html,
 body {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
+    overflow-y: scroll;
 }
 
 /* Custom scroll — used on comment windows, editor, preview pane */
